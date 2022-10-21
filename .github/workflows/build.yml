@@ -46,10 +46,10 @@ jobs:
 
   publish:
     name: publish image
-    needs:
-      - build
     with:
       dockerFile: ./oasis-api/Dockerfile
+    needs:
+      - build
 
     runs-on: ubuntu-latest
 
