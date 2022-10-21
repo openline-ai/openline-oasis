@@ -4,7 +4,7 @@ FROM golang:1.19-alpine as builder
 
 WORKDIR /app
 
-COPY . .
+COPY .. .
 
 RUN go build -o /go/bin/app openline-ai/openline-oasis
 

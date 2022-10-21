@@ -24,10 +24,12 @@ jobs:
           go-version: 1.19
 
       - name: Build
+        working-directory: ./oasis-api
         run: go build -v
 
       - name: Test
-        run: go test -v
+        working-directory: ./oasis-api
+        run: cd oasis-api && go test -v
 
   sonar:
     runs-on: ubuntu-latest
@@ -46,6 +48,8 @@ jobs:
     name: publish image
     needs:
       - build
+    with:
+      dockerFile: ./oasis-api/Dockerfile
 
     runs-on: ubuntu-latest
 

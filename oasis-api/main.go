@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"openline-ai/openline-oasis/routes"
+	"openline-ai/oasis-api/routes"
 )
 
 var (

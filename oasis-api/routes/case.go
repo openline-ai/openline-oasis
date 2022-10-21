@@ -3,10 +3,10 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	pb "github.com/openline-ai/openline-grpc"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
+	pb "openline-ai/oasis-common/grpc"
 )
 
 type CasePostRequest struct {

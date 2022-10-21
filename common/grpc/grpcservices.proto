@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "openline.ai/openline-grpc/grpc";
+package grpcservices;
+
+enum MessageType {
+  MESSAGE = 0;
+  FILE = 1;
+}
+enum MessageDirection {
+  INBOUND = 0;
+  OUTBOUND = 1;
+}
+
+enum MessageChannel {
+  WIDGET = 0;
+  MAIL = 1;
+  WHATSAPP = 2;
+  FACEBOOK = 3;
+  TWITTER = 4;
+}
+
+message OmniMessage {
+  MessageType type = 1;
+  string message = 2;
+  string username = 3;
+  MessageChannel channel = 4;
+  MessageDirection direction = 5;
+}
+
+message Empty {
+}
+
+service OmniChannels {
+  rpc SendMessage(OmniMessage) returns (Empty) {};
+  rpc SendMail(OmniMessage) returns (Empty);
+}
+
+service MessageStore {
+  rpc SaveMessage(OmniMessage) returns (Empty) {};
+}
