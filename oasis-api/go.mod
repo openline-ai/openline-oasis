@@ -29,4 +29,4 @@ require (
 	openline-ai/oasis-common/grpc v0.0.0-00010101000000-000000000000 // indirect
 )
 
-replace openline-ai/oasis-common/grpc => ../common/grpc
+replace openline-ai/oasis-common/grpc => ./../oasis-common/grpc
