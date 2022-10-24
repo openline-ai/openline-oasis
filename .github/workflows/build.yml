@@ -1,7 +1,10 @@
-name: Build app
+name: Build Oasis API
 
 on:
-  push
+  push:
+    #paths:
+     # - 'common/grpc/**'
+     # - 'oasis-api/**'
 
 env:
   REGISTRY: ghcr.io
