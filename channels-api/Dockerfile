@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.19-alpine as builder
+
+WORKDIR /app
+
+COPY ../oasis-common ./oasis-common
+COPY ../channels-api ./channels-api
+
+
+RUN go build -o /go/bin/app openline-ai/openline-channels
+
+FROM alpine:3.14
+COPY --chown=65534:65534 --from=builder /go/bin/app .
+USER 65534
+
+ENTRYPOINT [ "./app" ]
