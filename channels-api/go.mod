@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.8.1
-	github.com/openline-ai/openline-grpc v0.0.0-20221019064845-8d6ecc4164c7
 	google.golang.org/grpc v1.50.1
+	openline-ai/oasis-common/grpc v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -30,3 +30,5 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace openline-ai/oasis-common/grpc => ./../oasis-common/grpc

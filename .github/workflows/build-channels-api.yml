@@ -5,10 +5,11 @@ on:
     paths:
       - 'oasis-common/grpc/**'
       - 'channels-api/**'
+      - '.github/workflows/build-channels-api.yml'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}/channels-api
 
 permissions:
   contents: read

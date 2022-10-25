@@ -2,10 +2,10 @@ package routes
 
 import (
 	"fmt"
-	pb "github.com/openline-ai/openline-grpc"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
+	pb "openline-ai/oasis-common/grpc"
 
 	"github.com/gin-gonic/gin"
 )
