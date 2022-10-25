@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t openline.ai/openline-kamailio-server --build-arg ARCH=amd64/ .
+docker build -t ghcr.io/openline-kamailio-server --build-arg ARCH=amd64/ .
