@@ -17,7 +17,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: openline-kamailio-server
+  IMAGE_NAME: ${{ github.repository }}/openline-kamailio-server
 
 
 jobs:
