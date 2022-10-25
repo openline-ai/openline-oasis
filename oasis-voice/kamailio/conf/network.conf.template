@@ -1,0 +1,6 @@
+#!substdef "!MY_PRIVATE_IP_ADDR!#MY_PRIVATE_IP_ADDR#!g"
+#!substdef "!MY_PUBLIC_IP_ADDR!#MY_PUBLIC_IP_ADDR#!g"
+#!substdef "!MY_DOMAIN!#MY_PUBLIC_IP_ADDR#!g"
+#!substdef "!MY_WS_PORT!8080!g"
+#!substdef "!MY_MSRP_PORT!9000!g"
+#!substdef "!MY_WS_ADDR!tcp:MY_PRIVATE_IP_ADDR:MY_WS_PORT!g"

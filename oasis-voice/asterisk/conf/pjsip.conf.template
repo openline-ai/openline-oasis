@@ -1,0 +1,35 @@
+[system]
+disable_tcp_switch=yes
+
+
+[system-udp]
+type=transport
+protocol=udp
+bind=!LOCAL_IP!
+external_media_address=!PUBLIC_IP!
+
+[webrtc_client]
+type=identify
+match_header=X-Openline-Endpoint-Type: webrtc
+endpoint=webrtc_client
+
+[webrtc_client]
+type=endpoint
+dtls_auto_generate_cert=yes
+webrtc=yes
+context=openline-webrtc
+disallow=all
+allow=opus,alaw,ulaw
+
+[pstn_client]
+type=identify
+match_header=X-Openline-Endpoint-Type: pstn
+endpoint=pstn_client
+
+[pstn_client]
+type=endpoint
+context=openline-pstn
+disallow=all
+allow=alaw,ulaw
+
+

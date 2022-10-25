@@ -1,0 +1,58 @@
+[Unit]
+Description=Asterisk PBX
+Documentation=man:asterisk(8)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStartPre=/bin/sh -c 'systemctl set-environment LOCAL_IP=`curl -s http://169.254.169.254/latest/meta-data/local-ipv4`'
+ExecStartPre=/bin/sh -c 'systemctl set-environment PUBLIC_IP=`curl -s http://169.254.169.254/latest/meta-data/public-ipv4`'
+ExecStartPre=/usr/sbin/asterisk_network_setup.sh
+ExecStart=/usr/sbin/asterisk -g -f -p -U asterisk
+ExecReload=/usr/sbin/asterisk -rx 'core reload'
+Restart=on-failure
+RestartSec=1
+WorkingDirectory=/var/lib/asterisk
+
+# The following two lines are by default set to null so as to avoid
+# unnecessary console output to syslog. However, if you to, you can
+# further edit /etc/asterisk/logger.conf to log output to syslog.
+StandardOutput=null
+StandardError=null
+
+# Extra settings:
+# If you want to set them, you can add them to a file in the directory
+# /lib/systemd/system/asterisk.service.d/ with the extension .conf.
+# Example content:
+#[Service]
+#
+# and following those two lines add directives or override existing
+# directives. Some extra directives that may be useful:
+
+# You can run a script to clean up after asterisk. An example script is
+# included in contrib/scripts/asterisk_cleanup.
+#ExecStopPost=/path/to/script
+
+#Nice=0
+#UMask=0002
+#LimitCORE=infinity
+#LimitNOFILE=
+
+# safe_asterisk runs Asterisk in a virtual console. This allows easy
+# access to the asterisk command-line without logging it. on the other
+# hand, it allows anyone with physical access to the console full access
+# to Asterisk. To enable this console, unrem the following lines and add
+# '-c' to the ExecStart line above:
+#TTYPath=/dev/tty9
+#StandardInput=tty
+#StandardOutput=tty
+#StandardError=tty
+
+# For more information on what these parameters mean see:
+#
+# http://0pointer.de/public/systemd-man/systemd.service.html
+# http://0pointer.de/public/systemd-man/systemd.exec.html
+
+[Install]
+WantedBy=multi-user.target
