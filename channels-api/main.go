@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"openline-ai/openline-channels/routes"
+	"openline-ai/channels-api/routes"
 )
 
 var (

@@ -1,4 +1,4 @@
-module openline-ai/openline-channels
+module openline-ai/channels-api
 
 go 1.19
 
