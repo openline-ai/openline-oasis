@@ -5,7 +5,7 @@ name: Kamailio Toolchain
 
 on:
   push:
-    branches: [ "otter", "41-move-voice-network-code-to-oasis" ]
+    branches: [ "otter"]
     paths:
       - 'oasis-voice/kamailio/**'
       - '.github/workflows/kamailio.yml'
