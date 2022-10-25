@@ -5,6 +5,7 @@ on:
     paths:
       - 'oasis-common/grpc/**'
       - 'oasis-api/**'
+      - '.github/workflows/build-oasis-api.yml'
 
 env:
   REGISTRY: ghcr.io
