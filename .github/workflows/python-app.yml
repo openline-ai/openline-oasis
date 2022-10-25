@@ -8,6 +8,7 @@ on:
     branches: [ "otter", "41-move-voice-network-code-to-oasis" ]
     paths:
       - 'oasis-voice/kamailio/**'
+      - '.github/workflows/python-app.yml'
   pull_request:
     branches: [ "otter" ]
 
