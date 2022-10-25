@@ -6,9 +6,9 @@ metadata:
     'consul.hashicorp.com/service-sync': 'true'
 spec:
   type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
-  ports:                         # Take incoming HTTP requests on port 10010 and forward them to the targetPort of 1010
+  ports:                         # Take incoming HTTP requests on port 10013 and forward them to the targetPort of 8013
     - name: http
-      port: 10010
+      port: 10013
       targetPort: 8013
   selector:
     app: channels-api         # Map any pod with label `app=channels-api` to this service
