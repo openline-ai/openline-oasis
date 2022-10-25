@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment                 # Type of Kubernetes resource
 metadata:
-  name: openline-oasis           # Name of the Kubernetes resource
+  name: oasis-api           # Name of the Kubernetes resource
 spec:
   replicas: 1                    # Number of pods to run at any given time
   selector:
     matchLabels:
-      app: openline-oasis        # This deployment applies to any Pods matching the specified label
+      app: oasis-api        # This deployment applies to any Pods matching the specified label
   template:                      # This deployment will create a set of pods using the configurations in this template
     metadata:
       labels:                    # The labels that will be applied to all of the pods in this deployment
-        app: openline-oasis
+        app: oasis-api
     spec:                        # Spec for the container which will run in the Pod
       containers:
-        - image: docker.io/library/openline-oasis:latest
-          name: openline-oasis
+        - image: docker.io/library/oasis-api:latest
+          name: oasis-api
           imagePullPolicy: Never
           ports:
             - containerPort: 8006  # Should match the port number that the Go application listens on

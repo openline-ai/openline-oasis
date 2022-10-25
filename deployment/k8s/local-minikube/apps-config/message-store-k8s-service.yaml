@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service                    # Type of kubernetes resource
 metadata:
-  name: openline-message-store-service   # Name of the resource
+  name: message-store-service   # Name of the resource
   annotations:
     'consul.hashicorp.com/service-sync': 'true'
 spec:
@@ -11,4 +11,4 @@ spec:
       port: 10010
       targetPort: 8009
   selector:
-    app: openline-message-store         # Map any pod with label `app=openline-message-store` to this service
+    app: message-store         # Map any pod with label `app=message-store` to this service
