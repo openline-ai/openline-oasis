@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - 'oasis-common/grpc/**'
-      - 'oasis-api/**'
+      - 'message-store/**'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}/message-store
 
 permissions:
   contents: read
@@ -27,11 +27,11 @@ jobs:
           go-version: 1.19
 
       - name: Build
-        working-directory: ./oasis-api
+        working-directory: ./message-store
         run: go build -v
 
       - name: Test
-        working-directory: ./oasis-api
+        working-directory: ./message-store
         run: go test -v
 
   publish:
