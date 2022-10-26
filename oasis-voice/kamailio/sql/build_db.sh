@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 FILES="standard-create.sql permissions-create.sql carriers.sql"
 if [ "x$1" == "xlocal-kube" ]; then
   pod=$(kubectl get pods -n openline-development|grep oasis-postgres| cut -f1 -d ' ')
