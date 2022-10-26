@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oasis-postgres-config
+  labels:
+    app: oasis-postgres
+data:
+  POSTGRES_DB: openline-oasis
+  POSTGRES_USER: openline-oasis
+  POSTGRES_PASSWORD: my-secret-password
+
+

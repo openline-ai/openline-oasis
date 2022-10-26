@@ -28,12 +28,12 @@ spec:
             - name: AUTH_SECRET
               value: 2c42a1b6-d776-4083-b0b6-44fecea2d022
             - name: SQL_USER
-              value: openline
+              value: openline-oasis
             - name: SQL_PASSWORD
               value: my-secret-password
             - name: SQL_DATABASE
-              value: openline
+              value: openline-oasis
             - name: SQL_HOST
-              value: postgresql-customer-os-dev-0.postgresql-customer-os-dev-hl.openline-development.svc.cluster.local
+              value: oasis-postgres-service.openline-development.svc.cluster.local openline-oasis
             - name: ASTERISK_HOST
-              value: asterisk-0.astcluster.openline-development.svc.cluster.local
+              value: oasis-postgres-service.openline-development.svc.cluster.local

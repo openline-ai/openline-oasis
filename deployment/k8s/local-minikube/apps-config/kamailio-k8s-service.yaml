@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service                    # Type of kubernetes resource
 metadata:
-  name: channels-api-service   # Name of the resource
+  name: kamailio-service   # Name of the resource
   annotations:
     'consul.hashicorp.com/service-sync': 'true'
 spec:
