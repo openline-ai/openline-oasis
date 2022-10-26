@@ -23,9 +23,6 @@ env:
 jobs:
     publish:
       name: "Push Asterisk Docker Image"
-      needs:
-        - test
-
       runs-on: ubuntu-latest
 
       steps:
