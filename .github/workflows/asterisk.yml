@@ -5,7 +5,7 @@ name: Asterisk Toolchain
 
 on:
   push:
-    branches: [ "otter"]
+    branches: [ "otter", "51-make-docker-image-for-asterisk"]
     paths:
       - 'oasis-voice/asterisk/**'
       - '.github/workflows/asterisk.yml'
@@ -17,7 +17,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/openline-kamailio-server
+  IMAGE_NAME: ${{ github.repository }}/openline-asterisk-server
 
 
 jobs:
