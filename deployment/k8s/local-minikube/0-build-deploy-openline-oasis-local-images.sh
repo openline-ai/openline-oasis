@@ -14,6 +14,7 @@ minikube image load oasis-api:latest
 minikube image load channels-api:latest
 
 cd $OASIS_HOME/deployment/k8s/local-minikube
+kubectl create namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
