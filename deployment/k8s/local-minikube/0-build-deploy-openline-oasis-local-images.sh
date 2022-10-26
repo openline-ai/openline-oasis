@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 # Deploy Images
 NAMESPACE_NAME="openline-development"
