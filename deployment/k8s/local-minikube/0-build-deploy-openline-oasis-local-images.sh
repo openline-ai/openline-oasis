@@ -17,15 +17,15 @@ fi
 
 ## Build Images
 cd  $OASIS_HOME
-docker build -t message-store -f message-store/Dockerfile .
-docker build -t oasis-api -f oasis-api/Dockerfile .
-docker build -t channels-api -f channels-api/Dockerfile .
+docker build -t ghcr.io/openline-ai/openline-oasis/message-store -f message-store/Dockerfile .
+docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
+docker build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
 cd oasis-voice/kamailio/;./build-docker.sh;cd $OASIS_HOME
 cd oasis-voice/asterisk/;./build-docker.sh; cd $OASIS_HOME
 
-minikube image load message-store:latest
-minikube image load oasis-api:latest
-minikube image load channels-api:latest
+minikube image load ghcr.io/openline-ai/openline-oasis/message-store:latest
+minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:latest
+minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:latest
 minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:latest
 minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:latest
 minikube image load postgres:10.1
