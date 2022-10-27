@@ -17,12 +17,22 @@ fi
 
 ## Build Images
 cd  $OASIS_HOME
-minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store -f message-store/Dockerfile .
-minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
-minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
 
-cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
-cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
+if [ "x$1" == "xbuild" ]; then
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store -f message-store/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
+  cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
+  cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
+else
+  minikube pull ghcr.io/openline-ai/openline-oasis/message-store
+  minikube pull ghcr.io/openline-ai/openline-oasis/oasis-api
+  minikube pull ghcr.io/openline-ai/openline-oasis/channels-api
+  minikube pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server
+  minikube pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server
+
+fi
+
 minikube image pull postgres:13.4
 
 cd $OASIS_HOME/deployment/k8s/local-minikube
