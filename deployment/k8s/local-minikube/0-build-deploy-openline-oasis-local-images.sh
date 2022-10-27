@@ -21,7 +21,7 @@ minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store -f mess
 minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
 minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
 
-cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server;cd $OASIS_HOME
+cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
 cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
 minikube image pull postgres:13.4
 
