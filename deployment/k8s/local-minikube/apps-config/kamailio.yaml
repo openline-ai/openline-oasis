@@ -36,4 +36,4 @@ spec:
             - name: SQL_HOST
               value: oasis-postgres-service.openline-development.svc.cluster.local
             - name: ASTERISK_HOST
-              value: oasis-postgres-service.openline-development.svc.cluster.local
+              value: asterisk.openline-development.svc.cluster.local

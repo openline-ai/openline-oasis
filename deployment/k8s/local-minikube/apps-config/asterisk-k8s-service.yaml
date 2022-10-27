@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service                    
+metadata:
+  name: asterisk
+spec:
+  ports:
+    - name: sip
+      protocol: UDP
+      port: 5060
+  clusterIP: None
+  selector:
+    app: asterisk         

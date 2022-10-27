@@ -298,7 +298,10 @@ class kamailio:
     # got a call from the webrtc, check if destination is pstn or webrtc and route to asterisk
     def ksr_route_from_webrtc(self, msg):
         KSR.tm.t_newtran()
-        if KSR.registrar.registered("location") > 0:
+        if KSR.pv.gete("$rU") == "echo":
+            #route to echo test
+            return self.ksr_route_asterisk(msg)
+        elif KSR.registrar.registered("location") > 0:
             KSR.info("Destination %s is WEBRTC\n" % (KSR.pv.get("$ru")))
             KSR.hdr.append("X-Openline-Dest-Endpoint-Type: webrtc\r\n")
             return self.ksr_route_asterisk(msg)
@@ -351,7 +354,8 @@ class kamailio:
         KSR.hdr.remove("X-Openline-UUID")
         KSR.hdr.append("X-Openline-UUID: " + str(uuid.uuid4()) + "\r\n")
         KSR.hdr.append("X-Openline-Dest: " + KSR.pv.gete("$ru") + "\r\n")
-        KSR.pv.sets("$rU", "transcode")
+        if KSR.pv.gete("$rU") != "echo":
+            KSR.pv.sets("$rU", "transcode")
 
         if KSR.is_WS():
             KSR.hdr.append("X-Openline-Endpoint-Type: webrtc\r\n")

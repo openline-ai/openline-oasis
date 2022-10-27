@@ -43,6 +43,7 @@ kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_N
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/asterisk.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
