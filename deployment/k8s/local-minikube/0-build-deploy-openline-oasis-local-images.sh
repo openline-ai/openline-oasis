@@ -71,3 +71,7 @@ echo "run the following port forwarding commands"
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 8080:8080
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 5060:5060
 
+
+kubectl rollout restart -n openline-development deployment/message-store
+kubectl rollout restart -n openline-development deployment/oasis-api
+kubectl rollout restart -n openline-development deployment/channels-api

@@ -8,7 +8,7 @@ spec:
   type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
   ports:                         # Take incoming HTTP requests on port 10009 and forward them to the targetPort of 8009
     - name: http
-      port: 10009
+      port: 8009
       targetPort: 8009
   selector:
     app: message-store         # Map any pod with label `app=message-store` to this service

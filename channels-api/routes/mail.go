@@ -54,7 +54,7 @@ func addMailRoutes(rg *gin.RouterGroup) {
 
 func createClient() pb.MessageStoreClient {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial("localhost:9013", grpc.WithInsecure())
+	conn, err := grpc.Dial("message-store-service.openline-development.svc.cluster.local:9009", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
