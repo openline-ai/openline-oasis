@@ -25,7 +25,7 @@ if [ "x$1" == "xbuild" ]; then
   cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
   cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
 else
-  minikube image pull ghcr.io/openline-ai/openline-oasis/message-store
+  minikube image pull ghcr.io/openline-ai/openline-oasis/message-store:latest
   minikube image pull ghcr.io/openline-ai/openline-oasis/oasis-api
   minikube image pull ghcr.io/openline-ai/openline-oasis/channels-api
   minikube image pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server
