@@ -25,21 +25,25 @@ if [ "x$1" == "xbuild" ]; then
   cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
   cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
 else
-  minikube image pull ghcr.io/openline-ai/openline-oasis/message-store:latest
-  minikube image pull ghcr.io/openline-ai/openline-oasis/oasis-api
-  minikube image pull ghcr.io/openline-ai/openline-oasis/channels-api
-  minikube image pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server
-  minikube image pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server
+  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --pull
+  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --pull
+  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --pull
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter --pull
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter --pull 
 
 fi
 
-minikube image pull postgres:13.4
+minikube image load postgres:13.4 --pull
 
 cd $OASIS_HOME/deployment/k8s/local-minikube
 kubectl apply -f postgres/postgresql-configmap.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-storage.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-deployment.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
+
+cd $OASIS_HOME/oasis-voice/kamailio/sql
+SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
+cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
@@ -52,9 +56,6 @@ kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NA
 kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
-cd $OASIS_HOME/oasis-voice/kamailio/sql
-SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-cd $OASIS_HOME/deployment/k8s/local-minikube
 
 
 
