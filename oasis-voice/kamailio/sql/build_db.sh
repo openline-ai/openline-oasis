@@ -7,7 +7,7 @@ if [ "x$1" == "xlocal-kube" ]; then
       echo "database not ready waiting"
       sleep 1
     fi
-    sleep 10
+    sleep 1
   done
   echo $FILES |xargs cat|kubectl exec -n openline-development -it $pod -- psql -U $SQL_USER $SQL_DATABASE
 else

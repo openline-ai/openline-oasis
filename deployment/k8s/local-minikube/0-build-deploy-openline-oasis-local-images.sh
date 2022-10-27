@@ -16,30 +16,38 @@ if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
 fi
 
 ## Build Images
-cd  $OASIS_HOME
-
-if [ "x$1" == "xbuild" ]; then
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store -f message-store/Dockerfile .
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
-  cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server .;cd $OASIS_HOME
-  cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server .;cd $OASIS_HOME
-else
-  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --pull
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --pull
-  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --pull
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter --pull
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter --pull 
-
-fi
+cd $OASIS_HOME/deployment/k8s/local-minikube
 
 minikube image load postgres:13.4 --pull
 
-cd $OASIS_HOME/deployment/k8s/local-minikube
 kubectl apply -f postgres/postgresql-configmap.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-storage.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-deployment.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
+
+cd  $OASIS_HOME
+
+if [ "x$1" == "xbuild" ]; then
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
+  cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
+  cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
+else
+  docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+
+  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+
+fi
+
 
 cd $OASIS_HOME/oasis-voice/kamailio/sql
 SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
