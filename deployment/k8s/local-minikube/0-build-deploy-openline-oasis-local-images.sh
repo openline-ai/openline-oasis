@@ -47,7 +47,7 @@ kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
 cd $OASIS_HOME/oasis-voice/kamailio/sql
-./build_db.sh local-kube
+SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
 cd $OASIS_HOME/deployment/k8s/local-minikube
 
 
