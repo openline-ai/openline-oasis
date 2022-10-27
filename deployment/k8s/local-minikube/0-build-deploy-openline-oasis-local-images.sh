@@ -28,7 +28,7 @@ minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:latest
 minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:latest
 minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:latest
 minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:latest
-minikube image load postgres:10.1
+minikube image pull postgres:13.4
 
 cd $OASIS_HOME/deployment/k8s/local-minikube
 kubectl apply -f postgres/postgresql-configmap.yaml --namespace $NAMESPACE_NAME
