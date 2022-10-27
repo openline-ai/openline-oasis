@@ -4,8 +4,8 @@ FROM golang:1.19-alpine as builder
 
 WORKDIR /app
 
-COPY ../oasis-api ./oasis-api
-COPY ../oasis-common ./oasis-common
+COPY oasis-api ./oasis-api
+COPY oasis-common ./oasis-common
 
 WORKDIR /app/oasis-api
 

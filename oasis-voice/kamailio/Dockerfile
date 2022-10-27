@@ -18,4 +18,5 @@ EXPOSE 5060/udp
 EXPOSE 8080
 EXPOSE 4443
 
+RUN sh -c 'rm -rf /var/lib/apt/lists/*'
 ENTRYPOINT ["/docker_entry.sh"]

@@ -1,0 +1,15 @@
+kind: Service                    # Type of kubernetes resource
+metadata:
+  name: kamailio-service   # Name of the resource
+spec:
+  type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
+  ports:                         # Take incoming HTTP requests on port 10013 and forward them to the targetPort of 8013
+    - name: ws
+      port: 8080
+      targetPort: 8080
+    - name: sip
+      protocol: UDP
+      port: 5060
+      targetPort: 5060
+  selector:
+    app: kamailio         # Map any pod with label `app=channels-api` to this service
