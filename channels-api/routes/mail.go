@@ -2,16 +2,15 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
-	pb "openline-ai/oasis-common/grpc"
-
-	"github.com/gin-gonic/gin"
+	"openline-ai/message-store/ent/proto/entpb"
 )
 
 type MailPostRequest struct {
-	Senders string
+	Sender  string
 	RawMail string
 	Subject string
 	ApiKey  string
@@ -29,16 +28,18 @@ func addMailRoutes(rg *gin.RouterGroup) {
 		if err := c.BindJSON(&req); err != nil {
 			// DO SOMETHING WITH THE ERROR
 		}
-		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Senders+"; raw message: "+req.RawMail)
+		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMail)
 
 		// Contact the server and print out its response.
-		omsg := &pb.OmniMessage{Type: pb.MessageType_MESSAGE,
-			Username:  req.Senders,
-			Direction: pb.MessageDirection_INBOUND,
+		mi := &entpb.MessageItem{
+			Type:      entpb.MessageItem_MESSAGE,
+			Username:  req.Sender,
 			Message:   req.RawMail,
-			Channel:   pb.MessageChannel_MAIL,
+			Direction: entpb.MessageItem_INBOUND,
+			Channel:   entpb.MessageItem_MAIL,
 		}
-		res, err := client.SaveMessage(c, omsg)
+		res, err := client.Create(c, &entpb.CreateMessageItemRequest{MessageItem: mi})
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -52,13 +53,13 @@ func addMailRoutes(rg *gin.RouterGroup) {
 	})
 }
 
-func createClient() pb.MessageStoreClient {
-	// Set up a connection to the server.
+func createClient() entpb.MessageItemServiceClient {
+	//Set up a connection to the server.
 	conn, err := grpc.Dial("message-store-service.openline-development.svc.cluster.local:9009", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	client := pb.NewMessageStoreClient(conn)
+	client := entpb.NewMessageItemServiceClient(conn)
 	return client
 }
