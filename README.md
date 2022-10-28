@@ -44,10 +44,29 @@ TBD
 
 ## 🚀 Installation
 
-Download the Openline Oasis app using the following command
+### set up in codespaces
+click the green code button and go to the "codespaces" tab
+click the "..." icon and select "+ New with options..."
+change machine type to "4-core" and click create codespace
+when the ide appears, run the following commands in the terminal
+```
+cd ..
+git clone https://github.com/openline-ai/openline-customer-os.git
+cd /workspaces/openline-customer-os/deployment/k8s/local-minikube
+./1-deploy-customer-os-base-infrastructure-local.sh 
+cd /workspaces/openline-oasis/deployment/k8s/local-minikube
+./0-build-deploy-openline-oasis-local-images.sh 
+```
+
+after the script completes you can validate the status of the setup by running
+```
+kubectl -n openline-development get pod
+```
+
+to have media working you need to set up a turn server by running the following command
 
 ```
-TBD
+./1-start-turn.sh
 ```
 
 ## 🙌 Features
