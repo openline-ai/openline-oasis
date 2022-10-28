@@ -13,7 +13,7 @@ spec:
         app: oasis-api
     spec:                        # Spec for the container which will run in the Pod
       containers:
-        - image: ghcr.io/openline-ai/openline-oasis/oasis-api:latest
+        - image: ghcr.io/openline-ai/openline-oasis/oasis-api:otter
           name: oasis-api
           imagePullPolicy: Never
           ports:

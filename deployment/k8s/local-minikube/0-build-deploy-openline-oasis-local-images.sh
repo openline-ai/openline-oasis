@@ -16,25 +16,42 @@ if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
 fi
 
 ## Build Images
-cd  $OASIS_HOME
-docker build -t ghcr.io/openline-ai/openline-oasis/message-store -f message-store/Dockerfile .
-docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api -f oasis-api/Dockerfile .
-docker build -t ghcr.io/openline-ai/openline-oasis/channels-api -f channels-api/Dockerfile .
-cd oasis-voice/kamailio/;./build-docker.sh;cd $OASIS_HOME
-cd oasis-voice/asterisk/;./build-docker.sh; cd $OASIS_HOME
-
-minikube image load ghcr.io/openline-ai/openline-oasis/message-store:latest
-minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:latest
-minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:latest
-minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:latest
-minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:latest
-minikube image pull postgres:13.4
-
 cd $OASIS_HOME/deployment/k8s/local-minikube
+
+minikube image load postgres:13.4 --pull
+
 kubectl apply -f postgres/postgresql-configmap.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-storage.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-deployment.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
+
+cd  $OASIS_HOME
+
+if [ "x$1" == "xbuild" ]; then
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
+  minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
+  cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
+  cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
+else
+  docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+
+  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+
+fi
+
+
+cd $OASIS_HOME/oasis-voice/kamailio/sql
+SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
+cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
@@ -43,12 +60,10 @@ kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_N
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/asterisk.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
-cd $OASIS_HOME/oasis-voice/kamailio/sql
-SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-cd $OASIS_HOME/deployment/k8s/local-minikube
 
 
 
