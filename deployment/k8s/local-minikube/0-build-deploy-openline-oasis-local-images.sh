@@ -35,12 +35,13 @@ then
     echo "https://github.com/openline-ai/openline-customer-os/tree/otter/deployment/k8s/local-minikube#setup-environment-for-osx"
     exit
   fi
-  if [ INSTALLED_DOCKER == 1 ];
+  if [ $INSTALLED_DOCKER == 1 ];
   then 
     echo "Docker has just been installed"
     echo "Please logout and log in for the group changes to take effect"
     echo "Once logged back in, re-run this script to resume the installation"
     exit
+  fi
 fi
 
 MINIKUBE_STATUS=$(minikube status)
@@ -95,27 +96,38 @@ if [ "x$1" == "xbuild" ]; then
   minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
   minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
-  cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
-  cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
+  if [ $(uname -m) == "x86_64" ];
+  then
+    cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
+    cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
+  fi
 else
   docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
-  docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
-  docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+  if [ $(uname -m) == "x86_64" ];
+  then
+    docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+    docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter
+  fi
 
   minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter
   minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+  if [ $(uname -m) == "x86_64" ];
+  then
+    minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
+    minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
+  fi
 
 fi
 
-
-cd $OASIS_HOME/oasis-voice/kamailio/sql
-SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-cd $OASIS_HOME/deployment/k8s/local-minikube
+if [ $(uname -m) == "x86_64" ];
+then
+  cd $OASIS_HOME/oasis-voice/kamailio/sql
+  SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
+  cd $OASIS_HOME/deployment/k8s/local-minikube
+fi
 
 kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
@@ -123,11 +135,14 @@ kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/asterisk.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
+if [ $(uname -m) == "x86_64" ];
+then
+  kubectl apply -f apps-config/asterisk.yaml --namespace $NAMESPACE_NAME
+  kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NAME
+  kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
+  kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
+fi
 
 kubectl rollout restart -n $NAMESPACE_NAME deployment/message-store
 kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
