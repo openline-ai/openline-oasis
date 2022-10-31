@@ -5,7 +5,6 @@ FROM golang:1.19-alpine as builder
 WORKDIR /app
 
 COPY message-store ./message-store
-COPY oasis-common ./oasis-common
 
 WORKDIR /app/message-store
 

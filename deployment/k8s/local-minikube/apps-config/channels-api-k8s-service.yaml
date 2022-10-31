@@ -8,7 +8,7 @@ spec:
   type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
   ports:                         # Take incoming HTTP requests on port 10013 and forward them to the targetPort of 8013
     - name: http
-      port: 10013
+      port: 8013
       targetPort: 8013
   selector:
     app: channels-api         # Map any pod with label `app=channels-api` to this service

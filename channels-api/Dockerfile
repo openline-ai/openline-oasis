@@ -4,7 +4,9 @@ FROM golang:1.19-alpine as builder
 
 WORKDIR /app
 
-COPY oasis-common ./oasis-common
+COPY message-store/ent/proto/entpb ./message-store/ent/proto/entpb
+COPY message-store/ent/ ./message-store/ent/
+COPY message-store/go.mod ./message-store/go.mod
 COPY channels-api ./channels-api
 
 WORKDIR /app/channels-api

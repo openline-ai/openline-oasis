@@ -8,7 +8,7 @@ spec:
   type: NodePort                 # A port is opened on each node in your cluster via Kube proxy.
   ports:                         # Take incoming HTTP requests on port 10006 and forward them to the targetPort of 8006
     - name: http
-      port: 10006
+      port: 8006
       targetPort: 8006
   selector:
     app: oasis-api         # Map any pod with label `app=oasis-api` to this service

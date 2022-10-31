@@ -29,3 +29,7 @@ node_modules/
 
 # bin. Go output dir
 bin
+
+message-store/ent/*
+!message-store/ent/generate.go
+!message-store/ent/schema
