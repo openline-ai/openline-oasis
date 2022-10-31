@@ -12,12 +12,13 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 
-RUN npm run-script "build:uat-ninja" # TODO set the environment as external
+ENV NODE_ENV uat-ninja
+
+RUN npm run-script "build:$NODE_ENV" # TODO set the environment as external
 
 FROM node:16.16-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
 
 RUN addgroup --system --gid 1001 openlinegroup
 RUN adduser --system --uid 1001 openlineuser

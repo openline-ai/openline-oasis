@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006",
-    "build": "next build",
+    "build:dev": "env-cmd -f .env.local next build",
     "build:uat-ninja": "env-cmd -f .env.uat-ninja next build",
     "start": "next start -p 3006",
     "lint": "next lint"
