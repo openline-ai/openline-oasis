@@ -10,20 +10,7 @@
 
 	// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
-	"customizations": {
-		"codespaces": {
-			"repositories": {
-				"openline-ai/openline-oasis": {
-					"permissions": {
-						"packages": "read"
-					}
-				}
-			}
-		}
-	},
 	"features": {
-		"ghcr.io/devcontainers/features/github-cli:1": {},
-		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:1": {}
 	}
+
 }

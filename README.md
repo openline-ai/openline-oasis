@@ -44,18 +44,15 @@ TBD
 
 ## 🚀 Installation
 
-### set up in codespaces
+### set up a minikube envoronment
+
+* This process has been tested in both macos and Ubuntu 20.04 the install process may need to be adapted for other platforms
+* If you use codespaces, be sure to use the 4 core environment
+* The voice network can not run on arm64, if arm64 is detected kamailio and asterisk will not be installed
 click the green code button and go to the "codespaces" tab
-click the "..." icon and select "+ New with options..."
-change machine type to "4-core" and click create codespace
-when the ide appears, run the following commands in the terminal
+
 ```
-cd ..
-git clone https://github.com/openline-ai/openline-customer-os.git
-cd /workspaces/openline-customer-os/deployment/k8s/local-minikube
-./1-deploy-customer-os-base-infrastructure-local.sh 
-cd /workspaces/openline-oasis/deployment/k8s/local-minikube
-./0-build-deploy-openline-oasis-local-images.sh 
+deployment/k8s/local-minikube/0-build-deploy-openline-oasis-local-images.sh 
 ```
 
 after the script completes you can validate the status of the setup by running
@@ -63,8 +60,7 @@ after the script completes you can validate the status of the setup by running
 kubectl -n openline-development get pod
 ```
 
-to have media working you need to set up a turn server by running the following command
-
+if you are not running the minikube on your local machine and the minikube is behind a nat you will probably need to install the turn server to have audio
 ```
 ./1-start-turn.sh
 ```
