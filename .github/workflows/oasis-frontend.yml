@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build-uat:
-    name: build
+    name: build-uat
     runs-on: ubuntu-latest
 
     steps:
@@ -49,10 +49,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args:
-            - NODE_ENV: uat-ninja
+            - NODE_ENV=uat-ninja
 
   build-dev:
-    name: build
+    name: Build Development Image
     runs-on: ubuntu-latest
 
     steps:
@@ -85,4 +85,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args:
-            - NODE_ENV: dev
+            - NODE_ENV=dev
