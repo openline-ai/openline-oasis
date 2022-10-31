@@ -21,7 +21,7 @@
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?logo=github)][oasis-repo] 
 [![license](https://img.shields.io/badge/license-Apache%202-blue)][apache2] 
-[![stars](https://img.shields.io/github/stars/openline-ai/openline-customer-os?style=social)][oasis-repo] 
+[![stars](https://img.shields.io/github/stars/openline-ai/openline-oasis?style=social)][oasis-repo] 
 [![twitter](https://img.shields.io/twitter/follow/openlineAI?style=social)][twitter] 
 [![slack](https://img.shields.io/badge/slack-community-blueviolet.svg?logo=slack)][slack]
 
