@@ -1,0 +1,42 @@
+{
+  "name": "webapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3006",
+    "build": "next build",
+    "build:uat-ninja": "env-cmd -f .env.uat-ninja next build",
+    "start": "next start -p 3006",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@stomp/stompjs": "^6.1.2",
+    "axios": "^0.27.2",
+    "formik": "^2.2.9",
+    "jssip": "^3.9.1",
+    "next": "12.2.2",
+    "primeflex": "^3.2.1",
+    "primeicons": "^5.0.0",
+    "primereact": "^8.2.0",
+    "prop-types": "^15.8.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-flow-renderer": "^10.3.8",
+    "react-fontawesome": "^1.7.1",
+    "websocket": "^1.0.34",
+    "sockjs": "^0.3.24",
+    "preact": "^10.10.6",
+    "env-cmd": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.0.4",
+    "@types/react": "18.0.15",
+    "@types/react-dom": "18.0.6",
+    "eslint": "8.19.0",
+    "eslint-config-next": "12.2.2",
+    "typescript": "4.7.4"
+  }
+}
