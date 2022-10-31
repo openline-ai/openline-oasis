@@ -17,6 +17,12 @@ function getCustomerOs () {
 
 if [ -z "$(which kubectl)" ] || [ -z "$(which docker)" ] || [ -z "$(which minikube)" ] ; 
 then
+  if [ -z "$(which docker)" ]; 
+  then
+    INSTALLED_DOCKER=1
+  else
+    INSTALLED_DOCKER=0
+  fi
   getCustomerOs
   if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
   then
@@ -29,6 +35,12 @@ then
     echo "https://github.com/openline-ai/openline-customer-os/tree/otter/deployment/k8s/local-minikube#setup-environment-for-osx"
     exit
   fi
+  if [ INSTALLED_DOCKER == 1 ];
+  then 
+    echo "Docker has just been installed"
+    echo "Please logout and log in for the group changes to take effect"
+    echo "Once logged back in, re-run this script to resume the installation"
+    exit
 fi
 
 MINIKUBE_STATUS=$(minikube status)
@@ -48,16 +60,14 @@ then
 else
   echo "Installing Customer OS Base"
   getCustomerOs
-  cd $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/  
-  ./1-deploy-customer-os-base-infrastructure-local.sh
+  $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/1-deploy-customer-os-base-infrastructure-local.sh
 fi
 
 if [ -z "$(kubectl get deployment customer-os-api -n $CUSTOMER_OS_NAME_SPACE)" ]; 
 then
   echo "Installing Customer OS Aplicaitons"
   getCustomerOs
-  cd $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/
-  ./2-build-deploy-customer-os-local-images.sh
+  $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/2-build-deploy-customer-os-local-images.sh
 fi  
 
 if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
