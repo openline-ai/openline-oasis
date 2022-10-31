@@ -56,6 +56,8 @@ function kubectl_delete() {
 }
 
 function setUp() {
+  kubectl_delete "$1"
+  minikube_image_unload "$1"
   docker_build "$1"
   minikube_image_load "$1"
   kubectl_apply "$1"

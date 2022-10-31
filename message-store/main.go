@@ -18,7 +18,7 @@ var (
 )
 
 func main() {
-	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password sslmode=disable")
+	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password")
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
@@ -34,13 +34,15 @@ func main() {
 	// Create a new gRPC server (you can wire multiple services to a single server).
 	server := grpc.NewServer()
 
-	// Register the User service with the server.
+	// Register the Message Item service with the server.
 	entpb.RegisterMessageItemServiceServer(server, svc)
 
 	// Open port for listening to traffic.
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed listening: %s", err)
+	} else {
+		log.Printf("server started on: %s", fmt.Sprintf(":%d", *port))
 	}
 
 	// Listen for traffic indefinitely.
