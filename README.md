@@ -89,7 +89,7 @@ A massive thank you goes out to all these wonderful people ([emoji key][emoji]):
 <table>
   <tbody>
     <tr>
-      <td align="center"><a href="https://github.com/tsearle"><img src="https://avatars.githubusercontent.com/u/4540323?v=4?s=100" width="100px;" alt="tsearle"/><br /><sub><b>tsearle</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=tsearle" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/tsearle"><img src="https://avatars.githubusercontent.com/u/4540323?v=4?s=100" width="100px;" alt="tsearle"/><br /><sub><b>tsearle</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=tsearle" title="Code">💻</a> <a href="https://github.com/openline-ai/openline-oasis/commits?author=tsearle" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
