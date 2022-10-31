@@ -126,8 +126,9 @@ if [ $(uname -m) == "x86_64" ];
 then
   cd $OASIS_HOME/oasis-voice/kamailio/sql
   SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-  cd $OASIS_HOME/deployment/k8s/local-minikube
 fi
+  
+cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
