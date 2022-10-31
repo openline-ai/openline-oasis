@@ -21,7 +21,7 @@
 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen?logo=github)][oasis-repo] 
 [![license](https://img.shields.io/badge/license-Apache%202-blue)][apache2] 
-[![stars](https://img.shields.io/github/stars/openline-ai/openline-customer-os?style=social)][oasis-repo] 
+[![stars](https://img.shields.io/github/stars/openline-ai/openline-oasis?style=social)][oasis-repo] 
 [![twitter](https://img.shields.io/twitter/follow/openlineAI?style=social)][twitter] 
 [![slack](https://img.shields.io/badge/slack-community-blueviolet.svg?logo=slack)][slack]
 
@@ -86,7 +86,13 @@ A massive thank you goes out to all these wonderful people ([emoji key][emoji]):
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
-
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://github.com/tsearle"><img src="https://avatars.githubusercontent.com/u/4540323?v=4?s=100" width="100px;" alt="tsearle"/><br /><sub><b>tsearle</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=tsearle" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
