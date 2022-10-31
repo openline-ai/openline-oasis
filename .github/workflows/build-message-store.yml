@@ -3,7 +3,6 @@ name: Build Message Store
 on:
   push:
     paths:
-      - 'oasis-common/grpc/**'
       - 'message-store/**'
       - '.github/workflows/build-message-store.yml'
 

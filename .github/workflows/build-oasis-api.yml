@@ -3,7 +3,6 @@ name: Build Oasis API
 on:
   push:
     paths:
-      - 'oasis-common/grpc/**'
       - 'oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
 

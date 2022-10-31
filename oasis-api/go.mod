@@ -25,7 +25,6 @@ require (
 	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	openline-ai/oasis-common/grpc v0.0.0-00010101000000-000000000000 // indirect
 )
 
-replace openline-ai/oasis-common/grpc => ./../oasis-common/grpc
+replace openline-ai/message-store => ./../message-store
