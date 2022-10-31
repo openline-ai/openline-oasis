@@ -1,17 +1,71 @@
 #! /bin/bash
 
 # Deploy Images
-NAMESPACE_NAME="openline-development"
+NAMESPACE_NAME="oasis-dev"
+CUSTOMER_OS_NAME_SPACE="openline"
 echo "script is $0"
 OASIS_HOME="$(dirname $(readlink -f $0))/../../../"
 echo "OASIS_HOME=$OASIS_HOME"
+CUSTOMER_OS_HOME="$OASIS_HOME/../openline-customer-os"
+function getCustomerOs () {
+  if [ ! -d $CUSTOMER_OS_HOME ];
+  then
+    cd "$OASIS_HOME/../"
+    git clone https://github.com/openline-ai/openline-customer-os.git
+  fi
+}
+
+if [ -z "$(which kubectl)" ] || [ -z "$(which docker)" ] || [ -z "$(which minikube)" ] ; 
+then
+  getCustomerOs
+  if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
+  then
+    echo "missing base dependencies, installing"
+    $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/0-ubuntu-install-prerequisites.sh
+  fi
+  if [ "x$(uname -s)" == "xDarwin" ]; 
+  then
+    echo "Base env not ready, follow up the setup procedure at the following link"
+    echo "https://github.com/openline-ai/openline-customer-os/tree/otter/deployment/k8s/local-minikube#setup-environment-for-osx"
+    exit
+  fi
+fi
+
+MINIKUBE_STATUS=$(minikube status)
+MINIKUBE_STARTED_STATUS_TEXT='Running'
+if [[ "$MINIKUBE_STATUS" == *"$MINIKUBE_STARTED_STATUS_TEXT"* ]];
+  then
+     echo " --- Minikube already started --- "
+  else
+     eval $(minikube docker-env)
+     minikube start &
+     wait
+fi
+
+if [[ $(kubectl get namespaces) == *"$CUSTOMER_OS_NAME_SPACE"* ]];
+then
+  echo "Customer OS Base already installed"
+else
+  echo "Installing Customer OS Base"
+  getCustomerOs
+  cd $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/  
+  ./1-deploy-customer-os-base-infrastructure-local.sh
+fi
+
+if [ -z "$(kubectl get deployment customer-os-api -n $CUSTOMER_OS_NAME_SPACE)" ]; 
+then
+  echo "Installing Customer OS Aplicaitons"
+  getCustomerOs
+  cd $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/
+  ./2-build-deploy-customer-os-local-images.sh
+fi  
 
 if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
   then
-    echo " --- Continue deploy on namespace openline-development --- "
+    echo " --- Continue deploy on namespace $NAMESPACE_NAME --- "
   else
-    echo " --- Creating Openline Development namespace in minikube ---"
-    kubectl create -f "$OPENLINE_HOME/deployment/k8s/openline-namespace.json"
+    echo " --- Creating $NAMESPACE_NAME namespace in minikube ---"
+    kubectl create -f "$OASIS_HOME/deployment/k8s/local-minikube/oasis-dev.json"
     wait
 fi
 
@@ -65,13 +119,10 @@ kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 
 
-
+kubectl rollout restart -n $NAMESPACE_NAME deployment/message-store
+kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
+kubectl rollout restart -n $NAMESPACE_NAME deployment/channels-api
 
 echo "run the following port forwarding commands"
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 8080:8080
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 5060:5060
-
-
-kubectl rollout restart -n openline-development deployment/message-store
-kubectl rollout restart -n openline-development deployment/oasis-api
-kubectl rollout restart -n openline-development deployment/channels-api
