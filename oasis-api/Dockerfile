@@ -14,5 +14,6 @@ RUN go build -o /go/bin/app openline-ai/oasis-api
 FROM alpine:3.14
 COPY --chown=65534:65534 --from=builder /go/bin/app .
 USER 65534
+EXPOSE 3006
 
 ENTRYPOINT [ "./app" ]

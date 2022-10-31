@@ -93,9 +93,10 @@ kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
 cd  $OASIS_HOME
 
 if [ "x$1" == "xbuild" ]; then
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
-  minikube image build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
+  docker build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
+  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
+  docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
+  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --build-arg NODE_ENV=dev oasis-frontend
   if [ $(uname -m) == "x86_64" ];
   then
     cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
@@ -105,15 +106,18 @@ else
   docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  docker pull ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter
   if [ $(uname -m) == "x86_64" ];
   then
     docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
     docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter
   fi
 
-  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter
-  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter
+  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
+  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
+  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
+  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
+  
   if [ $(uname -m) == "x86_64" ];
   then
     minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
@@ -136,6 +140,8 @@ kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-frontend.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-frontend-k8s-service.yaml --namespace $NAMESPACE_NAME
 
 if [ $(uname -m) == "x86_64" ];
 then
