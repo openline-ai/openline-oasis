@@ -36,22 +36,26 @@ jobs:
       - name: Install Protoc-gen-go
         run: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
-      - name: Generate database and grpc
+      - name: Generate database
         working-directory: ./message-store
+        run: go generate -v ./...
+
+      - name: Generate grpc
+        working-directory: ./message-store/ent/protoc/entpb
         run: go generate -v ./...
 
       - name: Build
         working-directory: ./message-store
-        run: go build -v
+        run: make build
 
       - name: Test
         working-directory: ./message-store
-        run: go test -v
+        run: make test
 
   publish:
     name: publish image
     needs:
-      - build
+      - Makefile
 
     runs-on: ubuntu-latest
 
