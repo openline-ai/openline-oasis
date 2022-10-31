@@ -19,6 +19,12 @@ npm run dev
 yarn dev
 ```
 
+To run inside of docker:
+```bash
+docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev --build-arg NODE_ENV=dev .
+docker run -p 3006:3006 ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev
+```
+
 Open [http://localhost:3006](http://localhost:3006) with your browser to see the result.
 
 You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.

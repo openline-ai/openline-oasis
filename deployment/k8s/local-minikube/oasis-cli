@@ -21,7 +21,7 @@ else
   wait
 fi
 
-declare -a OasisServices=("message-store" "channels-api" "oasis-api")
+declare -a OasisServices=("message-store" "channels-api" "oasis-api" "oasis-frontend")
 
 cd $OASIS_HOME
 
