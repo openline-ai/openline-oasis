@@ -15,6 +15,16 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "gabriel0003",
+      "name": "Gabriel Gontariu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/108665351?v=4",
+      "profile": "https://github.com/gabriel0003",
+      "contributions": [
+        "code",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
