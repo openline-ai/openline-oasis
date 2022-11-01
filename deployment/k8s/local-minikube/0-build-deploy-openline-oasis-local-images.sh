@@ -113,17 +113,18 @@ else
     docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter
   fi
 
-  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
-  
-  if [ $(uname -m) == "x86_64" ];
-  then
-    minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
-    minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
-  fi
 
+fi
+
+minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
+
+if [ $(uname -m) == "x86_64" ];
+then
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter --daemon
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter --daemon
 fi
 
 if [ $(uname -m) == "x86_64" ];
