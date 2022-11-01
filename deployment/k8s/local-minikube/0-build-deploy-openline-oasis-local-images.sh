@@ -99,8 +99,8 @@ if [ "x$1" == "xbuild" ]; then
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --build-arg NODE_ENV=dev oasis-frontend
   if [ $(uname -m) == "x86_64" ];
   then
-    cd oasis-voice/kamailio/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
-    cd oasis-voice/asterisk/;minikube image build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
+    cd oasis-voice/kamailio/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
+    cd oasis-voice/asterisk/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
   fi
 else
   docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
@@ -113,17 +113,18 @@ else
     docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter
   fi
 
-  minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
-  
-  if [ $(uname -m) == "x86_64" ];
-  then
-    minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
-    minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter 
-  fi
 
+fi
+
+minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
+minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
+
+if [ $(uname -m) == "x86_64" ];
+then
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter --daemon
+  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter --daemon
 fi
 
 if [ $(uname -m) == "x86_64" ];
