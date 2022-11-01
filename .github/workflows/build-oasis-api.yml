@@ -29,22 +29,13 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
 
-      - name: Install Protoc-gen-go
-        run: go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-
-      - name: Install Protoc-gen-go-grpc
-        run: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-
-      - name: Install Protoc-gen-entgrpc
-        run: go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@latest
-
-      - name: Generate database
+      - name: Install Message store
         working-directory: ./message-store
-        run: go generate -v ./...
+        run: make install
 
-      - name: Generate grpc
-        working-directory: ./message-store/ent/proto/entpb
-        run: go generate -v ./...
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
 
       - name: Build
         working-directory: ./oasis-api
@@ -73,22 +64,13 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
 
-      - name: Install Protoc-gen-go
-        run: go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-
-      - name: Install Protoc-gen-go-grpc
-        run: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-
-      - name: Install Protoc-gen-entgrpc
-        run: go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@latest
-
-      - name: Generate database
+      - name: Install Message store
         working-directory: ./message-store
-        run: go generate -v ./...
+        run: make install
 
-      - name: Generate grpc
-        working-directory: ./message-store/ent/proto/entpb
-        run: go generate -v ./...
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9

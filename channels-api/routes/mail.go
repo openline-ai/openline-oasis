@@ -39,7 +39,7 @@ func addMailRoutes(rg *gin.RouterGroup) {
 			Channel:   entpb.MessageItem_MAIL,
 		}
 		//Set up a connection to the server.
-		conn, err := grpc.Dial("message-store-service.oasis-dev.svc.cluster.local:9013", grpc.WithInsecure())
+		conn, err := grpc.Dial("message-store-service.oasis-dev.svc.cluster.local:9009", grpc.WithInsecure())
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)
 		}

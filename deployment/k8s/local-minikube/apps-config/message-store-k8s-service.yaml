@@ -10,5 +10,9 @@ spec:
     - name: http
       port: 8009
       targetPort: 8009
+
+    - name: grpc
+      port: 9009
+      targetPort: 9009
   selector:
     app: message-store         # Map any pod with label `app=message-store` to this service
