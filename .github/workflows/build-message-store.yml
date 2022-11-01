@@ -3,7 +3,6 @@ name: Build Message Store
 on:
   push:
     paths:
-      - 'oasis-common/grpc/**'
       - 'message-store/**'
       - '.github/workflows/build-message-store.yml'
 
@@ -30,23 +29,21 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
 
-      - name: Install Protoc-gen-go
-        run: go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-
-      - name: Install Protoc-gen-go
-        run: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-
-      - name: Generate database and grpc
+      - name: Install Message store
         working-directory: ./message-store
-        run: go generate -v ./...
+        run: make install
+
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
 
       - name: Build
         working-directory: ./message-store
-        run: go build -v
+        run: make build
 
       - name: Test
         working-directory: ./message-store
-        run: go test -v
+        run: make test
 
   publish:
     name: publish image
@@ -58,6 +55,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+
+      - name: Install Message store
+        working-directory: ./message-store
+        run: make install
+
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9

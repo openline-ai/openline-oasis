@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	port = flag.Int("port", 9013, "The grpc server port")
+	port = flag.Int("port", 9009, "The grpc server port")
 )
 
 func main() {
-	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password")
+	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password sslmode=disable")
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}

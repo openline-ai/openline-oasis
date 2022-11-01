@@ -3,7 +3,6 @@ name: Build Oasis Channels API
 on:
   push:
     paths:
-      - 'oasis-common/grpc/**'
       - 'channels-api/**'
       - '.github/workflows/build-channels-api.yml'
 
@@ -30,9 +29,17 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
 
-      - name: Build
-        working-directory: ./channels-api
-        run: go generate -v
+      - name: Install Message store
+        working-directory: ./message-store
+        run: make install
+
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
+
+      - name: Install Message store
+        working-directory: ./message-store
+        run: make install
 
       - name: Build
         working-directory: ./channels-api
@@ -52,6 +59,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+
+      - name: Install Message store
+        working-directory: ./message-store
+        run: make install
+
+      - name: Generate Message store
+        working-directory: ./message-store
+        run: make generate
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
