@@ -93,6 +93,16 @@ kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
 cd  $OASIS_HOME
 
 if [ "x$1" == "xbuild" ]; then
+  if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
+  then
+	sudo apt-get update
+	sudo apt-get install protobuf-compiler
+  fi
+  if [ "x$(uname -s)" == "xDarwin" ]; 
+  then
+	  brew install protobuf
+  fi
+  cd $OASIS_HOME/message-store;make install;make generate;cd $OASIS_HOME
   docker build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
