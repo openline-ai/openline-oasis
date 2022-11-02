@@ -21,7 +21,7 @@ yarn dev
 
 To run inside of docker:
 ```bash
-docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev --build-arg NODE_ENV=dev .
+docker buildx build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev --platform linux/amd64 --build-arg NODE_ENV=dev .
 docker run -p 3006:3006 ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev
 ```
 
