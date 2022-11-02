@@ -9,6 +9,10 @@ import (
 	"openline-ai/message-store/ent"
 	"openline-ai/message-store/ent/proto/entpb"
 
+	c "openline-ai/message-store/config"
+
+	env "github.com/caarlos0/env/v6"
+
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
@@ -18,7 +22,10 @@ var (
 )
 
 func main() {
-	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password sslmode=disable")
+	conf := c.Config{}
+	env.Parse(&conf)
+	var connUrl = fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable", conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Name, conf.DB.Password)
+	client, err := ent.Open("postgres", connUrl)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
