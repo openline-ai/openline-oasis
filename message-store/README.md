@@ -51,10 +51,13 @@ https://grpc.io/docs/languages/go/quickstart/
 To install protoc-gen-entgrpc, run:
 
 ```
-go install entgo.io/contrib/entproto/cmd/protoc-gen-entgrpc@latest
+make install
 ```
 ```
-go generate ./...
+make generate
+```
+```
+make build
 ```
 ## 🙌 Features
 
