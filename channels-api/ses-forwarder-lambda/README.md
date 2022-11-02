@@ -21,6 +21,11 @@ the lamda takes 3 envionment variables
 | OL_API_KEY        | API key that will be sent to the channel-api server |
 
 
+### Using https
+if your setup requires https for the callback replace the first line of the script as follows
+```
+const http = require('https');
+```
 ## Permissions for the lamda
 Add the following to the Statement section of the policy
 

@@ -32,10 +32,12 @@ func addMailRoutes(rg *gin.RouterGroup) {
 	mail.POST("/", func(c *gin.Context) {
 		var req MailPostRequest
 		if err := c.BindJSON(&req); err != nil {
+			log.Fatalf("unable to parse json: %v", err)
 			// DO SOMETHING WITH THE ERROR
 		}
 		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
+		log.Printf("Got message from %s", req.Sender)
 		mailReader := strings.NewReader(req.RawMessage)
 		email, err := parsemail.Parse(mailReader) // returns Email struct and error
 		if err != nil {

@@ -46,7 +46,7 @@ exports.handler = function(event, context, callback) {
                 const options = {
                     hostname: process.env.OL_MAIL_CB_HOST,
                     port: process.env.OL_MAIL_CB_PORT,
-                    path: '/api/v1/mail',
+                    path: '/api/v1/mail/',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
