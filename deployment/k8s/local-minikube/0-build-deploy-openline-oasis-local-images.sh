@@ -106,7 +106,7 @@ if [ "x$1" == "xbuild" ]; then
   docker build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
-  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --build-arg NODE_ENV=dev oasis-frontend
+  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --platform linux/amd64 --build-arg NODE_ENV=dev oasis-frontend
   if [ $(uname -m) == "x86_64" ];
   then
     cd oasis-voice/kamailio/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
