@@ -45,10 +45,9 @@ Message store
 ## 🚀 Installation
 
 ### generate
-https://grpc.io/docs/protoc-installation/
-https://grpc.io/docs/languages/go/quickstart/
 
-To install protoc-gen-entgrpc, run:
+Install protoc:
+https://grpc.io/docs/protoc-installation/
 
 ```
 make install
@@ -56,6 +55,8 @@ make install
 ```
 make generate
 ```
+
+### build
 ```
 make build
 ```
