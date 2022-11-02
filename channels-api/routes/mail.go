@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/DusanKasan/parsemail"
 	"github.com/caarlos0/env/v6"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	c "openline-ai/channels-api/config"
 	"openline-ai/message-store/ent/proto/entpb"
+	"strings"
 )
 
 type MailPostRequest struct {
@@ -34,11 +36,16 @@ func addMailRoutes(rg *gin.RouterGroup) {
 		}
 		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
+		mailReader := strings.NewReader(req.RawMessage)
+		email, err := parsemail.Parse(mailReader) // returns Email struct and error
+		if err != nil {
+			log.Fatalf("Unable to parse Email: %v", err)
+		}
 		// Contact the server and print out its response.
 		mi := &entpb.MessageItem{
 			Type:      entpb.MessageItem_MESSAGE,
 			Username:  req.Sender,
-			Message:   req.RawMessage,
+			Message:   email.TextBody,
 			Direction: entpb.MessageItem_INBOUND,
 			Channel:   entpb.MessageItem_MAIL,
 		}
