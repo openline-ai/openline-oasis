@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -24,14 +25,16 @@ func (MessageItem) Fields() []ent.Field {
 				}),
 			),
 		field.String("username").
-			Unique().
 			Annotations(
 				entproto.Field(3),
 			),
 		field.String("message").
 			Annotations(
 				entproto.Field(4),
-			),
+			).
+			SchemaType(map[string]string{
+				dialect.Postgres: "text", // Override Postgres.
+			}),
 		field.Enum("channel").Values("CHAT", "MAIL", "WHATSAPP", "FACEBOOK", "TWITTER").
 			Annotations(
 				entproto.Field(5),

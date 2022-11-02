@@ -11,7 +11,7 @@ import (
 
 	c "openline-ai/message-store/config"
 
-	env "github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v6"
 
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
@@ -25,6 +25,7 @@ func main() {
 	conf := c.Config{}
 	env.Parse(&conf)
 	var connUrl = fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable", conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Name, conf.DB.Password)
+	log.Printf("Connecting to database %s", connUrl)
 	client, err := ent.Open("postgres", connUrl)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)

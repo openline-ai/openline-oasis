@@ -2,23 +2,27 @@ package routes
 
 import (
 	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
+	c "openline-ai/channels-api/config"
 	"openline-ai/message-store/ent/proto/entpb"
 )
 
 type MailPostRequest struct {
-	Sender  string
-	RawMail string
-	Subject string
-	ApiKey  string
+	Sender     string
+	RawMessage string
+	Subject    string
+	ApiKey     string
 }
 
 func addMailRoutes(rg *gin.RouterGroup) {
+	conf := c.Config{}
+	env.Parse(&conf)
 	mail := rg.Group("/mail")
 	mail.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "mail get")
@@ -28,18 +32,18 @@ func addMailRoutes(rg *gin.RouterGroup) {
 		if err := c.BindJSON(&req); err != nil {
 			// DO SOMETHING WITH THE ERROR
 		}
-		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMail)
+		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
 		// Contact the server and print out its response.
 		mi := &entpb.MessageItem{
 			Type:      entpb.MessageItem_MESSAGE,
 			Username:  req.Sender,
-			Message:   req.RawMail,
+			Message:   req.RawMessage,
 			Direction: entpb.MessageItem_INBOUND,
 			Channel:   entpb.MessageItem_MAIL,
 		}
 		//Set up a connection to the server.
-		conn, err := grpc.Dial("message-store-service.oasis-dev.svc.cluster.local:9009", grpc.WithInsecure())
+		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
 		if err != nil {
 			log.Fatalf("did not connect: %v", err)
 		}
