@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -59,7 +60,14 @@ func (MessageItem) Fields() []ent.Field {
 
 // Edges of the MessageItem.
 func (MessageItem) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("message_feed", MessageFeed.Type).
+			Ref("message_item").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(entproto.Field(7)),
+	}
 }
 
 func (MessageItem) Annotations() []schema.Annotation {
