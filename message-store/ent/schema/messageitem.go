@@ -25,10 +25,6 @@ func (MessageItem) Fields() []ent.Field {
 					"FILE":    2,
 				}),
 			),
-		field.String("username").
-			Annotations(
-				entproto.Field(3),
-			),
 		field.String("message").
 			Annotations(
 				entproto.Field(4),
@@ -73,6 +69,6 @@ func (MessageItem) Edges() []ent.Edge {
 func (MessageItem) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entproto.Message(),
-		entproto.Service(),
+		//entproto.Service(),
 	}
 }

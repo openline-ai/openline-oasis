@@ -37,13 +37,13 @@ func main() {
 	}
 
 	// Initialize the generated User service.
-	svc := entpb.NewMessageItemService(client)
+	svc := entpb.NewMessageFeedService(client)
 
 	// Create a new gRPC server (you can wire multiple services to a single server).
 	server := grpc.NewServer()
 
 	// Register the Message Item service with the server.
-	entpb.RegisterMessageItemServiceServer(server, svc)
+	entpb.RegisterMessageFeedServiceServer(server, svc)
 
 	// Open port for listening to traffic.
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
