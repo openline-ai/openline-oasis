@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // MessageItem holds the schema definition for the MessageItem entity.
@@ -41,6 +42,7 @@ func (MessageItem) Fields() []ent.Field {
 					"WHATSAPP": 3,
 					"FACEBOOK": 4,
 					"TWITTER":  5,
+					"VOICE":    6,
 				}),
 			),
 		field.Enum("direction").Values("INBOUND", "OUTBOUND").
@@ -50,6 +52,10 @@ func (MessageItem) Fields() []ent.Field {
 					"INBOUND":  1,
 					"OUTBOUND": 2,
 				}),
+			),
+		field.Time("time").Default(time.Now()).
+			Annotations(
+				entproto.Field(8),
 			),
 	}
 }

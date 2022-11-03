@@ -11,7 +11,7 @@ import (
 	"log"
 	"net/http"
 	c "openline-ai/channels-api/config"
-	"openline-ai/message-store/ent/proto/entpb"
+	pb "openline-ai/message-store/ent/proto"
 	"strings"
 )
 
@@ -44,12 +44,12 @@ func addMailRoutes(rg *gin.RouterGroup) {
 			log.Fatalf("Unable to parse Email: %v", err)
 		}
 		// Contact the server and print out its response.
-		mi := &entpb.MessageItem{
-			Type:      entpb.MessageItem_MESSAGE,
-			Username:  req.Sender,
+		mi := &pb.Message{
+			Type:      pb.MessageType_MESSAGE,
 			Message:   email.TextBody,
-			Direction: entpb.MessageItem_INBOUND,
-			Channel:   entpb.MessageItem_MAIL,
+			Direction: pb.MessageDirection_INBOUND,
+			Channel:   pb.MessageChannel_MAIL,
+			Username:  req.Subject,
 		}
 		//Set up a connection to the server.
 		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
@@ -57,20 +57,20 @@ func addMailRoutes(rg *gin.RouterGroup) {
 			log.Fatalf("did not connect: %v", err)
 		}
 		defer conn.Close()
-		client := entpb.NewMessageItemServiceClient(conn)
+		client := pb.NewMessageStoreServiceClient(conn)
 
 		ctx := context.Background()
 
-		created, err := client.Create(ctx, &entpb.CreateMessageItemRequest{MessageItem: mi})
+		message, err := client.SaveMessage(ctx, mi)
 
 		if err != nil {
 			se, _ := status.FromError(err)
 			log.Fatalf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
 		}
-		log.Printf("message item created with id: %d", created.Id)
+		log.Printf("message item created with id: %d", message.Id)
 
 		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprint(created),
+			"result": fmt.Sprint("created"),
 		})
 	})
 }
