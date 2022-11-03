@@ -4,17 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
-	"net"
-	"openline-ai/message-store/ent"
-	"openline-ai/message-store/ent/proto/entpb"
-
-	c "openline-ai/message-store/config"
-
 	"github.com/caarlos0/env/v6"
-
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"log"
+	"net"
+	c "openline-ai/message-store/config"
+	"openline-ai/message-store/ent"
+	pb "openline-ai/message-store/ent/proto"
+	"openline-ai/message-store/service"
 )
 
 var (
@@ -37,13 +35,13 @@ func main() {
 	}
 
 	// Initialize the generated User service.
-	svc := entpb.NewMessageFeedService(client)
+	svc := service.NewMessageService(client)
 
 	// Create a new gRPC server (you can wire multiple services to a single server).
 	server := grpc.NewServer()
 
 	// Register the Message Item service with the server.
-	entpb.RegisterMessageFeedServiceServer(server, svc)
+	pb.RegisterMessageStoreServiceServer(server, svc)
 
 	// Open port for listening to traffic.
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))

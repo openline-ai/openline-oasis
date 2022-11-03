@@ -28,8 +28,7 @@ func (MessageFeed) Fields() []ent.Field {
 // Edges of the MessageFeed.
 func (MessageFeed) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("message_item", MessageItem.Type).
-			Annotations(entproto.Field(3)),
+		edge.To("message_item", MessageItem.Type),
 	}
 }
 

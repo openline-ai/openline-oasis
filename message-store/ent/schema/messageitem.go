@@ -26,6 +26,10 @@ func (MessageItem) Fields() []ent.Field {
 					"FILE":    2,
 				}),
 			),
+		field.String("username").
+			Annotations(
+				entproto.Field(3),
+			),
 		field.String("message").
 			Annotations(
 				entproto.Field(4),
@@ -33,7 +37,7 @@ func (MessageItem) Fields() []ent.Field {
 			SchemaType(map[string]string{
 				dialect.Postgres: "text", // Override Postgres.
 			}),
-		field.Enum("channel").Values("CHAT", "MAIL", "WHATSAPP", "FACEBOOK", "TWITTER").
+		field.Enum("channel").Values("CHAT", "MAIL", "WHATSAPP", "FACEBOOK", "TWITTER", "VOICE").
 			Annotations(
 				entproto.Field(5),
 				entproto.Enum(map[string]int32{

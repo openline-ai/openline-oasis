@@ -49,7 +49,7 @@ func addMailRoutes(rg *gin.RouterGroup) {
 			Message:   email.TextBody,
 			Direction: pb.MessageDirection_INBOUND,
 			Channel:   pb.MessageChannel_MAIL,
-			Username:  req.Subject,
+			Username:  req.Sender,
 		}
 		//Set up a connection to the server.
 		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
@@ -67,7 +67,7 @@ func addMailRoutes(rg *gin.RouterGroup) {
 			se, _ := status.FromError(err)
 			log.Fatalf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
 		}
-		log.Printf("message item created with id: %d", message.Id)
+		log.Printf("message item created with id: %d", *message.Id)
 
 		c.JSON(http.StatusOK, gin.H{
 			"result": fmt.Sprint("created"),
