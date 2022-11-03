@@ -160,8 +160,32 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 	}
 	return mi, nil
 }
-func (s *messageService) GetMessages(context.Context, *pb.Contact) (*pb.MessageList, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
+
+func (s *messageService) GetMessages(ctx context.Context, contact *pb.Contact) (*pb.MessageList, error) {
+	mf := &ent.MessageFeed{Username: contact.Username}
+	ml := &pb.MessageList{
+		Message: []*pb.Message,
+	}
+	messages, err := s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
+	if err != nil {
+		se, _ := status.FromError(err)
+		return nil, status.Errorf(se.Code(), "Error getting messages")
+	}
+
+	for _, message := range messages {
+		var id int64 = int64(message.ID)
+		mi := &pb.Message{
+			Type:      decodeType(message.Type),
+			Message:   message.Message,
+			Direction: decodeDirection(message.Direction),
+			Channel:   decodeChannel(message.Channel),
+			Username:  message.Username,
+			Id:        &id,
+			Contact:   &pb.Contact{Username: contact.Username},
+		}
+		ml.Message = append(ml.Message, mi)
+	}
+	return ml, nil
 }
 
 func NewMessageService(client *ent.Client) *messageService {

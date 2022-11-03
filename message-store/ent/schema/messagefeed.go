@@ -3,7 +3,6 @@ package schema
 import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
-	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -35,11 +34,5 @@ func (MessageFeed) Edges() []ent.Edge {
 func (MessageFeed) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("username").Unique(),
-	}
-}
-func (MessageFeed) Annotations() []schema.Annotation {
-	return []schema.Annotation{
-		entproto.Message(),
-		entproto.Service(),
 	}
 }

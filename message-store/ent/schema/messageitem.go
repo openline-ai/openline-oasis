@@ -4,7 +4,6 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
-	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"time"
@@ -73,12 +72,5 @@ func (MessageItem) Edges() []ent.Edge {
 			Required().
 			Immutable().
 			Annotations(entproto.Field(7)),
-	}
-}
-
-func (MessageItem) Annotations() []schema.Annotation {
-	return []schema.Annotation{
-		entproto.Message(),
-		//entproto.Service(),
 	}
 }
