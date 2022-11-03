@@ -21,3 +21,8 @@ spec:
               name: http-port
             - containerPort: 9006  # Should match the port number that the Go application listens on
               name: grpc-port
+          env:
+            - name: MESSAGE_STORE_URL
+              value: message-store-service.oasis-dev.svc.cluster.local:9009
+            - name: CORS_URL
+              value: http://localhost:3006

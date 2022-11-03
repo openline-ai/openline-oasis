@@ -14,8 +14,11 @@ import (
 )
 
 type CasePostRequest struct {
-	Username string
-	Message  string
+	Username  string `json:"username"`
+	Message   string `json:"message"`
+	Channel   string `json:"channel"`
+	Source    string `json:"source"`
+	Direction string `json:"direction"`
 }
 
 type FeedID struct {
@@ -26,7 +29,7 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 	conf := c.Config{}
 	env.Parse(&conf)
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3006"}
+	corsConfig.AllowOrigins = []string{conf.Service.CorsUrl}
 	corsConfig.AllowCredentials = true
 
 	rg.Use(cors.New(corsConfig))
@@ -80,9 +83,6 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 			c.JSON(400, gin.H{"msg": err})
 			return
 		}
-		for _, m := range messages.GetMessage() {
-			log.Println("Got a direction of %d", m.Direction)
-		}
 		c.JSON(http.StatusOK, messages.GetMessage())
 	})
 	rg.GET("/case/:id", func(c *gin.Context) {
@@ -114,15 +114,53 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		}
 		c.JSON(200, fullFeed)
 	})
-	rg.POST("/", func(c *gin.Context) {
+	rg.POST("/case/:id/item", func(c *gin.Context) {
+		var feedId FeedID
 		var req CasePostRequest
-		if err := c.BindJSON(&req); err != nil {
-			// DO SOMETHING WITH THE ERROR
-		}
-		c.JSON(http.StatusOK, "Case POST endpoint. req sent: username "+req.Username+"; Message: "+req.Message)
 
-		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprint(""),
-		})
+		if err := c.ShouldBindUri(&feedId); err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
+
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
+
+		log.Printf("After json bind %v", req)
+		message := &pb.Message{
+			Username:  req.Username,
+			Message:   req.Message,
+			Direction: pb.MessageDirection_OUTBOUND,
+			Type:      pb.MessageType_MESSAGE,
+		}
+		if req.Channel == "CHAT" {
+			message.Channel = pb.MessageChannel_WIDGET
+		} else {
+			message.Channel = pb.MessageChannel_MAIL
+		}
+
+		//Set up a connection to the server.
+		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("did not connect: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect: %v", err),
+			})
+			return
+		}
+		defer conn.Close()
+		client := pb.NewMessageStoreServiceClient(conn)
+
+		ctx := context.Background()
+
+		newMsg, err := client.SaveMessage(ctx, message)
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
+		c.JSON(http.StatusOK, newMsg)
+
 	})
 }

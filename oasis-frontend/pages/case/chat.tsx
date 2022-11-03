@@ -186,7 +186,7 @@ export const Chat = ({user}: any) => {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
-            userName: currentCustomer.username,
+            username: currentCustomer.username,
             message: currentText
         })
             .then(res => {

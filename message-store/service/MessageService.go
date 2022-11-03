@@ -107,10 +107,11 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 	} else {
 		contact = message.Contact.Username
 	}
+
 	feed, err := s.client.MessageFeed.
-		Create().
-		SetUsername(contact).
-		Save(ctx)
+		Query().
+		Where(messagefeed.Username(contact)).
+		First(ctx)
 
 	if err != nil {
 		se, _ := status.FromError(err)
@@ -118,12 +119,12 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 			return nil, status.Errorf(se.Code(), "Error upserting Feed")
 		} else {
 			feed, err = s.client.MessageFeed.
-				Query().
-				Where(messagefeed.Username(contact)).
-				First(ctx)
+				Create().
+				SetUsername(contact).
+				Save(ctx)
 			if err != nil {
 				se, _ = status.FromError(err)
-				return nil, status.Errorf(se.Code(), "Error getting existing Feed")
+				return nil, status.Errorf(se.Code(), "Error inserting new Feed")
 			}
 
 		}
