@@ -225,6 +225,29 @@ func (s *messageService) GetFeeds(ctx context.Context, _ *pb.Empty) (*pb.FeedLis
 	}
 	return fl, nil
 }
+func (s *messageService) GetFeed(ctx context.Context, contact *pb.Contact) (*pb.Contact, error) {
+	if contact.Id != nil {
+		log.Printf("Looking up messages for Contact id %d", *contact.Id)
+		mf, err := s.client.MessageFeed.Get(ctx, int(*contact.Id))
+		if err != nil {
+			se, _ := status.FromError(err)
+			return nil, status.Errorf(se.Code(), "Error finding Feed")
+		}
+		var id int64 = int64(mf.ID)
+		return &pb.Contact{Username: mf.Username, Id: &id}, nil
+	} else {
+		log.Printf("Looking up messages for Contact name %s", contact.GetUsername())
+		mf, err := s.client.MessageFeed.Query().
+			Where(messagefeed.Username(contact.GetUsername())).
+			First(ctx)
+		if err != nil {
+			se, _ := status.FromError(err)
+			return nil, status.Errorf(se.Code(), "Error finding Feed")
+		}
+		var id int64 = int64(mf.ID)
+		return &pb.Contact{Username: mf.Username, Id: &id}, nil
+	}
+}
 
 func NewMessageService(client *ent.Client) *messageService {
 	ms := new(messageService)

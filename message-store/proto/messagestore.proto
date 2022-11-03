@@ -54,5 +54,7 @@ service MessageStoreService {
   rpc saveMessage(Message) returns (Message) {};
   rpc getMessages(Contact) returns (MessageList) {};
   rpc getFeeds(Empty) returns (FeedList) {};
+  rpc getFeed(Contact) returns (Contact) {};
+
 
 }

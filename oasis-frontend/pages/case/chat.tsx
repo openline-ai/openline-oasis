@@ -64,7 +64,7 @@ export const Chat = ({user}: any) => {
                 });
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case/${id}`)
                 .then(res => {
-                    setCurrentCustomer({username: res.data.userName, firstName: "John", lastName: "doe"});
+                    setCurrentCustomer({username: res.data.username, firstName: "John", lastName: "doe"});
 
                 });
         }
@@ -116,7 +116,7 @@ export const Chat = ({user}: any) => {
                 padding: '10px',
                 margin: '0px 5px'
             }}>
-                {msg.direction === 'INBOUND' &&
+                {!msg.direction &&
                     <div style={{textAlign: 'left'}}>
                         <div style={{
                             fontSize: '10px',
@@ -127,7 +127,7 @@ export const Chat = ({user}: any) => {
                     </span>
                     </div>
                 }
-                {msg.direction === 'OUTBOUND' &&
+                {msg.direction == 1 &&
                     <div style={{textAlign: 'right'}}>
                         <div style={{
                             fontSize: '10px',

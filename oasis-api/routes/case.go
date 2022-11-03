@@ -28,7 +28,9 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"http://localhost:3006"}
 	corsConfig.AllowCredentials = true
+
 	rg.Use(cors.New(corsConfig))
+
 	rg.GET("/case", func(c *gin.Context) {
 		// Contact the server and print out its response.
 		empty := &pb.Empty{}
@@ -83,7 +85,35 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		}
 		c.JSON(http.StatusOK, messages.GetMessage())
 	})
+	rg.GET("/case/:id", func(c *gin.Context) {
+		var feedId FeedID
+		if err := c.ShouldBindUri(&feedId); err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
 
+		//Set up a connection to the server.
+		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("did not connect: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect: %v", err),
+			})
+			return
+		}
+		defer conn.Close()
+		client := pb.NewMessageStoreServiceClient(conn)
+
+		feed := &pb.Contact{Id: &feedId.ID, Username: ""}
+		ctx := context.Background()
+
+		fullFeed, err := client.GetFeed(ctx, feed)
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
+		c.JSON(200, fullFeed)
+	})
 	rg.POST("/", func(c *gin.Context) {
 		var req CasePostRequest
 		if err := c.BindJSON(&req); err != nil {
