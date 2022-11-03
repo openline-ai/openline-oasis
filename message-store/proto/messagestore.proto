@@ -36,10 +36,15 @@ message Message {
 
 message Contact {
   string username = 1;
+  optional int64 id = 2;
 }
 
 message MessageList {
   repeated Message message = 1;
+}
+
+message FeedList {
+  repeated Contact contact = 1;
 }
 
 message Empty {
@@ -48,5 +53,6 @@ message Empty {
 service MessageStoreService {
   rpc saveMessage(Message) returns (Message) {};
   rpc getMessages(Contact) returns (MessageList) {};
+  rpc getFeeds(Empty) returns (FeedList) {};
 
 }

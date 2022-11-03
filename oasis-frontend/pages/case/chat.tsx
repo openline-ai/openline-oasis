@@ -100,11 +100,13 @@ export const Chat = ({user}: any) => {
                 return line.indexOf('>') != 0;
             });
             msg.message = filtered.join('\n').trim();
-            let year = msg.createdDate[0];
-            let month = monthConvert(msg.createdDate[1]);
-            let day = msg.createdDate[2];
-            let hour = zeroPad(msg.createdDate[3]);
-            let minute = zeroPad(msg.createdDate[4]);
+            var t = new Date(Date.UTC(1970, 0, 1));
+            t.setUTCSeconds(msg.time.seconds);
+            let year = t.getFullYear();
+            let month = monthConvert(t.getMonth());
+            let day = t.getDay();
+            let hour = zeroPad(t.getHours());
+            let minute = zeroPad(t.getMinutes());
 
             return (<div key={msg.id} style={{
                 display: 'block',

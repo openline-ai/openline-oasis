@@ -4,6 +4,8 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	"log"
 	"openline-ai/message-store/ent"
 	"openline-ai/message-store/ent/messagefeed"
 	"openline-ai/message-store/ent/messageitem"
@@ -157,16 +159,34 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 		Username:  msg.Username,
 		Id:        &id,
 		Contact:   &pb.Contact{Username: contact},
+		Time:      timestamppb.New(msg.Time),
 	}
 	return mi, nil
 }
 
 func (s *messageService) GetMessages(ctx context.Context, contact *pb.Contact) (*pb.MessageList, error) {
-	mf := &ent.MessageFeed{Username: contact.Username}
-	ml := &pb.MessageList{
-		Message: []*pb.Message,
+	ml := &pb.MessageList{}
+	var messages []*ent.MessageItem
+	var err error
+	if contact.Id != nil {
+		log.Printf("Looking up messages for Contact id %d", *contact.Id)
+		mf, err := s.client.MessageFeed.Get(ctx, int(*contact.Id))
+		if err != nil {
+			se, _ := status.FromError(err)
+			return nil, status.Errorf(se.Code(), "Error finding Feed")
+		}
+		messages, err = s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
+	} else {
+		log.Printf("Looking up messages for Contact name %s", contact.GetUsername())
+		mf, err := s.client.MessageFeed.Query().
+			Where(messagefeed.Username(contact.GetUsername())).
+			First(ctx)
+		if err != nil {
+			se, _ := status.FromError(err)
+			return nil, status.Errorf(se.Code(), "Error finding Feed")
+		}
+		messages, err = s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
 	}
-	messages, err := s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
 	if err != nil {
 		se, _ := status.FromError(err)
 		return nil, status.Errorf(se.Code(), "Error getting messages")
@@ -181,11 +201,29 @@ func (s *messageService) GetMessages(ctx context.Context, contact *pb.Contact) (
 			Channel:   decodeChannel(message.Channel),
 			Username:  message.Username,
 			Id:        &id,
+			Time:      timestamppb.New(message.Time),
 			Contact:   &pb.Contact{Username: contact.Username},
 		}
+		log.Printf("Got a direction of %d", mi.Direction)
 		ml.Message = append(ml.Message, mi)
 	}
 	return ml, nil
+}
+
+func (s *messageService) GetFeeds(ctx context.Context, _ *pb.Empty) (*pb.FeedList, error) {
+	contacts, err := s.client.MessageFeed.Query().All(ctx)
+	if err != nil {
+		se, _ := status.FromError(err)
+		return nil, status.Errorf(se.Code(), "Error getting messages")
+	}
+	fl := &pb.FeedList{}
+
+	for _, contact := range contacts {
+		var id int64 = int64(contact.ID)
+		log.Printf("Got an feed id of %d", id)
+		fl.Contact = append(fl.Contact, &pb.Contact{Username: contact.Username, Id: &id})
+	}
+	return fl, nil
 }
 
 func NewMessageService(client *ent.Client) *messageService {
