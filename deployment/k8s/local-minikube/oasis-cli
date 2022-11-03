@@ -1,153 +1,223 @@
 #! /bin/bash
 
 # Build, Deploy and clean Images
-NS="oasis-dev"
-echo "script is $0"
+echo "$0"
 
-# OASIS_LOCAL_MINIKUBE_HOME is the directory that contains this script
-OASIS_LOCAL_MINIKUBE_HOME="$(dirname $(readlink -f $0))"
+# Oasis deploy home is always the directory containing this script
+OASIS_DEPLOY_HOME="$(dirname "$(readlink -f "$0")")"
+echo "OASIS_DEPLOY_HOME=$OASIS_DEPLOY_HOME"
 
-#OASIS HOME is relative to the current script directory.
-# This variable needs to be updates if we ever change the script location
-OASIS_HOME="$OASIS_LOCAL_MINIKUBE_HOME/../../../"
+# Oasis HOME is the root of the oasis git repository
+OASIS_HOME="$(git rev-parse --show-toplevel)"
 echo "OASIS_HOME=$OASIS_HOME"
-echo "OASIS_LOCAL_MINIKUBE_HOME=$OASIS_LOCAL_MINIKUBE_HOME"
 
-if [[ $(kubectl get namespaces) == *"$NS"* ]]; then
-  echo " --- Namespace: $NS --- "
-else
-  echo " --- Creating $NS namespace ---"
-  kubectl create -f "$OASIS_LOCAL_MINIKUBE_HOME/oasis-dev.json"
-  wait
+# Used to build the image tag name
+OASIS_IMAGE_TAG_PREFIX=ghcr.io/openline-ai/openline-oasis
+echo "OASIS_IMAGE_TAG_PREFIX=$OASIS_IMAGE_TAG_PREFIX"
+
+# Used to build the image tag name
+BRANCH="otter"
+echo "BRANCH=$BRANCH"
+
+MINIKUBE_STATUS=$(minikube status)
+MINIKUBE_STARTED_STATUS_TEXT='Running'
+if [[ "$MINIKUBE_STATUS" != *"$MINIKUBE_STARTED_STATUS_TEXT"* ]]; then
+    eval "$(minikube docker-env)"
+    minikube start &
+    minikube addons enable ingress &
+    wait
 fi
 
-declare -a OasisServices=("message-store" "channels-api" "oasis-api" "oasis-frontend")
+NS="oasis-dev"
+if [[ $(kubectl get namespaces) == *"$NS"* ]]; then
+    echo " --- Namespace: $NS --- "
+else
+    echo " --- Creating $NS namespace ---"
+    kubectl create -f "$OASIS_DEPLOY_HOME/oasis-dev.json"
+    wait
+fi
 
-cd $OASIS_HOME
-
-function docker_build() {
-  echo "--- $1 docker build ---"
-  docker build -t ghcr.io/openline-ai/openline-oasis/"$1":otter -f "$1"/Dockerfile .
-}
-
-function docker_rm() {
-  echo "--- $1 docker rm ---"
-  docker image rm ghcr.io/openline-ai/openline-oasis/"$1":otter
-}
-
-function minikube_image_load() {
-  echo "--- $1 minikube load ---"
-  minikube image load ghcr.io/openline-ai/openline-oasis/"$1":otter
-}
-
-function minikube_image_unload() {
-  echo "--- $1 minikube unload ---"
-  minikube image unload ghcr.io/openline-ai/openline-oasis/"$1":otter
-}
-
-function kubectl_apply() {
-  echo "--- $1 kubectl apply ---"
-  find "$OASIS_LOCAL_MINIKUBE_HOME/apps-config" -name "*$1*.yaml" -type f -exec kubectl apply --namespace "$NS" -f {} \;
-}
-
-function kubectl_delete() {
-  echo "--- $1 kubectl delete ---"
-  kubectl delete deployments/"$1" service/"$1"-service --namespace "$NS" --cascade=foreground
-}
+declare -a OasisServices=("message-store" "channels-api" "oasis-api" "oasis-frontend" "kamailio" "asterisk")
 
 function setUp() {
-  kubectl_delete "$1"
-  minikube_image_unload "$1"
-  docker_build "$1"
-  minikube_image_load "$1"
-  kubectl_apply "$1"
+    echo " --- Setup ${1}"
+    if [[ $1 == "message-store" ]]; then
+        cd "$OASIS_HOME"/message-store || exit
+        make install
+        make generate
+        cd - || exit
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/message-store:$BRANCH
+        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/message-store/Dockerfile "$OASIS_HOME"
+        minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/message-store.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/message-store-k8s-service.yaml
+    elif [[ $1 == "channels-api" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
+        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/channels-api/Dockerfile "$OASIS_HOME"
+        minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-service.yaml
+    elif [[ $1 == "oasis-api" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-api:$BRANCH
+        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-api/Dockerfile "$OASIS_HOME"
+        minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api-k8s-service.yaml
+    elif [[ $1 == "oasis-frontend" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
+        docker build -t "$IMAGE_NAME" --platform linux/amd64 -f "$OASIS_HOME"/oasis-frontend/Dockerfile "$OASIS_HOME"/oasis-frontend/
+        minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend.yaml \
+            -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend-k8s-service.yaml \
+            -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend-k8s-loadbalancer-service.yaml
+    elif [[ $1 == "kamailio" ]]; then
+        if [ "$(uname -m)" == "x86_64" ]; then
+            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-kamailio-server:$BRANCH
+            docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-voice/kamailio/Dockerfile "$OASIS_HOME"/oasis-voice/kamailio
+            minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+            kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/kamailio.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/kamailio-k8s-service.yaml
+            cd "$OASIS_HOME"/oasis-voice/kamailio/sql || exit
+            SQL_USER=openline-oasis SQL_DATABASE=openline-oasis ./build_db.sh local-kube
+            cd - || exit
+        else
+            echo "skipping kamailio..."
+        fi
+    elif [[ $1 == "asterisk" ]]; then
+        if [ "$(uname -m)" == "x86_64" ]; then
+            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-asterisk-server:$BRANCH
+            docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-voice/asterisk/Dockerfile "$OASIS_HOME"/oasis-voice/asterisk
+            minikube image load "$IMAGE_NAME" --overwrite=true --daemon
+            kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/asterisk.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/asterisk-k8s-service.yaml
+        else
+            echo "skipping asterisk..."
+        fi
+    else
+        echo -n "! unknown oasis service: $1: valid services: ${OasisServices[*]}"
+    fi
 }
 
 function tearDown() {
-  kubectl_delete "$1"
-  minikube_image_unload "$1"
-  docker_rm "$1"
+    echo " --- tearDown ${1}"
+
+    if [[ $1 == "message-store" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/message-store:$BRANCH
+        kubectl delete deployments/message-store service/message-store-service --namespace "$NS" --cascade=foreground
+        minikube image unload "$IMAGE_NAME"
+        docker image rm "$IMAGE_NAME"
+    elif [[ $1 == "channels-api" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
+        kubectl delete deployments/channels-api service/channels-api-service --namespace "$NS" --cascade=foreground
+        minikube image unload "$IMAGE_NAME"
+        docker image rm "$IMAGE_NAME"
+    elif [[ $1 == "oasis-api" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-api:$BRANCH
+        kubectl delete deployments/oasis-api service/oasis-api-service --namespace "$NS" --cascade=foreground
+        minikube image unload "$IMAGE_NAME"
+        docker image rm "$IMAGE_NAME"
+    elif [[ $1 == "oasis-frontend" ]]; then
+        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
+        kubectl delete deployments/oasis-frontend service/oasis-frontend-service service/oasis-frontend-loadbalancer --namespace "$NS" --cascade=foreground
+        minikube image unload "$IMAGE_NAME"
+        docker image rm "$IMAGE_NAME"
+    elif [[ $1 == "kamailio" ]]; then
+        if [ "$(uname -m)" == "x86_64" ]; then
+            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
+            kubectl delete deployments/oasis-frontend service/oasis-frontend-service --namespace "$NS" --cascade=foreground
+            minikube image unload "$IMAGE_NAME"
+            docker image rm "$IMAGE_NAME"
+        else
+            echo "skipping kamailio..."
+        fi
+    elif [[ $1 == "asterisk" ]]; then
+        if [ "$(uname -m)" == "x86_64" ]; then
+            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
+            kubectl delete deployments/oasis-frontend service/oasis-frontend-service --namespace "$NS" --cascade=foreground
+            minikube image unload "$IMAGE_NAME"
+            docker image rm "$IMAGE_NAME"
+        else
+            echo "skipping asterisk..."
+        fi
+    else
+        echo -n "! unknown oasis service: $1: valid services: ${OasisServices[*]}"
+    fi
 }
 
-if [ "x$1" == "xdelns" ]; then
-  kubectl delete namespaces "$NS"
+if [[ $1 == "setup" ]]; then
+    if [[ $2 ]]; then
+        setUp "$2"
+    else
+        # setUp all oasis backend services
+        for service in "${OasisServices[@]}"; do
+            setUp "$service"
+        done
+    fi
 fi
 
-if [ "x$1" == "xbuild" ]; then
-  if [ -z "$2" ]; then
-    # tearUp all oasis services
-    for service in "${OasisServices[@]}"; do
-      setUp "$service"
-    done
-  else
-    setUp "$2"
-  fi
+if [[ $1 == "teardown" ]]; then
+    if [[ $2 ]]; then
+        tearDown "$2"
+    else
+        for service in "${OasisServices[@]}"; do
+            tearDown "$service"
+        done
+    fi
 fi
 
-if [ "x$1" == "xdel" ]; then
-  if [ -z "$2" ]; then
-    for service in "${OasisServices[@]}"; do
-      tearDown "$service"
-    done
-
-  else
-    tearDown "$1"
-  fi
+if [[ $1 == "delns" ]]; then
+    kubectl delete namespaces "$NS"
 fi
 
-if [ "x$1" == "xsvc" ]; then
-  kubectl get svc -n "$NS"
+if [[ $1 == "svc" ]]; then
+    kubectl get svc -n "$NS"
 fi
 
-if [ "x$1" == "xdeploy" ]; then
-  kubectl get deploy -n "$NS"
+if [[ $1 == "deploy" ]]; then
+    kubectl get deploy -n "$NS"
 fi
 
-if [ "x$1" == "xall" ]; then
-  kubectl get all -n "$NS"
+if [[ $1 == "all" ]]; then
+    kubectl get all -n "$NS"
 fi
 
-if [ "x$1" == "xpods" ]; then
-  kubectl get pods -n "$NS"
+if [[ $1 == "pods" ]]; then
+    kubectl get pods -n "$NS"
 fi
 
-if [ "x$1" == "xpostgres" ]; then
-  if [ -z "$2" ]; then
-    echo "postgres minikube load"
-    minikube image load postgres:13.4 --pull
-    echo "postgres kubectl apply"
-    find "$OASIS_LOCAL_MINIKUBE_HOME/postgres" -name "*.yaml" -type f -exec kubectl apply --namespace "$NS" -f {} \;
-  else
-    echo "postgres kubectl delete"
-    kubectl delete deployments/oasis-"$1" service/oasis-"$1"-service --namespace "$NS" --cascade=foreground
-  fi
+if [[ $1 == "postgres" ]]; then
+    if [[ $2 ]]; then
+        echo "postgres kubectl delete"
+        kubectl delete deployments/oasis-"$1" service/oasis-"$1"-service --namespace "$NS" --cascade=foreground
+    else
+        echo "postgres minikube load"
+        minikube image load postgres:13.4 --pull
+        echo "postgres kubectl apply"
+        find "$OASIS_DEPLOY_HOME/postgres" -name "*.yaml" -type f -exec kubectl apply --namespace "$NS" -f {} \;
+    fi
 fi
 
-if [ "x$1" == "xrestart" ]; then
-  if [ -z "$2" ]; then
-    for service in "${OasisServices[@]}"; do
-      echo "restart $1"
-      tearDown "$service"
-    done
-  else
-    echo "restart $2"
-    kubectl rollout restart -n "$NS" deployment/"$2"
-  fi
+if [[ $1 == "restart" ]]; then
+    if [[ $2 ]]; then
+        echo "restart $2"
+        kubectl rollout restart -n "$NS" deployment/"$2"
+
+    else
+        for service in "${OasisServices[@]}"; do
+            echo "restart $1"
+            tearDown "$service"
+        done
+    fi
 fi
 
-if [ "x$1" == "xhelp" ]; then
-  echo "                 --- oasis-cli commands ---                       "
-  echo "--- oasis-cli build               build and deploy all services"
-  echo "--- oasis-cli build message-store build message-store docker and deploys it to minikube"
-  echo "--- oasis-cli del message-store   removes message store from minikube and docker---"
-  echo "--- oasis-cli del                 removes all services from minikube and docker---"
-  echo "--- oasis-cli delns               removes oasis namespace"
-  echo "--- oasis-cli svc                 list all services"
-  echo "--- oasis-cli deploy:             list all deployments"
-  echo "--- oasis-cli pods:               list all pods"
-  echo "--- oasis-cli all:                list all resources"
-  echo "--- oasis-cli help:               oasis-cli help"
-  echo "--- oasis-cli postgres:           build postgres"
+if [[ $1 == "help" ]]; then
+    echo "                 --- oasis-cli commands ---                       "
+    echo "--- oasis-cli build               build and deploy all services"
+    echo "--- oasis-cli build message-store build message-store docker and deploys it to minikube"
+    echo "--- oasis-cli del message-store   removes message store from minikube and docker---"
+    echo "--- oasis-cli del                 removes all services from minikube and docker---"
+    echo "--- oasis-cli delns               removes oasis namespace"
+    echo "--- oasis-cli svc                 list all services"
+    echo "--- oasis-cli deploy:             list all deployments"
+    echo "--- oasis-cli pods:               list all pods"
+    echo "--- oasis-cli all:                list all resources"
+    echo "--- oasis-cli help:               oasis-cli help"
+    echo "--- oasis-cli postgres:           build postgres"
 
-  echo "--- oasis-cli restart message-store: build postgres"
+    echo "--- oasis-cli restart message-store: build postgres"
 fi

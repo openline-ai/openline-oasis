@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service                    # Type of kubernetes resource
+metadata:
+  name: oasis-frontend-loadbalancer   # Name of the resource
+spec:
+  type: LoadBalancer
+  ports:                         # Take incoming HTTP requests on port 3006 and forward them to the targetPort of 3006
+    - name: http
+      port: 3006
+      targetPort: 3006
+  selector:
+    app: oasis-frontend         # Map any pod with label `app=oasis-api` to this service

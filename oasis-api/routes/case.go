@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -13,6 +14,7 @@ type CasePostRequest struct {
 
 func addCaseRoutes(rg *gin.RouterGroup) {
 	caseRoute := rg.Group("/case")
+	rg.Use(cors.Default())
 	caseRoute.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "case get")
 	})

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -17,5 +18,6 @@ func Run(addr string) {
 
 func getRoutes() {
 	v1 := router.Group("/api/v1")
+	router.Use(cors.Default())
 	addMailRoutes(v1)
 }
