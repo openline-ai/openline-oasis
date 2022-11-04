@@ -156,7 +156,7 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		ctx := context.Background()
 
 		newMsg, err := client.SaveMessage(ctx, message)
-		if err := c.BindJSON(&req); err != nil {
+		if err != nil {
 			c.JSON(400, gin.H{"msg": err})
 			return
 		}
