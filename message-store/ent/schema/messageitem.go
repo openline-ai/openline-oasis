@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"time"
@@ -59,6 +60,9 @@ func (MessageItem) Fields() []ent.Field {
 		field.Time("time").Default(time.Now()).
 			Annotations(
 				entproto.Field(8),
+				&entsql.Annotation{
+					Default: "CURRENT_TIMESTAMP",
+				},
 			),
 	}
 }

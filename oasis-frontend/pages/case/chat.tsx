@@ -103,7 +103,7 @@ export const Chat = ({user}: any) => {
             var t = new Date(Date.UTC(1970, 0, 1));
             t.setUTCSeconds(msg.time.seconds);
             let year = t.getFullYear();
-            let month = monthConvert(t.getMonth());
+            let month = monthConvert(t.getMonth()+1);
             let day = t.getDay();
             let hour = zeroPad(t.getHours());
             let minute = zeroPad(t.getMinutes());
