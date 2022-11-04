@@ -13,7 +13,7 @@ import (
 	c "openline-ai/oasis-api/config"
 )
 
-type CasePostRequest struct {
+type FeedPostRequest struct {
 	Username  string `json:"username"`
 	Message   string `json:"message"`
 	Channel   string `json:"channel"`
@@ -25,7 +25,7 @@ type FeedID struct {
 	ID int64 `uri:"id" binding:"required"`
 }
 
-func addCaseRoutes(rg *gin.RouterGroup) {
+func addFeedRoutes(rg *gin.RouterGroup) {
 	conf := c.Config{}
 	env.Parse(&conf)
 	corsConfig := cors.DefaultConfig()
@@ -34,7 +34,7 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 
 	rg.Use(cors.New(corsConfig))
 
-	rg.GET("/case", func(c *gin.Context) {
+	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.
 		empty := &pb.Empty{}
 		//Set up a connection to the server.
@@ -55,7 +55,7 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		log.Printf("Got the list of contacts!")
 		c.JSON(http.StatusOK, contacts)
 	})
-	rg.GET("/case/:id/item", func(c *gin.Context) {
+	rg.GET("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
 		if err := c.ShouldBindUri(&feedId); err != nil {
 			c.JSON(400, gin.H{"msg": err})
@@ -74,10 +74,12 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		defer conn.Close()
 		client := pb.NewMessageStoreServiceClient(conn)
 
-		feed := &pb.Contact{Id: &feedId.ID, Username: ""}
+		contact := &pb.Contact{Id: &feedId.ID, Username: ""}
+		pageInfo := &pb.PageInfo{PageSize: 100}
+		pageContact := &pb.PagedContact{Page: pageInfo, Contact: contact}
 		ctx := context.Background()
 
-		messages, err := client.GetMessages(ctx, feed)
+		messages, err := client.GetMessages(ctx, pageContact)
 		log.Printf("Got the list of messages!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err})
@@ -85,7 +87,7 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		}
 		c.JSON(http.StatusOK, messages.GetMessage())
 	})
-	rg.GET("/case/:id", func(c *gin.Context) {
+	rg.GET("/feed/:id", func(c *gin.Context) {
 		var feedId FeedID
 		if err := c.ShouldBindUri(&feedId); err != nil {
 			c.JSON(400, gin.H{"msg": err})
@@ -114,9 +116,9 @@ func addCaseRoutes(rg *gin.RouterGroup) {
 		}
 		c.JSON(200, fullFeed)
 	})
-	rg.POST("/case/:id/item", func(c *gin.Context) {
+	rg.POST("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
-		var req CasePostRequest
+		var req FeedPostRequest
 
 		if err := c.ShouldBindUri(&feedId); err != nil {
 			c.JSON(400, gin.H{"msg": err})

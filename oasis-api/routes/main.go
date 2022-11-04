@@ -25,15 +25,8 @@ func getRoutes() {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{conf.Service.CorsUrl}
 	corsConfig.AllowCredentials = true
-	/*	corsConfig.AddAllowHeaders("Origin")
-		corsConfig.AddAllowMethods("POST")
-		corsConfig.AddAllowMethods("OPTIONS")
-		corsConfig.AllowOriginFunc = func(origin string) bool {
-			return true
-		}
-		corsConfig.MaxAge = 12 * time.Hour*/
 
 	router.Use(cors.New(corsConfig))
-	addCaseRoutes(v1)
+	addFeedRoutes(v1)
 
 }

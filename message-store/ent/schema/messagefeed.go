@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -17,10 +16,7 @@ type MessageFeed struct {
 func (MessageFeed) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username").
-			Unique().
-			Annotations(
-				entproto.Field(2),
-			),
+			Unique(),
 	}
 }
 

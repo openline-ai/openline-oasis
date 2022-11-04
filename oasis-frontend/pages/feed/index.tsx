@@ -13,13 +13,13 @@ import {IFrame} from "@stomp/stompjs";
 
 const Index: NextPage = () => {
     const router = useRouter();
-    const [cases, setCases] = useState([] as any);
+    const [feeds, setFeeds] = useState([] as any);
     const incomingMsg:IFrame = useStomp();
 
     useEffect(() => {
-        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case`)
+        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
             .then(res => {
-                setCases(res.data.contact);
+                setFeeds(res.data.contact);
                 console.log(JSON.stringify(res.data.contact))
             })
         configureStomp(`${process.env.NEXT_PUBLIC_STOMP_WEBSOCKET_PATH}/websocket`, `/queue/cases`);
@@ -34,7 +34,7 @@ const Index: NextPage = () => {
 
     const actionsColumn = (rowData: any) => {
         return <Button icon="pi pi-eye" className="p-button-info"
-                       onClick={() => router.push(`/case/${rowData.id}`)}/>;
+                       onClick={() => router.push(`/feed/${rowData.id}`)}/>;
     }
 
     const leftContents = (
@@ -43,10 +43,10 @@ const Index: NextPage = () => {
     );
 
     const handleWebsocketMessage = function (msg: any) {
-        console.log("Got a new case!");
-        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case`)
+        console.log("Got a new feed!");
+        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
             .then(res => {
-                setCases(res.data.contact);
+                setFeeds(res.data.contact);
             });
     }
 
@@ -54,7 +54,7 @@ const Index: NextPage = () => {
         <>
             <Layout>
                 <Toolbar left={leftContents}/>
-                <DataTable value={cases}>
+                <DataTable value={feeds}>
                     <Column field="username" header="Name"></Column>
                     <Column field="state" header="State"></Column>
                     <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>

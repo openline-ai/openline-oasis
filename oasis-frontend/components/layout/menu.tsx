@@ -7,8 +7,8 @@ const LayoutMenu = () => {
 
     let items = [
         {
-            label: 'Cases', icon: 'pi pi-mobile', command: () => {
-                router.push('/case');
+            label: 'Chats', icon: 'pi pi-mobile', command: () => {
+                router.push('/feed');
             }
         }
     ];

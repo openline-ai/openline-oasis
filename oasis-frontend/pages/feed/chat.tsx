@@ -58,11 +58,11 @@ export const Chat = ({user}: any) => {
 
     useEffect(() => {
         if (id) {
-            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case/${id}/item`)
+            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`)
                 .then(res => {
                     setMessageList(res.data);
                 });
-            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case/${id}`)
+            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}`)
                 .then(res => {
                     setCurrentCustomer({username: res.data.username, firstName: "John", lastName: "doe"});
 
@@ -182,7 +182,7 @@ export const Chat = ({user}: any) => {
     }
 
     const handleSendMessage = () => {
-        axios.post(`${process.env.NEXT_PUBLIC_BE_PATH}/case/${id}/item`, {
+        axios.post(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,

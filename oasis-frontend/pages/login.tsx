@@ -16,7 +16,7 @@ const Login: NextPage = () => {
     useEffect(() => {
         loadUserAccount(axiosInstance).then((userData) => {
             if (userData) {
-                router.push('/case'); //todo switch to default user path ( depending on role )
+                router.push('/feed'); //todo switch to default user path ( depending on role )
             } else {
                 setShowLoginForm(true);
             }
@@ -39,7 +39,7 @@ const Login: NextPage = () => {
             console.log(response);
             if (response.status === 200) {
                 localStorage.setItem('userData', JSON.stringify(response.data));
-                router.push('/case'); //todo switch to default user path ( depending on role )
+                router.push('/feed'); //todo switch to default user path ( depending on role )
             }
         }).catch(err => {
             //todo show error
