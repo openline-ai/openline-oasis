@@ -25,7 +25,7 @@ type FeedID struct {
 	ID int64 `uri:"id" binding:"required"`
 }
 
-func addCaseRoutes(rg *gin.RouterGroup) {
+func addFeedRoutes(rg *gin.RouterGroup) {
 	conf := c.Config{}
 	env.Parse(&conf)
 	corsConfig := cors.DefaultConfig()
