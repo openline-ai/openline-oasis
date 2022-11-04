@@ -26,7 +26,7 @@ spec:
               value: "openline-oasis"
             - name: DB_PASSWORD
               value: "my-secret-password"
-            - name: DB_DATABASE
+            - name: DB_NAME
               value: "openline-oasis"
             - name: DB_HOST
               value: "oasis-postgres-service.oasis-dev.svc.cluster.local"
