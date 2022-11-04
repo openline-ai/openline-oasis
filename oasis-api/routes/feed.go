@@ -74,10 +74,12 @@ func addFeedRoutes(rg *gin.RouterGroup) {
 		defer conn.Close()
 		client := pb.NewMessageStoreServiceClient(conn)
 
-		feed := &pb.Contact{Id: &feedId.ID, Username: ""}
+		contact := &pb.Contact{Id: &feedId.ID, Username: ""}
+		pageInfo := &pb.PageInfo{PageSize: 100}
+		pageContact := &pb.PagedContact{Page: pageInfo, Contact: contact}
 		ctx := context.Background()
 
-		messages, err := client.GetMessages(ctx, feed)
+		messages, err := client.GetMessages(ctx, pageContact)
 		log.Printf("Got the list of messages!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err})

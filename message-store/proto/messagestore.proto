@@ -39,6 +39,16 @@ message Contact {
   optional int64 id = 2;
 }
 
+message PageInfo {
+  optional google.protobuf.Timestamp before = 1;
+  int32 pageSize = 2;
+}
+
+message PagedContact {
+  Contact contact = 1;
+  PageInfo page = 2;
+}
+
 message MessageList {
   repeated Message message = 1;
 }
@@ -52,7 +62,7 @@ message Empty {
 
 service MessageStoreService {
   rpc saveMessage(Message) returns (Message) {};
-  rpc getMessages(Contact) returns (MessageList) {};
+  rpc getMessages(PagedContact) returns (MessageList) {};
   rpc getFeeds(Empty) returns (FeedList) {};
   rpc getFeed(Contact) returns (Contact) {};
 

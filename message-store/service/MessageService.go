@@ -170,35 +170,52 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 	return mi, nil
 }
 
-func (s *messageService) GetMessages(ctx context.Context, contact *pb.Contact) (*pb.MessageList, error) {
+func (s *messageService) GetMessages(ctx context.Context, pc *pb.PagedContact) (*pb.MessageList, error) {
 	ml := &pb.MessageList{}
 	var messages []*ent.MessageItem
 	var err error
+	var mf *ent.MessageFeed
+	contact := pc.Contact
+	pageInfo := pc.Page
+
 	if contact.Id != nil {
 		log.Printf("Looking up messages for Contact id %d", *contact.Id)
-		mf, err := s.client.MessageFeed.Get(ctx, int(*contact.Id))
+		mf, err = s.client.MessageFeed.Get(ctx, int(*contact.Id))
 		if err != nil {
 			se, _ := status.FromError(err)
 			return nil, status.Errorf(se.Code(), "Error finding Feed")
 		}
-		messages, err = s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
 	} else {
 		log.Printf("Looking up messages for Contact name %s", contact.GetUsername())
-		mf, err := s.client.MessageFeed.Query().
+		mf, err = s.client.MessageFeed.Query().
 			Where(messagefeed.Username(contact.GetUsername())).
 			First(ctx)
 		if err != nil {
 			se, _ := status.FromError(err)
 			return nil, status.Errorf(se.Code(), "Error finding Feed")
 		}
-		messages, err = s.client.MessageFeed.QueryMessageItem(mf).All(ctx)
 	}
+
+	if pageInfo.Before == nil {
+		messages, err = s.client.MessageFeed.QueryMessageItem(mf).
+			Order(ent.Desc(messageitem.FieldTime)).
+			Limit(int(pageInfo.PageSize)).
+			All(ctx)
+	} else {
+		messages, err = s.client.MessageFeed.QueryMessageItem(mf).
+			Order(ent.Desc(messageitem.FieldTime)).
+			Where(messageitem.TimeLT(pageInfo.Before.AsTime())).
+			Limit(int(pageInfo.PageSize)).
+			All(ctx)
+	}
+
 	if err != nil {
 		se, _ := status.FromError(err)
 		return nil, status.Errorf(se.Code(), "Error getting messages")
 	}
 
-	for _, message := range messages {
+	for i := len(messages) - 1; i >= 0; i-- {
+		message := messages[i]
 		var id int64 = int64(message.ID)
 		mi := &pb.Message{
 			Type:      decodeType(message.Type),
