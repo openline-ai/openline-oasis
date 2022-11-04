@@ -23,4 +23,4 @@ spec:
               name: grpc-port
           env:
             - name: MESSAGE_STORE_URL
-              value: message-store-service.oasis-dev.svc.cluster.local:9009
+              value: "message-store-service.oasis-dev.svc.cluster.local:9009"
