@@ -21,3 +21,14 @@ spec:
               name: http-port
             - containerPort: 9009  # Should match the port number that the Go application listens on
               name: grpc-port
+          env:
+            - name: DB_USER
+              value: "openline-oasis"
+            - name: DB_PASSWORD
+              value: "my-secret-password"
+            - name: DB_NAME
+              value: "openline-oasis"
+            - name: DB_HOST
+              value: "oasis-postgres-service.oasis-dev.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"

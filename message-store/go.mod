@@ -5,6 +5,7 @@ go 1.19
 require (
 	entgo.io/contrib v0.3.3
 	entgo.io/ent v0.11.4-0.20221001062602-1029a2d3ba2a
+	github.com/caarlos0/env/v6 v6.10.1
 	github.com/lib/pq v1.10.7
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1

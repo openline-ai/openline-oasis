@@ -2,23 +2,29 @@ package routes
 
 import (
 	"fmt"
+	"github.com/DusanKasan/parsemail"
+	"github.com/caarlos0/env/v6"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
-	"openline-ai/message-store/ent/proto/entpb"
+	c "openline-ai/channels-api/config"
+	pb "openline-ai/message-store/ent/proto"
+	"strings"
 )
 
 type MailPostRequest struct {
-	Sender  string
-	RawMail string
-	Subject string
-	ApiKey  string
+	Sender     string
+	RawMessage string
+	Subject    string
+	ApiKey     string
 }
 
 func addMailRoutes(rg *gin.RouterGroup) {
+	conf := c.Config{}
+	env.Parse(&conf)
 	mail := rg.Group("/mail")
 	mail.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "mail get")
@@ -26,38 +32,60 @@ func addMailRoutes(rg *gin.RouterGroup) {
 	mail.POST("/", func(c *gin.Context) {
 		var req MailPostRequest
 		if err := c.BindJSON(&req); err != nil {
-			// DO SOMETHING WITH THE ERROR
+			log.Printf("unable to parse json: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("unable to parse json: %v", err),
+			})
+			return
 		}
-		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMail)
+		//c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
+		log.Printf("Got message from %s", req.Sender)
+		mailReader := strings.NewReader(req.RawMessage)
+		email, err := parsemail.Parse(mailReader) // returns Email struct and error
+		if err != nil {
+			log.Printf("Unable to parse Email: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("Unable to parse Email: %v", err),
+			})
+			return
+		}
 		// Contact the server and print out its response.
-		mi := &entpb.MessageItem{
-			Type:      entpb.MessageItem_MESSAGE,
+		mi := &pb.Message{
+			Type:      pb.MessageType_MESSAGE,
+			Message:   email.TextBody,
+			Direction: pb.MessageDirection_INBOUND,
+			Channel:   pb.MessageChannel_MAIL,
 			Username:  req.Sender,
-			Message:   req.RawMail,
-			Direction: entpb.MessageItem_INBOUND,
-			Channel:   entpb.MessageItem_MAIL,
 		}
 		//Set up a connection to the server.
-		conn, err := grpc.Dial("message-store-service.oasis-dev.svc.cluster.local:9009", grpc.WithInsecure())
+		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
 		if err != nil {
-			log.Fatalf("did not connect: %v", err)
+			log.Printf("did not connect: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect: %v", err),
+			})
+			return
 		}
 		defer conn.Close()
-		client := entpb.NewMessageItemServiceClient(conn)
+		client := pb.NewMessageStoreServiceClient(conn)
 
 		ctx := context.Background()
 
-		created, err := client.Create(ctx, &entpb.CreateMessageItemRequest{MessageItem: mi})
+		message, err := client.SaveMessage(ctx, mi)
 
 		if err != nil {
 			se, _ := status.FromError(err)
-			log.Fatalf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
+			log.Printf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("failed creating message item: status=%s message=%s", se.Code(), se.Message()),
+			})
+			return
 		}
-		log.Printf("message item created with id: %d", created.Id)
+		log.Printf("message item created with id: %d", *message.Id)
 
 		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprint(created),
+			"result": fmt.Sprintf("message item created with id: %d", *message.Id),
 		})
 	})
 }

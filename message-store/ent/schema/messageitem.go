@@ -3,8 +3,11 @@ package schema
 import (
 	"entgo.io/contrib/entproto"
 	"entgo.io/ent"
-	"entgo.io/ent/schema"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // MessageItem holds the schema definition for the MessageItem entity.
@@ -24,15 +27,17 @@ func (MessageItem) Fields() []ent.Field {
 				}),
 			),
 		field.String("username").
-			Unique().
 			Annotations(
 				entproto.Field(3),
 			),
 		field.String("message").
 			Annotations(
 				entproto.Field(4),
-			),
-		field.Enum("channel").Values("CHAT", "MAIL", "WHATSAPP", "FACEBOOK", "TWITTER").
+			).
+			SchemaType(map[string]string{
+				dialect.Postgres: "text", // Override Postgres.
+			}),
+		field.Enum("channel").Values("CHAT", "MAIL", "WHATSAPP", "FACEBOOK", "TWITTER", "VOICE").
 			Annotations(
 				entproto.Field(5),
 				entproto.Enum(map[string]int32{
@@ -41,6 +46,7 @@ func (MessageItem) Fields() []ent.Field {
 					"WHATSAPP": 3,
 					"FACEBOOK": 4,
 					"TWITTER":  5,
+					"VOICE":    6,
 				}),
 			),
 		field.Enum("direction").Values("INBOUND", "OUTBOUND").
@@ -51,17 +57,24 @@ func (MessageItem) Fields() []ent.Field {
 					"OUTBOUND": 2,
 				}),
 			),
+		field.Time("time").Default(time.Now()).
+			Annotations(
+				entproto.Field(8),
+				&entsql.Annotation{
+					Default: "CURRENT_TIMESTAMP",
+				},
+			),
 	}
 }
 
 // Edges of the MessageItem.
 func (MessageItem) Edges() []ent.Edge {
-	return nil
-}
-
-func (MessageItem) Annotations() []schema.Annotation {
-	return []schema.Annotation{
-		entproto.Message(),
-		entproto.Service(),
+	return []ent.Edge{
+		edge.From("message_feed", MessageFeed.Type).
+			Ref("message_item").
+			Unique().
+			Required().
+			Immutable().
+			Annotations(entproto.Field(7)),
 	}
 }

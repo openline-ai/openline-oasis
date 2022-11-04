@@ -1,8 +1,11 @@
-generate:
-	go generate ./...
-	cd ent/proto/entpb; go generate ./...
 
-build:
+generate:
+	export PATH="${PATH}:$(shell go env GOPATH)/bin";go generate ./...
+	export PATH="${PATH}:$(shell go env GOPATH)/bin";protoc --go_out=ent --go_opt=paths=source_relative \
+        --go-grpc_out=ent --go-grpc_opt=paths=source_relative \
+        proto/messagestore.proto
+
+build: generate
 	go build -v -o bin/message-store
 
 test:
@@ -16,3 +19,5 @@ install:
 clean:
 	find ent -mindepth 1 -maxdepth 1 -not \( -name 'schema' -or -name generate.go \) -exec rm -r {} \;
 	rm -rf bin
+
+all: install build

@@ -4,13 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
-	"net"
-	"openline-ai/message-store/ent"
-	"openline-ai/message-store/ent/proto/entpb"
-
+	"github.com/caarlos0/env/v6"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"log"
+	"net"
+	c "openline-ai/message-store/config"
+	"openline-ai/message-store/ent"
+	pb "openline-ai/message-store/ent/proto"
+	"openline-ai/message-store/service"
 )
 
 var (
@@ -18,7 +20,11 @@ var (
 )
 
 func main() {
-	client, err := ent.Open("postgres", "host=oasis-postgres-service.oasis-dev.svc.cluster.local port=5432 user=openline-oasis dbname=openline-oasis password=my-secret-password sslmode=disable")
+	conf := c.Config{}
+	env.Parse(&conf)
+	var connUrl = fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable", conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Name, conf.DB.Password)
+	log.Printf("Connecting to database %s", connUrl)
+	client, err := ent.Open("postgres", connUrl)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
@@ -29,13 +35,13 @@ func main() {
 	}
 
 	// Initialize the generated User service.
-	svc := entpb.NewMessageItemService(client)
+	svc := service.NewMessageService(client)
 
 	// Create a new gRPC server (you can wire multiple services to a single server).
 	server := grpc.NewServer()
 
 	// Register the Message Item service with the server.
-	entpb.RegisterMessageItemServiceServer(server, svc)
+	pb.RegisterMessageStoreServiceServer(server, svc)
 
 	// Open port for listening to traffic.
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))

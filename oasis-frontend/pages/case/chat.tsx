@@ -64,7 +64,7 @@ export const Chat = ({user}: any) => {
                 });
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case/${id}`)
                 .then(res => {
-                    setCurrentCustomer({username: res.data.userName, firstName: "John", lastName: "doe"});
+                    setCurrentCustomer({username: res.data.username, firstName: "John", lastName: "doe"});
 
                 });
         }
@@ -100,11 +100,13 @@ export const Chat = ({user}: any) => {
                 return line.indexOf('>') != 0;
             });
             msg.message = filtered.join('\n').trim();
-            let year = msg.createdDate[0];
-            let month = monthConvert(msg.createdDate[1]);
-            let day = msg.createdDate[2];
-            let hour = zeroPad(msg.createdDate[3]);
-            let minute = zeroPad(msg.createdDate[4]);
+            var t = new Date(Date.UTC(1970, 0, 1));
+            t.setUTCSeconds(msg.time.seconds);
+            let year = t.getFullYear();
+            let month = monthConvert(t.getMonth()+1);
+            let day = t.getDay();
+            let hour = zeroPad(t.getHours());
+            let minute = zeroPad(t.getMinutes());
 
             return (<div key={msg.id} style={{
                 display: 'block',
@@ -114,7 +116,7 @@ export const Chat = ({user}: any) => {
                 padding: '10px',
                 margin: '0px 5px'
             }}>
-                {msg.direction === 'INBOUND' &&
+                {!msg.direction &&
                     <div style={{textAlign: 'left'}}>
                         <div style={{
                             fontSize: '10px',
@@ -125,7 +127,7 @@ export const Chat = ({user}: any) => {
                     </span>
                     </div>
                 }
-                {msg.direction === 'OUTBOUND' &&
+                {msg.direction == 1 &&
                     <div style={{textAlign: 'right'}}>
                         <div style={{
                             fontSize: '10px',
@@ -133,7 +135,7 @@ export const Chat = ({user}: any) => {
                             marginBottom: '10px'
                         }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
                         <span style={{whiteSpace: 'pre-wrap', background: '#bbbbbb', lineHeight: '27px', borderRadius: '3px', padding: '7px 10px'}}>
-                            <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}>{hour}:{minute}</span>
+                            <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                         </span>
                     </div>
                 }
@@ -184,7 +186,7 @@ export const Chat = ({user}: any) => {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
-            userName: currentCustomer.username,
+            username: currentCustomer.username,
             message: currentText
         })
             .then(res => {

@@ -19,7 +19,8 @@ const Index: NextPage = () => {
     useEffect(() => {
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case`)
             .then(res => {
-                setCases(res.data.content);
+                setCases(res.data.contact);
+                console.log(JSON.stringify(res.data.contact))
             })
         configureStomp(`${process.env.NEXT_PUBLIC_STOMP_WEBSOCKET_PATH}/websocket`, `/queue/cases`);
 
@@ -45,7 +46,7 @@ const Index: NextPage = () => {
         console.log("Got a new case!");
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/case`)
             .then(res => {
-                setCases(res.data.content);
+                setCases(res.data.contact);
             });
     }
 
@@ -54,7 +55,7 @@ const Index: NextPage = () => {
             <Layout>
                 <Toolbar left={leftContents}/>
                 <DataTable value={cases}>
-                    <Column field="userName" header="Name"></Column>
+                    <Column field="username" header="Name"></Column>
                     <Column field="state" header="State"></Column>
                     <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
                 </DataTable>

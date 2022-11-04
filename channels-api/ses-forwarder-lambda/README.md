@@ -5,13 +5,13 @@ This will take an e-mail from amazon SES and invoke the mail-api service
 1. [validate your domain](https://docs.aws.amazon.com/ses/latest/dg/receiving-email-verification.html) in aws ses
 1. create an action chain that does as follows
     * insert e-mail into s3 bucket (create s3 bucket)
-    * invoke this lamda
-1. add IAM permissions to the lamda role to allow access to the S3 bucket
-1. set the envionment variables of the lambda suit your envionment
+    * invoke this lambda
+1. add IAM permissions to the lambda role to allow access to the S3 bucket
+1. set the environment variables of the lambda suit your environment
 
 
 ## Configuring the lambda
-the lamda takes 3 envionment variables
+the lambda takes 3 environment variables
 
 | variable          | meaning                                             |
 |-------------------|-----------------------------------------------------|
@@ -21,6 +21,11 @@ the lamda takes 3 envionment variables
 | OL_API_KEY        | API key that will be sent to the channel-api server |
 
 
+### Using https
+if your setup requires https for the callback replace the first line of the script as follows
+```
+const http = require('https');
+```
 ## Permissions for the lamda
 Add the following to the Statement section of the policy
 
