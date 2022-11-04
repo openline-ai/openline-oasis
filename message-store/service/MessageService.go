@@ -130,17 +130,17 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 		}
 	}
 
-	var time *time.Time = nil
+	var t *time.Time = nil
 	if message.GetTime() != nil {
 		var timeref = message.GetTime().AsTime()
-		time = &timeref
+		t = &timeref
 	}
 	msg, err := s.client.MessageItem.
 		Create().
 		SetMessage(message.GetMessage()).
 		SetMessageFeed(feed).
 		SetChannel(encodeChannel(message.GetChannel())).
-		SetNillableTime(time).
+		SetNillableTime(t).
 		SetUsername(message.GetUsername()).
 		SetDirection(encodeDirection(message.GetDirection())).
 		SetType(encodeType(message.GetType())).
@@ -149,6 +149,11 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 	if err != nil {
 		se, _ := status.FromError(err)
 		return nil, status.Errorf(se.Code(), "Error inserting message")
+	}
+
+	if t == nil {
+		var timeRef = time.Now()
+		t = &timeRef
 	}
 
 	var id int64 = int64(msg.ID)
@@ -160,7 +165,7 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 		Username:  msg.Username,
 		Id:        &id,
 		Contact:   &pb.Contact{Username: contact},
-		Time:      timestamppb.New(msg.Time),
+		Time:      timestamppb.New(*t),
 	}
 	return mi, nil
 }
@@ -205,7 +210,6 @@ func (s *messageService) GetMessages(ctx context.Context, contact *pb.Contact) (
 			Time:      timestamppb.New(message.Time),
 			Contact:   &pb.Contact{Username: contact.Username},
 		}
-		log.Printf("Got a direction of %d", mi.Direction)
 		ml.Message = append(ml.Message, mi)
 	}
 	return ml, nil

@@ -12,7 +12,7 @@ const Home: NextPage = () => {
     useEffect(() => {
         loadUserAccount(axiosInstance).then((userData) => {
             if(userData) {
-                router.push('/case'); //todo switch to default user path ( depending on role )
+                router.push('/feed'); //todo switch to default user path ( depending on role )
             } else {
                 router.push('/login');
             }
