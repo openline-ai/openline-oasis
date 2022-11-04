@@ -135,7 +135,7 @@ export const Chat = ({user}: any) => {
                             marginBottom: '10px'
                         }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
                         <span style={{whiteSpace: 'pre-wrap', background: '#bbbbbb', lineHeight: '27px', borderRadius: '3px', padding: '7px 10px'}}>
-                            <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}>{hour}:{minute}</span>
+                            <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                         </span>
                     </div>
                 }
