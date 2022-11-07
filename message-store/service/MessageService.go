@@ -170,6 +170,30 @@ func (s *messageService) SaveMessage(ctx context.Context, message *pb.Message) (
 	return mi, nil
 }
 
+func (s *messageService) GetMessage(ctx context.Context, msg *pb.Message) (*pb.Message, error) {
+	if msg.Id == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "Message ID must be specified")
+	}
+
+	mi, err := s.client.MessageItem.Get(ctx, int(msg.GetId()))
+	if err != nil {
+		se, _ := status.FromError(err)
+		return nil, status.Errorf(se.Code(), "Error finding Message")
+	}
+
+	m := &pb.Message{
+		Type:      decodeType(mi.Type),
+		Message:   mi.Message,
+		Direction: decodeDirection(mi.Direction),
+		Channel:   decodeChannel(mi.Channel),
+		Username:  mi.Username,
+		Id:        msg.Id,
+		Time:      timestamppb.New(mi.Time),
+		Contact:   &pb.Contact{Username: mi.Username},
+	}
+	return m, nil
+}
+
 func (s *messageService) GetMessages(ctx context.Context, pc *pb.PagedContact) (*pb.MessageList, error) {
 	ml := &pb.MessageList{}
 	var messages []*ent.MessageItem

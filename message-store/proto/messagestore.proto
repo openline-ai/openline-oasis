@@ -63,6 +63,7 @@ message Empty {
 service MessageStoreService {
   rpc saveMessage(Message) returns (Message) {};
   rpc getMessages(PagedContact) returns (MessageList) {};
+  rpc getMessage(Message) returns (Message) {};
   rpc getFeeds(Empty) returns (FeedList) {};
   rpc getFeed(Contact) returns (Contact) {};
 

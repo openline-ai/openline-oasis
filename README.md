@@ -64,6 +64,10 @@ if you are not running the minikube on your local machine and the minikube is be
 ```
 ./1-start-turn.sh
 ```
+To start the tunnels for the core services you can run the folowing
+```
+./2-start-tunnels.sh
+```
 
 ## 🙌 Features
 
