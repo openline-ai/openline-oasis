@@ -32,3 +32,5 @@ spec:
               value: "oasis-postgres-service.oasis-dev.svc.cluster.local"
             - name: DB_PORT
               value: "5432"
+            - name: MESSAGE_STORE_SERVER_PORT
+              value: "9009"
