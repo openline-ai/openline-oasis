@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	_ "github.com/lib/pq"
@@ -15,13 +14,12 @@ import (
 	"openline-ai/message-store/service"
 )
 
-var (
-	port = flag.Int("port", 9009, "The grpc server port")
-)
-
 func main() {
 	conf := c.Config{}
-	env.Parse(&conf)
+	if err := env.Parse(&conf); err != nil {
+		fmt.Printf("missing required config")
+		return
+	}
 	var connUrl = fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable", conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Name, conf.DB.Password)
 	log.Printf("Connecting to database %s", connUrl)
 	client, err := ent.Open("postgres", connUrl)
@@ -44,11 +42,11 @@ func main() {
 	pb.RegisterMessageStoreServiceServer(server, svc)
 
 	// Open port for listening to traffic.
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.Service.ServerPort))
 	if err != nil {
 		log.Fatalf("failed listening: %s", err)
 	} else {
-		log.Printf("server started on: %s", fmt.Sprintf(":%d", *port))
+		log.Printf("server started on: %s", fmt.Sprintf(":%d", conf.Service.ServerPort))
 	}
 
 	// Listen for traffic indefinitely.

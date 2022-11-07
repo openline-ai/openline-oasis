@@ -18,5 +18,5 @@ func main() {
 	}
 
 	// Our server will live in the routes package
-	routes.Run(config.Service.ServerAddress, config)
+	routes.Run(config)
 }

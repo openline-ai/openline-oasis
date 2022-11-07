@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/DusanKasan/parsemail"
-	"github.com/caarlos0/env/v6"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -22,9 +21,7 @@ type MailPostRequest struct {
 	ApiKey     string
 }
 
-func addMailRoutes(rg *gin.RouterGroup) {
-	conf := c.Config{}
-	env.Parse(&conf)
+func addMailRoutes(conf c.Config, rg *gin.RouterGroup) {
 	mail := rg.Group("/mail")
 	mail.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "mail get")

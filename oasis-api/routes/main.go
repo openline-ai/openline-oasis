@@ -7,12 +7,10 @@ import (
 	c "openline-ai/oasis-api/config"
 )
 
-var router = gin.Default()
-
 // Run will start the server
-func Run(addr string, config c.Config) {
-	router := getRouter(config)
-	if err := router.Run(addr); err != nil {
+func Run(conf c.Config) {
+	router := getRouter(conf)
+	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
@@ -30,8 +28,8 @@ func getRouter(config c.Config) *gin.Engine {
 
 	router.Use(cors.New(corsConfig))
 
-	v1 := router.Group("/")
-	addFeedRoutes(v1, config)
-	addLoginRoutes(v1)
+	route := router.Group("/")
+	addFeedRoutes(route, config)
+	addLoginRoutes(route)
 	return router
 }

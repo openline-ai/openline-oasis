@@ -1,23 +1,22 @@
 package routes
 
 import (
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
+	c "openline-ai/channels-api/config"
 )
 
-var router = gin.Default()
-
 // Run will start the server
-func Run(addr string) {
-	getRoutes()
-	if err := router.Run(addr); err != nil {
+func Run(conf c.Config) {
+	router := getRouter(conf)
+	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRoutes() {
-	v1 := router.Group("/api/v1")
-	router.Use(cors.Default())
-	addMailRoutes(v1)
+func getRouter(conf c.Config) *gin.Engine {
+	router := gin.New()
+	route := router.Group("/")
+	addMailRoutes(conf, route)
+	return router
 }

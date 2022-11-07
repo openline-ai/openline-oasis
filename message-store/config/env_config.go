@@ -8,4 +8,7 @@ type Config struct {
 		Name     string `env:"DB_NAME,required"`
 		Password string `env:"DB_PASSWORD,required,unset"`
 	}
+	Service struct {
+		ServerPort int `env:"MESSAGE_STORE_SERVER_PORT,required"`
+	}
 }
