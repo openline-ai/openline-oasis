@@ -1,32 +1,35 @@
 package routes
 
 import (
-	"github.com/caarlos0/env/v6"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 	c "openline-ai/oasis-api/config"
 )
 
-var router = gin.Default()
-
 // Run will start the server
-func Run(addr string) {
-	getRoutes()
-	if err := router.Run(addr); err != nil {
+func Run(conf c.Config) {
+	router := getRouter(conf)
+	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRoutes() {
-	conf := c.Config{}
-	env.Parse(&conf)
-	v1 := router.Group("/")
+func getRouter(config c.Config) *gin.Engine {
+	router := gin.New()
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{conf.Service.CorsUrl}
+
+	corsConfig.AllowOrigins = []string{config.Service.CorsUrl}
+	// To be able to send tokens to the server.
 	corsConfig.AllowCredentials = true
 
-	router.Use(cors.New(corsConfig))
-	addFeedRoutes(v1)
+	// OPTIONS method for ReactJS
+	corsConfig.AddAllowMethods("OPTIONS", "POST")
 
+	router.Use(cors.New(corsConfig))
+
+	route := router.Group("/")
+	addFeedRoutes(route, config)
+	addLoginRoutes(route)
+	return router
 }

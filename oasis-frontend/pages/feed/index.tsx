@@ -19,8 +19,8 @@ const Index: NextPage = () => {
     useEffect(() => {
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
             .then(res => {
-                setFeeds(res.data.contact);
-                console.log(JSON.stringify(res.data.contact))
+                setFeeds(res.data?.contact)
+                console.log(JSON.stringify(res.data?.contact))
             })
         configureStomp(`${process.env.NEXT_PUBLIC_STOMP_WEBSOCKET_PATH}/websocket`, `/queue/cases`);
 
@@ -46,7 +46,7 @@ const Index: NextPage = () => {
         console.log("Got a new feed!");
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
             .then(res => {
-                setFeeds(res.data.contact);
+                setFeeds(res.data?.contact);
             });
     }
 

@@ -2,8 +2,6 @@ package routes
 
 import (
 	"fmt"
-	"github.com/caarlos0/env/v6"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -25,14 +23,7 @@ type FeedID struct {
 	ID int64 `uri:"id" binding:"required"`
 }
 
-func addFeedRoutes(rg *gin.RouterGroup) {
-	conf := c.Config{}
-	env.Parse(&conf)
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{conf.Service.CorsUrl}
-	corsConfig.AllowCredentials = true
-
-	rg.Use(cors.New(corsConfig))
+func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 
 	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.

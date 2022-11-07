@@ -1,16 +1,18 @@
 package main
 
 import (
-	"flag"
+	"fmt"
+	"github.com/caarlos0/env/v6"
+	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/routes"
 )
 
-var (
-	addr = flag.String("addr", ":8013", "The server address")
-)
-
 func main() {
-	flag.Parse()
+	conf := c.Config{}
+	if err := env.Parse(&conf); err != nil {
+		fmt.Printf("missing required config")
+		return
+	}
 	// Our server will live in the routes package
-	routes.Run(*addr)
+	routes.Run(conf)
 }
