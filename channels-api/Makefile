@@ -6,7 +6,7 @@ generate:
         proto/messageevent.proto
 
 build: generate
-	go build -v -o bin/channels-api
+	go build -v -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -o bin/channels-api
 
 test:
 	go test -v
@@ -16,7 +16,7 @@ install:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 clean:
-	find ent -mindepth 1 -maxdepth 1 -not \( \) -exec rm -r {} \;
+	find ent -mindepth 1 -maxdepth 1 -exec rm -r {} \;
 	rm -rf bin
 
 all: install build

@@ -7,7 +7,9 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
-	pb "openline-ai/message-store/ent/proto"
+	chanProto "openline-ai/channels-api/ent/proto"
+	msProto "openline-ai/message-store/ent/proto"
+
 	c "openline-ai/oasis-api/config"
 )
 
@@ -27,7 +29,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 
 	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.
-		empty := &pb.Empty{}
+		empty := &msProto.Empty{}
 		//Set up a connection to the server.
 		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
 		if err != nil {
@@ -38,7 +40,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 			return
 		}
 		defer conn.Close()
-		client := pb.NewMessageStoreServiceClient(conn)
+		client := msProto.NewMessageStoreServiceClient(conn)
 
 		ctx := context.Background()
 
@@ -63,11 +65,11 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 			return
 		}
 		defer conn.Close()
-		client := pb.NewMessageStoreServiceClient(conn)
+		client := msProto.NewMessageStoreServiceClient(conn)
 
-		contact := &pb.Contact{Id: &feedId.ID, Username: ""}
-		pageInfo := &pb.PageInfo{PageSize: 100}
-		pageContact := &pb.PagedContact{Page: pageInfo, Contact: contact}
+		contact := &msProto.Contact{Id: &feedId.ID, Username: ""}
+		pageInfo := &msProto.PageInfo{PageSize: 100}
+		pageContact := &msProto.PagedContact{Page: pageInfo, Contact: contact}
 		ctx := context.Background()
 
 		messages, err := client.GetMessages(ctx, pageContact)
@@ -95,9 +97,9 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 			return
 		}
 		defer conn.Close()
-		client := pb.NewMessageStoreServiceClient(conn)
+		client := msProto.NewMessageStoreServiceClient(conn)
 
-		feed := &pb.Contact{Id: &feedId.ID, Username: ""}
+		feed := &msProto.Contact{Id: &feedId.ID, Username: ""}
 		ctx := context.Background()
 
 		fullFeed, err := client.GetFeed(ctx, feed)
@@ -122,16 +124,16 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 		}
 
 		log.Printf("After json bind %v", req)
-		message := &pb.Message{
+		message := &msProto.Message{
 			Username:  req.Username,
 			Message:   req.Message,
-			Direction: pb.MessageDirection_OUTBOUND,
-			Type:      pb.MessageType_MESSAGE,
+			Direction: msProto.MessageDirection_OUTBOUND,
+			Type:      msProto.MessageType_MESSAGE,
 		}
 		if req.Channel == "CHAT" {
-			message.Channel = pb.MessageChannel_WIDGET
+			message.Channel = msProto.MessageChannel_WIDGET
 		} else {
-			message.Channel = pb.MessageChannel_MAIL
+			message.Channel = msProto.MessageChannel_MAIL
 		}
 
 		//Set up a connection to the server.
@@ -144,7 +146,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 			return
 		}
 		defer conn.Close()
-		client := pb.NewMessageStoreServiceClient(conn)
+		client := msProto.NewMessageStoreServiceClient(conn)
 
 		ctx := context.Background()
 
@@ -153,6 +155,27 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 			c.JSON(400, gin.H{"msg": err})
 			return
 		}
+
+		// inform the channel api a new message
+		conn, err = grpc.Dial(conf.Service.ChannelsApi, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("did not connect: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect to channel api: %v", err),
+			})
+			return
+		}
+		defer conn.Close()
+		channelClient := chanProto.NewMessageEventServiceClient(conn)
+
+		ctx = context.Background()
+
+		_, err = channelClient.SendMessageEvent(ctx, &chanProto.MessageId{MessageId: newMsg.GetId()})
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err})
+			return
+		}
+
 		c.JSON(http.StatusOK, newMsg)
 
 	})

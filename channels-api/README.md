@@ -1,5 +1,15 @@
 
 
+### generate
+https://grpc.io/docs/protoc-installation/
+https://grpc.io/docs/languages/go/quickstart/
+
+To build the project run
+
+```
+make
+```
+
 ## Development
 
 To run this service to run on your laptop you need the following environemnt vars to be set
@@ -12,3 +22,4 @@ To run this service to run on your laptop you need the following environemnt var
 | SMTP_SERVER_ADDRESS         | hostname of smtp server to connect to                        |
 | SMTP_SERVER_USER            | user to authenticate with the smtp server as                 |
 | SMTP_SERVER_PASSWORD        | password to authenticate with the smtp server                |
+| SMTP_FROM_USER              | email address to send email as                               |

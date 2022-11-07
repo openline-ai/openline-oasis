@@ -1,14 +1,13 @@
 syntax = "proto3";
-
 option go_package = "openline-ai/channels-api/ent/proto/";
 
 message MessageId {
   int64 messageId = 1;
 }
 
-message Empty {
+message EventEmpty {
 }
 
 service MessageEventService {
-  rpc sendMessageEvent(MessageId) returns (Empty) {};
+  rpc sendMessageEvent(MessageId) returns (EventEmpty) {};
 }

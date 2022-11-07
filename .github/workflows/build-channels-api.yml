@@ -45,7 +45,7 @@ jobs:
 
       - name: Build
         working-directory: ./channels-api
-        run: go build -v
+        run: make
 
       - name: Test
         working-directory: ./channels-api

@@ -34,3 +34,5 @@ spec:
               value: "my_secure_username"
             - name: SMTP_SERVER_PASSWORD
               value: "my_secure_password"
+            - name: SMTP_FROM_USER
+              value: "demo@example.com"

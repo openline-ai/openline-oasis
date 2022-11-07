@@ -7,14 +7,14 @@ import (
 )
 
 // Run will start the server
-func Run(conf c.Config) {
+func Run(conf *c.Config) {
 	router := getRouter(conf)
 	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRouter(conf c.Config) *gin.Engine {
+func getRouter(conf *c.Config) *gin.Engine {
 	router := gin.New()
 	route := router.Group("/")
 	addMailRoutes(conf, route)

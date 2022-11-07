@@ -25,7 +25,9 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/xhit/go-simple-mail/v2 v2.12.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
@@ -35,3 +37,4 @@ require (
 )
 
 replace openline-ai/message-store => ./../message-store
+

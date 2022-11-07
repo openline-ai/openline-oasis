@@ -21,7 +21,7 @@ type MailPostRequest struct {
 	ApiKey     string
 }
 
-func addMailRoutes(conf c.Config, rg *gin.RouterGroup) {
+func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 	mail := rg.Group("/mail")
 	mail.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "mail get")
