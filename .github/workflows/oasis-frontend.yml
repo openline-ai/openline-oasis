@@ -5,6 +5,9 @@ name: Build, test and publish Openline Agent Platform Frontend App
 
 on:
   push
+    paths:
+      - 'oasis-frontend/**'
+      - '.github/workflows/oasis-frontend.yml'
 
 env:
   REGISTRY: ghcr.io
