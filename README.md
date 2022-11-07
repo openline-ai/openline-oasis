@@ -56,7 +56,7 @@ Open the file
 ```
 deployment/k8s/local-minikube/apps-config/channels-api.yaml
 ```
-Update the 
+Update the values for the following env vars
 * SMTP_SERVER_ADDRESS
 * SMTP_SERVER_USER
 * SMTP_SERVER_PASSWORD
