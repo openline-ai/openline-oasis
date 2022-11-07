@@ -16,7 +16,7 @@ install:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 clean:
-	find ent -mindepth 1 -maxdepth 1 -exec rm -r {} \;
+	find ent -mindepth 1 -maxdepth 1 -not \( -name '.placeholder' \) -exec rm -r {} \;
 	rm -rf bin
 
 all: install build
