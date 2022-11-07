@@ -31,6 +31,6 @@ node_modules/
 bin
 
 message-store/ent/*
-channel-api/ent/proto/*
+channels-api/ent/proto
 !message-store/ent/generate.go
 !message-store/ent/schema

@@ -6,6 +6,8 @@ WORKDIR /app
 
 COPY message-store/ent ./message-store/ent
 COPY message-store/go.mod ./message-store/go.mod
+COPY channels-api/ent ./channels-api/ent
+COPY channels-api/go.mod ./channels-api/go.mod
 COPY oasis-api ./oasis-api
 
 WORKDIR /app/oasis-api
