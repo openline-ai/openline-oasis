@@ -168,6 +168,12 @@ kubectl rollout restart -n $NAMESPACE_NAME deployment/message-store
 kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
 kubectl rollout restart -n $NAMESPACE_NAME deployment/channels-api
 
+
+
+cd $OASIS_HOME/message-store/sql
+SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
+  
+cd $OASIS_HOME/deployment/k8s/local-minikube
 echo "run the following port forwarding commands"
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 8080:8080
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 5060:5060
