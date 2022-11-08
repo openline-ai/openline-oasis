@@ -26,3 +26,13 @@ spec:
               value: "message-store-service.oasis-dev.svc.cluster.local:9009"
             - name: CHANNELS_API_SERVER_ADDRESS
               value: ":8013"
+            - name: GRPC_PORT
+              value: "9013"
+            - name: SMTP_SERVER_ADDRESS
+              value: "my_mail_server"
+            - name: SMTP_SERVER_USER
+              value: "my_secure_username"
+            - name: SMTP_SERVER_PASSWORD
+              value: "my_secure_password"
+            - name: SMTP_FROM_USER
+              value: "demo@example.com"

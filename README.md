@@ -49,10 +49,28 @@ TBD
 * This process has been tested in both macos and Ubuntu 20.04 the install process may need to be adapted for other platforms
 * If you use codespaces, be sure to use the 4 core environment
 * The voice network can not run on arm64, if arm64 is detected kamailio and asterisk will not be installed
-click the green code button and go to the "codespaces" tab
+
+
+#### Set up your mail configuraiton
+Open the file
+```
+deployment/k8s/local-minikube/apps-config/channels-api.yaml
+```
+Update the values for the following env vars
+* SMTP_SERVER_ADDRESS
+* SMTP_SERVER_USER
+* SMTP_SERVER_PASSWORD
+* SMTP_FROM_USER
+
+
+To setup the environment for inbound email you must follow the procedure [here](channels-api/ses-forwarder-lambda/README.md) to set up Amazon SES to send e-mails to you
+
+Once these steps are completed you can proceed to the deployment step
+
+#### Run the deployment script
 
 ```
-deployment/k8s/local-minikube/0-build-deploy-openline-oasis-local-images.sh 
+deployment/k8s/local-minikube/0-build-deploy-openline-oasis-local-images.sh build
 ```
 
 after the script completes you can validate the status of the setup by running

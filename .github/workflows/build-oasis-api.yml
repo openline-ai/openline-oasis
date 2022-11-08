@@ -39,6 +39,14 @@ jobs:
         working-directory: ./message-store
         run: make generate
 
+      - name: Install Channels Api
+        working-directory: ./channels-api
+        run: make install
+
+      - name: Generate Channels Api
+        working-directory: ./channels-api
+        run: make generate
+
       - name: Build
         working-directory: ./oasis-api
         run: go build -v
@@ -74,6 +82,14 @@ jobs:
 
       - name: Generate Message store
         working-directory: ./message-store
+        run: make generate
+
+      - name: Install Channels Api
+        working-directory: ./channels-api
+        run: make install
+
+      - name: Generate Channels Api
+        working-directory: ./channels-api
         run: make generate
 
       - name: Log in to the Container registry
