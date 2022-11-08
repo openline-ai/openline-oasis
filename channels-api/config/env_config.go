@@ -11,5 +11,6 @@ type Config struct {
 		SMTPSeverUser     string `env:"SMTP_SERVER_USER,required"`
 		SMTPSeverPassword string `env:"SMTP_SERVER_PASSWORD,required"`
 		SMTPFromUser      string `env:"SMTP_FROM_USER,required"`
+		ApiKey            string `env:"MAIL_API_KEY,required"`
 	}
 }

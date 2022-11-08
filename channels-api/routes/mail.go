@@ -15,10 +15,10 @@ import (
 )
 
 type MailPostRequest struct {
-	Sender     string
-	RawMessage string
-	Subject    string
-	ApiKey     string
+	Sender     string `json:"sender"`
+	RawMessage string `json:"rawMessage"`
+	Subject    string `json:"subject"`
+	ApiKey     string `json:"api-key"`
 }
 
 func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
@@ -33,6 +33,11 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"result": fmt.Sprintf("unable to parse json: %v", err),
 			})
+			return
+		}
+
+		if conf.Mail.ApiKey != req.ApiKey {
+			c.JSON(http.StatusForbidden, gin.H{"result": "Invalid API Key"})
 			return
 		}
 		//c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)

@@ -48,6 +48,18 @@ export const Chat = ({user}: any) => {
         return months[number-1];
     }
 
+    function decodeChannel(channel: number) {
+        switch(channel) {
+            case 0: return "CHAT";
+            case 1: return "MAIL";
+            case 2: return "WHATSAPP";
+            case 3: return "FACEBOOK";
+            case 4: return "TWITTER";
+            case 5: return "VOICE";
+        }
+        return "CHAT";
+    }
+
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
     const [attachmentButtonHidden, setAttachmentButtonHidden] = useState(false);
@@ -100,11 +112,11 @@ export const Chat = ({user}: any) => {
                 return line.indexOf('>') != 0;
             });
             msg.message = filtered.join('\n').trim();
-            var t = new Date(Date.UTC(1970, 0, 1));
+            let t = new Date(Date.UTC(1970, 0, 1));
             t.setUTCSeconds(msg.time.seconds);
             let year = t.getFullYear();
             let month = monthConvert(t.getMonth()+1);
-            let day = t.getDay();
+            let day = t.getDate();
             let hour = zeroPad(t.getHours());
             let minute = zeroPad(t.getMinutes());
 
@@ -121,7 +133,7 @@ export const Chat = ({user}: any) => {
                         <div style={{
                             fontSize: '10px',
                             marginBottom: '10px'
-                        }}>{currentCustomer.username}&nbsp;-&nbsp;{msg.channel}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                        }}>{currentCustomer.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
                         <span style={{whiteSpace: 'pre-wrap', background: '#bbbbbb', lineHeight: '27px', borderRadius: '3px', padding: '7px 10px'}}>
                     <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                     </span>
