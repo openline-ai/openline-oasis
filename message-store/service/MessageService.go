@@ -195,7 +195,6 @@ func (s *messageService) GetMessage(ctx context.Context, msg *pb.Message) (*pb.M
 }
 
 func (s *messageService) GetMessages(ctx context.Context, pc *pb.PagedContact) (*pb.MessageList, error) {
-	ml := &pb.MessageList{}
 	var messages []*ent.MessageItem
 	var err error
 	var mf *ent.MessageFeed
@@ -237,8 +236,9 @@ func (s *messageService) GetMessages(ctx context.Context, pc *pb.PagedContact) (
 		se, _ := status.FromError(err)
 		return nil, status.Errorf(se.Code(), "Error getting messages")
 	}
+	ml := &pb.MessageList{Message: make([]*pb.Message, len(messages))}
 
-	for i := len(messages) - 1; i >= 0; i-- {
+	for i, j := len(messages)-1, 0; i >= 0; i, j = i-1, j+1 {
 		message := messages[i]
 		var id int64 = int64(message.ID)
 		mi := &pb.Message{
@@ -251,7 +251,7 @@ func (s *messageService) GetMessages(ctx context.Context, pc *pb.PagedContact) (
 			Time:      timestamppb.New(message.Time),
 			Contact:   &pb.Contact{Username: contact.Username},
 		}
-		ml.Message = append(ml.Message, mi)
+		ml.Message[j] = mi
 	}
 	return ml, nil
 }
@@ -262,12 +262,12 @@ func (s *messageService) GetFeeds(ctx context.Context, _ *pb.Empty) (*pb.FeedLis
 		se, _ := status.FromError(err)
 		return nil, status.Errorf(se.Code(), "Error getting messages")
 	}
-	fl := &pb.FeedList{}
+	fl := &pb.FeedList{Contact: make([]*pb.Contact, len(contacts))}
 
-	for _, contact := range contacts {
+	for i, contact := range contacts {
 		var id int64 = int64(contact.ID)
 		log.Printf("Got an feed id of %d", id)
-		fl.Contact = append(fl.Contact, &pb.Contact{Username: contact.Username, Id: &id})
+		fl.Contact[i] = &pb.Contact{Username: contact.Username, Id: &id}
 	}
 	return fl, nil
 }
