@@ -4,7 +4,7 @@
 name: Build, test and publish Openline Agent Platform Frontend App
 
 on:
-  push
+  push:
     paths:
       - 'oasis-frontend/**'
       - '.github/workflows/oasis-frontend.yml'
