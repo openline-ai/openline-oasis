@@ -30,6 +30,7 @@ func getRouter(config c.Config) *gin.Engine {
 
 	route := router.Group("/")
 	addFeedRoutes(route, config)
+	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
 	return router
 }
