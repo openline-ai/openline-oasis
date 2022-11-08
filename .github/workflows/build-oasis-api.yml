@@ -74,7 +74,6 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
         with:
-          version: '3.21.6'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Message store
