@@ -30,13 +30,13 @@ the build is set up so that it can be set up for multiple environments the defau
 
 The following paramstore keys need to be set, if you are not using uat-ninja as an environemnt please replace 'uat-ninja' with your environment name
 
-|key|meaning|
-|---|-------|
-|/config/kamailio-server_uat-ninja/auth_secret|the shared secret to use for ephemeral authentication, this needs to be set to the same value as inside the Oaisis app|
- |/config/kamailio-server_uat-ninja/db_database| the name of the postgres database to use|
- |/config/kamailio-server_uat-ninja/db_host| ip or hostname of the postgres database |
- |/config/kamailio-server_uat-ninja/db_password| password to use to connect to the database |
- |/config/kamailio-server_uat-ninja/db_user| username to connect to the database with |
+| key                                           | meaning                                                                                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| /config/kamailio-server_uat-ninja/auth_secret | the shared secret to use for ephemeral authentication, this needs to be set to the same value as inside the Oaisis app |
+| /config/kamailio-server_uat-ninja/db_database | the name of the postgres database to use                                                                               |
+| /config/kamailio-server_uat-ninja/db_host     | ip or hostname of the postgres database                                                                                |
+| /config/kamailio-server_uat-ninja/db_password | password to use to connect to the database                                                                             |
+| /config/kamailio-server_uat-ninja/db_user     | username to connect to the database with                                                                               |
 
 To build the packer image you can do as follows
 ```
@@ -49,13 +49,21 @@ To build the packer image for a different enviroment, you can specify the envior
 packer init aws-debian.pkr.hcl
 packer build aws-debian.pkr.hcl -var "environment=prod"
 ```
+
+## WebRTC
+
+Webrtc requires the following variables to be set
+| variable    | meaning                                                              |
+| ----------- | -------------------------------------------------------------------- |
+| AUTH_SECRET | This must match the value set in WEBRTC_AUTH_SECRET in the oasis-api |
+
 ## Database
 The database schemas are included in the sql directory, it will also be available in the AMI image in the /tmp/kamailio/sql directory
 
 To provision the database you need set following environment variables
 
 | variable     | meaning                                      |
-|--------------|----------------------------------------------|
+| ------------ | -------------------------------------------- |
 | SQL_HOST     | IP or domain of the postgres server          |
 | SQL_USER     | Username to run the sql as                   |
 | SQL_PASSWORD | Password to run the sql as                   |
