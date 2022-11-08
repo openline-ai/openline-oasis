@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func addCallCredentialRoutes(rg *gin.RouterGroup, conf c.Config) {
+func addCallCredentialRoutes(rg *gin.RouterGroup, conf *c.Config) {
 
 	rg.GET("/call_credentials/", func(c *gin.Context) {
 		expiresTime := time.Now().Unix() + int64(conf.WebRTC.TTL)

@@ -2,35 +2,38 @@ import type {NextPage} from 'next'
 import {DataTable} from 'primereact/datatable';
 import {useEffect, useState} from "react";
 import {Column} from "primereact/column";
-import axios from "axios";
 import {Button} from "primereact/button";
 import {useRouter} from "next/router";
 import {Toolbar} from "primereact/toolbar";
 import {Fragment} from "preact";
 import Layout from "../../components/layout/layout";
-import {useStomp, configureStomp} from "./useStomp";
-import {IFrame} from "@stomp/stompjs";
+import useWebSocket from 'react-use-websocket';
+import axios from "axios";
 
 const Index: NextPage = () => {
-    const router = useRouter();
-    const [feeds, setFeeds] = useState([] as any);
-    const incomingMsg:IFrame = useStomp();
+    const router = useRouter()
+    const [feeds, setFeeds] = useState([] as any)
+
+    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
+        onOpen: () => console.log('Websocket opened'),
+        //Will attempt to reconnect on all close events, such as server shutting down
+        shouldReconnect: (closeEvent) => true,
+    });
 
     useEffect(() => {
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
-            .then(res => {
-                setFeeds(res.data?.contact)
-                console.log(JSON.stringify(res.data?.contact))
-            })
-        configureStomp(`${process.env.NEXT_PUBLIC_STOMP_WEBSOCKET_PATH}/websocket`, `/queue/cases`);
-
+                .then(res => {
+                    setFeeds(res.data?.contact)
+                    console.log(JSON.stringify(res.data?.contact))
+                })
     }, []);
 
     useEffect(() => {
-        if (incomingMsg && Object.keys(incomingMsg).length !== 0) {
-            handleWebsocketMessage(incomingMsg);
+        if (lastMessage && Object.keys(lastMessage).length !== 0) {
+            handleWebsocketMessage(lastMessage);
         }
-    }, [incomingMsg]);
+
+    }, [lastMessage, setFeeds]);
 
     const actionsColumn = (rowData: any) => {
         return <Button icon="pi pi-eye" className="p-button-info"
@@ -38,29 +41,29 @@ const Index: NextPage = () => {
     }
 
     const leftContents = (
-        <Fragment>
-        </Fragment>
+            <Fragment>
+            </Fragment>
     );
 
     const handleWebsocketMessage = function (msg: any) {
         console.log("Got a new feed!");
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
-            .then(res => {
-                setFeeds(res.data?.contact);
-            });
+                .then(res => {
+                    setFeeds(res.data?.contact);
+                });
     }
 
     return (
-        <>
-            <Layout>
-                <Toolbar left={leftContents}/>
-                <DataTable value={feeds}>
-                    <Column field="username" header="Name"></Column>
-                    <Column field="state" header="State"></Column>
-                    <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
-                </DataTable>
-            </Layout>
-        </>
+            <>
+                <Layout>
+                    <Toolbar left={leftContents}/>
+                    <DataTable value={feeds}>
+                        <Column field="username" header="Name"></Column>
+                        <Column field="state" header="State"></Column>
+                        <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
+                    </DataTable>
+                </Layout>
+            </>
     );
 }
 

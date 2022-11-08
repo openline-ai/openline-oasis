@@ -54,12 +54,17 @@ function setUp() {
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
         docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/channels-api/Dockerfile "$OASIS_HOME"
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
-        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-service.yaml
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api.yaml \
+                                        -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-service.yaml \
+                                        -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-loadbalancer-service.yaml
     elif [[ $1 == "oasis-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-api:$BRANCH
         docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-api/Dockerfile "$OASIS_HOME"
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
-        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api-k8s-service.yaml
+        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api.yaml \
+                                        -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api-k8s-service.yaml \
+                                        -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api-k8s-loadbalancer-service.yaml
+
     elif [[ $1 == "oasis-frontend" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
         docker build -t "$IMAGE_NAME" --platform linux/amd64 -f "$OASIS_HOME"/oasis-frontend/Dockerfile "$OASIS_HOME"/oasis-frontend/
@@ -103,12 +108,16 @@ function tearDown() {
         docker image rm "$IMAGE_NAME"
     elif [[ $1 == "channels-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
-        kubectl delete deployments/channels-api service/channels-api-service --namespace "$NS" --cascade=foreground
+        kubectl delete deployments/channels-api \
+                        service/channels-api-service \
+                        service/channels-api-loadbalancer --namespace "$NS" --cascade=foreground
         minikube image unload "$IMAGE_NAME"
         docker image rm "$IMAGE_NAME"
     elif [[ $1 == "oasis-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-api:$BRANCH
-        kubectl delete deployments/oasis-api service/oasis-api-service --namespace "$NS" --cascade=foreground
+        kubectl delete deployments/oasis-api \
+                        service/oasis-api-service \
+                        service/oasis-api-loadbalancer --namespace "$NS" --cascade=foreground
         minikube image unload "$IMAGE_NAME"
         docker image rm "$IMAGE_NAME"
     elif [[ $1 == "oasis-frontend" ]]; then

@@ -1,0 +1,13 @@
+syntax = "proto3";
+option go_package = "openline-ai/oasis-api/proto";
+import "messagestore.proto";
+
+message OasisApiMessage {
+  Contact contact = 1;
+  Message message = 2;
+}
+
+service OasisApiService {
+  rpc newFeedEvent(Contact) returns (Empty) {};
+  rpc newMessageEvent(OasisApiMessage) returns (Empty) {};
+}

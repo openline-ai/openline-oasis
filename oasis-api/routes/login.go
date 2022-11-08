@@ -3,11 +3,12 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
 type LoginPostRequest struct {
-	Username string `json:"username" binding:"required""`
+	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -36,6 +37,11 @@ func addLoginRoutes(rg *gin.RouterGroup) {
 		var req LoginPostRequest
 
 		c.JSON(http.StatusOK, req.Username)
+
+	})
+	rg.GET("/account", func(c *gin.Context) {
+		log.Print("got it")
+		c.JSON(http.StatusOK, "OK")
 
 	})
 }

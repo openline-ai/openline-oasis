@@ -4,6 +4,8 @@ FROM golang:1.19-alpine as builder
 
 WORKDIR /app
 
+COPY oasis-api/proto ./oasis-api/proto
+COPY oasis-api/go.mod ./oasis-api/go.mod
 COPY channels-api ./channels-api
 
 WORKDIR /app/channels-api

@@ -25,7 +25,7 @@ type FeedID struct {
 	ID int64 `uri:"id" binding:"required"`
 }
 
-func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
+func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 
 	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.

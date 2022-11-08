@@ -41,11 +41,11 @@ jobs:
 
       - name: Build
         working-directory: ./oasis-api
-        run: go build -v
+        run: make build
 
       - name: Test
         working-directory: ./oasis-api
-        run: go test -v
+        run: make test
 
   publish:
     name: publish image
@@ -74,6 +74,10 @@ jobs:
 
       - name: Generate Channels Api
         working-directory: ./channels-api
+        run: make generate
+
+      - name: Generate Oasis Api
+        working-directory: ./oasis-api
         run: make generate
 
       - name: Log in to the Container registry
