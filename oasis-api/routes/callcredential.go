@@ -9,19 +9,13 @@ import (
 	"time"
 )
 
-type CallCredentials struct {
-	Username string `json: "username"`
-	Password string `json: "password"`
-	TTL      int    `json: "ttl"`
-}
-
 func addCallCredentialRoutes(rg *gin.RouterGroup, conf c.Config) {
 
-	rg.GET("/call_credentials", func(c *gin.Context) {
-		expiresTime := time.Now().Second() + conf.WebRTC.TTL
+	rg.GET("/call_credentials/", func(c *gin.Context) {
+		expiresTime := time.Now().Unix() + int64(conf.WebRTC.TTL)
 		timeLimitedUser := fmt.Sprintf("%d:%s", expiresTime, c.Query("username"))
 		password := util.GetSignature(timeLimitedUser, conf.WebRTC.AuthSecret)
-		c.JSON(http.StatusOK, CallCredentials{Username: timeLimitedUser, Password: password, TTL: conf.WebRTC.TTL})
+		c.JSON(http.StatusOK, gin.H{"username": timeLimitedUser, "password": password, "ttl": conf.WebRTC.TTL})
 
 	})
 }

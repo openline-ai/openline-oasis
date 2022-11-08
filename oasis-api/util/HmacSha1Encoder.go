@@ -14,6 +14,8 @@ func GetSignature(input, key string) string {
 	h.Write([]byte(input))
 	hash := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
+	log.Printf("hash len=%d", len(hash))
+
 	for ; len(hash)%4 != 0; hash = hash + "=" {
 		log.Printf("Padding hash len=%d", len(hash))
 	}
