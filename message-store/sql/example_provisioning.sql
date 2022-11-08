@@ -1,1 +1,1 @@
-INSERT INTO message_feeds (username) VALUES ("echo@oasis.openline.ai")
+INSERT INTO message_feeds(username) VALUES ('echo@oasis.openline.ai');
