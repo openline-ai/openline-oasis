@@ -95,8 +95,11 @@ cd  $OASIS_HOME
 if [ "x$1" == "xbuild" ]; then
   if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
   then
-	sudo apt-get update
-	sudo apt-get install protobuf-compiler
+	cd /tmp/
+	wget https://github.com/protocolbuffers/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
+	unzip protoc-21.9-linux-x86_64.zip
+	sudo mv bin/protoc /usr/local/bin
+	sudo mv include/* /usr/local/include/
   fi
   if [ "x$(uname -s)" == "xDarwin" ]; 
   then
