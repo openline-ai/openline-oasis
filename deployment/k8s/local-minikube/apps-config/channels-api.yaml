@@ -36,3 +36,5 @@ spec:
               value: "my_secure_password"
             - name: SMTP_FROM_USER
               value: "demo@example.com"
+            - name: MAIL_API_KEY
+              value: "nobody-will-guess-this-api-key"

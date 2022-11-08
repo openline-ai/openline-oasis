@@ -16,7 +16,7 @@ func Run(conf *c.Config) {
 
 func getRouter(conf *c.Config) *gin.Engine {
 	router := gin.New()
-	route := router.Group("/")
+	route := router.Group("/api/v1/")
 	addMailRoutes(conf, route)
 	return router
 }
