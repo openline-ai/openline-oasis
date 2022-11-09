@@ -172,7 +172,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf c.Config) {
 
 		_, err = channelClient.SendMessageEvent(ctx, &chanProto.MessageId{MessageId: newMsg.GetId()})
 		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err)})
 			return
 		}
 

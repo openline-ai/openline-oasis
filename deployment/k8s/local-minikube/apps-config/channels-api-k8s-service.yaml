@@ -10,5 +10,9 @@ spec:
     - name: http
       port: 8013
       targetPort: 8013
+
+    - name: grpc
+      port: 9013
+      targetPort: 9013
   selector:
     app: channels-api         # Map any pod with label `app=channels-api` to this service
