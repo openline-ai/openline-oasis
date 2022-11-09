@@ -24,12 +24,13 @@ func getRouter(config c.Config) *gin.Engine {
 	corsConfig.AllowCredentials = true
 
 	// OPTIONS method for ReactJS
-	corsConfig.AddAllowMethods("OPTIONS", "POST")
+	corsConfig.AddAllowMethods("OPTIONS", "POST", "GET")
 
 	router.Use(cors.New(corsConfig))
 
 	route := router.Group("/")
 	addFeedRoutes(route, config)
+	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
 	return router
 }

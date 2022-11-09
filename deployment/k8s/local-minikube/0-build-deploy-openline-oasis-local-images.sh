@@ -95,8 +95,14 @@ cd  $OASIS_HOME
 if [ "x$1" == "xbuild" ]; then
   if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
   then
-	sudo apt-get update
-	sudo apt-get install protobuf-compiler
+    if [ -z "$(which protoc)" ]; 
+    then
+	    cd /tmp/
+	    wget https://github.com/protocolbuffers/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
+	    unzip protoc-21.9-linux-x86_64.zip
+	    sudo mv bin/protoc /usr/local/bin
+	    sudo mv include/* /usr/local/include/
+    fi
   fi
   if [ "x$(uname -s)" == "xDarwin" ]; 
   then
@@ -168,6 +174,12 @@ kubectl rollout restart -n $NAMESPACE_NAME deployment/message-store
 kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
 kubectl rollout restart -n $NAMESPACE_NAME deployment/channels-api
 
+
+
+cd $OASIS_HOME/message-store/sql
+SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
+  
+cd $OASIS_HOME/deployment/k8s/local-minikube
 echo "run the following port forwarding commands"
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 8080:8080
 echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 5060:5060
