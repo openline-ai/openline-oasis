@@ -97,11 +97,25 @@ if [ "x$1" == "xbuild" ]; then
   then
     if [ -z "$(which protoc)" ]; 
     then
+	    sudo apt-get update
+	    sudo apt-get install -y unzip wget
 	    cd /tmp/
 	    wget https://github.com/protocolbuffers/protobuf/releases/download/v21.9/protoc-21.9-linux-x86_64.zip
 	    unzip protoc-21.9-linux-x86_64.zip
 	    sudo mv bin/protoc /usr/local/bin
 	    sudo mv include/* /usr/local/include/
+    fi
+    if [ -z "$(which go)" ]; 
+    then
+	    sudo apt-get update
+	    sudo apt-get install -y golang-go
+	    mkdir -p ~/go/{bin,src,pkg}
+	    export GOPATH="$HOME/go"
+	    export GOBIN="$GOPATH/bin"
+    fi
+    if [ -z "$(which make)" ]; 
+    then
+	    sudo apt-get install make
     fi
   fi
   if [ "x$(uname -s)" == "xDarwin" ]; 
