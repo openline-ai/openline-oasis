@@ -68,7 +68,7 @@ if [ -z "$(kubectl get deployment customer-os-api -n $CUSTOMER_OS_NAME_SPACE)" ]
 then
   echo "Installing Customer OS Aplicaitons"
   getCustomerOs
-  $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/2-build-deploy-customer-os-local-images.sh
+  $CUSTOMER_OS_HOME/deployment/k8s/local-minikube/2-build-deploy-customer-os-local-images.sh $1
 fi  
 
 if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
@@ -122,10 +122,8 @@ if [ "x$1" == "xbuild" ]; then
   then
 	  brew install protobuf
   fi
-  cd $OASIS_HOME/message-store;make install;make generate;cd $OASIS_HOME
   cd $OASIS_HOME/channels-api;make install;make generate;cd $OASIS_HOME
 
-  docker build -t ghcr.io/openline-ai/openline-oasis/message-store:otter -f message-store/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --platform linux/amd64 --build-arg NODE_ENV=dev oasis-frontend
@@ -135,7 +133,6 @@ if [ "x$1" == "xbuild" ]; then
     cd oasis-voice/asterisk/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
   fi
 else
-  docker pull ghcr.io/openline-ai/openline-oasis/message-store:otter
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter
@@ -148,7 +145,6 @@ else
 
 fi
 
-minikube image load ghcr.io/openline-ai/openline-oasis/message-store:otter --daemon
 minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
 minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
 minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
@@ -167,8 +163,6 @@ fi
   
 cd $OASIS_HOME/deployment/k8s/local-minikube
 
-kubectl apply -f apps-config/message-store.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/message-store-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
@@ -184,16 +178,7 @@ then
   kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
 fi
 
-kubectl rollout restart -n $NAMESPACE_NAME deployment/message-store
 kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
 kubectl rollout restart -n $NAMESPACE_NAME deployment/channels-api
 
-
-
-cd $OASIS_HOME/message-store/sql
-SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-  
 cd $OASIS_HOME/deployment/k8s/local-minikube
-echo "run the following port forwarding commands"
-echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 8080:8080
-echo kubectl port-forward --namespace $NAMESPACE_NAME svc/kamailio-service 5060:5060

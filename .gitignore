@@ -30,7 +30,4 @@ node_modules/
 # bin. Go output dir
 bin
 
-message-store/ent/*
 channels-api/ent/proto
-!message-store/ent/generate.go
-!message-store/ent/schema

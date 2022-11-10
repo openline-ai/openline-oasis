@@ -3,12 +3,12 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	chanProto "openline-ai/channels-api/ent/proto"
-	msProto "openline-ai/message-store/ent/proto"
 
 	c "openline-ai/oasis-api/config"
 )

@@ -6,10 +6,10 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
+	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110085804-8f579d811d66
 	golang.org/x/net v0.1.0
 	google.golang.org/grpc v1.50.1
 	openline-ai/channels-api v0.0.0-00010101000000-000000000000
-	openline-ai/message-store v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -33,7 +33,5 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-replace openline-ai/message-store => ./../message-store
 
 replace openline-ai/channels-api => ./../channels-api
