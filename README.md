@@ -115,15 +115,12 @@ openline-oasis/
 │   └── scripts             # Deployment scripts
 └── packages
     ├── apps                # Front end web applications
-    │   ├── oasis           # slack for external omni-channel communications, built on customerOS
+    │   ├── oasis           # Slack for external omni-channel communications, built on customerOS
     ├── components
     │   ├── react           # React component library
     │   └── web             # Web component library
     ├── core                # Shared core libraries
-    ├── plugins             
-    |   └── voice           # Voice network configuration
     └── server              # Back end API server
-    └── voice               # Voice network (optional)
 ```
 
 ## 💪 Contributions
