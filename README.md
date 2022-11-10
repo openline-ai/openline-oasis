@@ -96,6 +96,36 @@ TBD
 - For help, feature requests, or chat with fellow Openline enthusiasts, check out our [slack community][slack]!
 - Our [docs site][docs] has references for developer functionality, including the Graph API
 
+## 👩‍💻 Codebase
+
+### Technologies
+
+Here's a list of the big technologies that we use:
+
+- **PostgreSQL** - Data storage
+- **Go** - Back end & API
+- **React & Typescript** - Front end apps
+
+### Folder structure
+
+```sh
+openline-oasis/
+├── deployment              
+│   ├── infra               # Infrastructure-as-code
+│   └── scripts             # Deployment scripts
+└── packages
+    ├── apps                # Front end web applications
+    │   ├── oasis           # slack for external omni-channel communications, built on customerOS
+    ├── components
+    │   ├── react           # React component library
+    │   └── web             # Web component library
+    ├── core                # Shared core libraries
+    ├── plugins             
+    |   └── voice           # Voice network configuration
+    └── server              # Back end API server
+    └── voice               # Voice network (optional)
+```
+
 ## 💪 Contributions
 
 - We love contributions big or small!  Please check out our [guide on how to get started][contributions].
