@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/DusanKasan/parsemail"
 	"github.com/gin-gonic/gin"
+	pb "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 	c "openline-ai/channels-api/config"
-	pb "openline-ai/message-store/ent/proto"
 	"strings"
 )
 

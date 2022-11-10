@@ -4,8 +4,6 @@ FROM golang:1.19-alpine as builder
 
 WORKDIR /app
 
-COPY message-store/ent ./message-store/ent
-COPY message-store/go.mod ./message-store/go.mod
 COPY channels-api ./channels-api
 
 WORKDIR /app/channels-api

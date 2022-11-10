@@ -31,21 +31,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Message store
-        working-directory: ./message-store
-        run: make install
-
-      - name: Generate Message store
-        working-directory: ./message-store
-        run: make generate
-
-      - name: Install Message store
-        working-directory: ./message-store
-        run: make install
-
       - name: Build
         working-directory: ./channels-api
-        run: make
+        run: make all
 
       - name: Test
         working-directory: ./channels-api
@@ -71,14 +59,6 @@ jobs:
         uses: arduino/setup-protoc@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Message store
-        working-directory: ./message-store
-        run: make install
-
-      - name: Generate Message store
-        working-directory: ./message-store
-        run: make generate
 
       - name: Generate Channel API
         working-directory: ./channels-api

@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"google.golang.org/grpc"
 	"log"
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/ent/proto"
-	msProto "openline-ai/message-store/ent/proto"
 	"time"
 )
 
