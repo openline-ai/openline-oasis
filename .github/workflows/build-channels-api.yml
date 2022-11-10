@@ -33,7 +33,7 @@ jobs:
 
       - name: Build
         working-directory: ./channels-api
-        run: make
+        run: make all
 
       - name: Test
         working-directory: ./channels-api
