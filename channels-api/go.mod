@@ -32,7 +32,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110085804-8f579d811d66 // indirect
+	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110173637-b4bb1589f563 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
@@ -47,4 +47,3 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-

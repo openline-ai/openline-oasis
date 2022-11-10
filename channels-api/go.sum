@@ -104,6 +104,8 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110085804-8f579d811d66 h1:8pmAhVxSZRdnP6EqY6xOVwFEsfBd5udVlFSpvE5XU78=
 github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110085804-8f579d811d66/go.mod h1:+yAUmf4sNRJPyEcPlAjMgITzMJk/i6quE3RoM9GH4E8=
+github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110173637-b4bb1589f563 h1:ezCFinLWfJD1eOOCrnrm9u/eP4uq8eyFJhw4hKkwQig=
+github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221110173637-b4bb1589f563/go.mod h1:+yAUmf4sNRJPyEcPlAjMgITzMJk/i6quE3RoM9GH4E8=
 github.com/pelletier/go-toml/v2 v2.0.1 h1:8e3L2cCQzLFi2CR4g7vGFuFxX7Jl1kKX8gW+iV0GUKU=
 github.com/pelletier/go-toml/v2 v2.0.1/go.mod h1:r9LEWfGN8R5k0VXJ+0BkIe7MYkRdwZOjgMj2KwnJFUo=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
