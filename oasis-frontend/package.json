@@ -6,6 +6,7 @@
     "dev": "next dev -p 3006",
     "build:dev": "env-cmd -f .env.local next build",
     "build:uat-ninja": "env-cmd -f .env.uat-ninja next build",
+    "build:minikube": "env-cmd -f .env.minikube next build",
     "start": "next start -p 3006",
     "lint": "next lint"
   },
@@ -15,9 +16,11 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@stomp/stompjs": "^6.1.2",
     "axios": "^0.27.2",
+    "env-cmd": "^10.1.0",
     "formik": "^2.2.9",
     "jssip": "^3.9.1",
     "next": "12.2.2",
+    "preact": "^10.10.6",
     "primeflex": "^3.2.1",
     "primeicons": "^5.0.0",
     "primereact": "^8.2.0",
@@ -26,10 +29,9 @@
     "react-dom": "18.2.0",
     "react-flow-renderer": "^10.3.8",
     "react-fontawesome": "^1.7.1",
-    "websocket": "^1.0.34",
+    "react-use-websocket": "^4.2.0",
     "sockjs": "^0.3.24",
-    "preact": "^10.10.6",
-    "env-cmd": "^10.1.0"
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
     "@types/node": "18.0.4",

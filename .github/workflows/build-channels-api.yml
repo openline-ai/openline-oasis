@@ -31,6 +31,14 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate Oasis api
+        working-directory: ./oasis-api
+        run: make install
+
+      - name: Generate Oasis api
+        working-directory: ./oasis-api
+        run: make generate
+        
       - name: Build
         working-directory: ./channels-api
         run: make all
@@ -63,6 +71,10 @@ jobs:
       - name: Generate Channel API
         working-directory: ./channels-api
         run: make install generate
+
+      - name: Generate Oasis api
+        working-directory: ./oasis-api
+        run: make generate
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9

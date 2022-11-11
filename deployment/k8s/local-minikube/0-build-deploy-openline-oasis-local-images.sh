@@ -123,6 +123,7 @@ if [ "x$1" == "xbuild" ]; then
 	  brew install protobuf
   fi
   cd $OASIS_HOME/channels-api;make install;make generate;cd $OASIS_HOME
+  cd $OASIS_HOME/oasis-api;make install;make generate;cd $OASIS_HOME
 
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
@@ -165,10 +166,13 @@ cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-api-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/channels-api-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend-k8s-service.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-frontend-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 
 if [ $(uname -m) == "x86_64" ];
 then

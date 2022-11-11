@@ -5,17 +5,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	c "openline-ai/oasis-api/config"
+	"openline-ai/oasis-api/hub"
 )
 
 // Run will start the server
-func Run(conf c.Config) {
-	router := getRouter(conf)
+func Run(conf *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) {
+	router := getRouter(conf, fh, mh)
 	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRouter(config c.Config) *gin.Engine {
+func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engine {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
@@ -32,5 +33,6 @@ func getRouter(config c.Config) *gin.Engine {
 	addFeedRoutes(route, config)
 	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
+	addWebSocketRoutes(route, fh, mh)
 	return router
 }

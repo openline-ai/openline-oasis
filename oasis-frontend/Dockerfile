@@ -12,7 +12,7 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 
-ARG NODE_ENV=uat-ninja
+ARG NODE_ENV=minikube
 
 RUN npm run-script "build:$NODE_ENV" # TODO set the environment as external
 

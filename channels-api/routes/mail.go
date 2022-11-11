@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	c "openline-ai/channels-api/config"
+	pbOasis "openline-ai/oasis-api/proto"
 	"strings"
 )
 
@@ -40,7 +41,6 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			c.JSON(http.StatusForbidden, gin.H{"result": "Invalid API Key"})
 			return
 		}
-		//c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
 		log.Printf("Got message from %s", req.Sender)
 		mailReader := strings.NewReader(req.RawMessage)
@@ -52,7 +52,7 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			})
 			return
 		}
-		// Contact the server and print out its response.
+		//Contact the server and print out its response.
 		mi := &pb.Message{
 			Type:      pb.MessageType_MESSAGE,
 			Message:   email.TextBody,
@@ -60,8 +60,8 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			Channel:   pb.MessageChannel_MAIL,
 			Username:  req.Sender,
 		}
-		//Set up a connection to the server.
-		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		//Set up a connection to the message store server.
+		msConn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -69,13 +69,21 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			})
 			return
 		}
-		defer conn.Close()
-		client := pb.NewMessageStoreServiceClient(conn)
+		defer msConn.Close()
+		client := pb.NewMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
-
+		var contact = GetContact(client, req.Sender)
 		message, err := client.SaveMessage(ctx, mi)
-
+		oasisConn, err := grpc.Dial(conf.Service.OasisApiUrl, grpc.WithInsecure())
+		if err != nil {
+			log.Printf("did not connect: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect: %v", err),
+			})
+			return
+		}
+		defer oasisConn.Close()
 		if err != nil {
 			se, _ := status.FromError(err)
 			log.Printf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
@@ -83,11 +91,44 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 				"result": fmt.Sprintf("failed creating message item: status=%s message=%s", se.Code(), se.Message()),
 			})
 			return
+		} else {
+			oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
+			if contact == nil {
+				contact = GetContact(client, req.Sender)
+			}
+
+			_, err := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisMessageId{MessageId: *message.Id})
+			if err != nil {
+				se, _ := status.FromError(err)
+				log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
+			}
 		}
+
+		if contact == nil {
+			oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
+
+			_, err := oasisClient.NewFeedEvent(ctx, &pbOasis.OasisContact{Username: message.Username, Id: *message.Id})
+			if err != nil {
+				se, _ := status.FromError(err)
+				log.Printf("failed new feed event: status=%s message=%s", se.Code(), se.Message())
+			}
+		}
+
 		log.Printf("message item created with id: %d", *message.Id)
 
 		c.JSON(http.StatusOK, gin.H{
 			"result": fmt.Sprintf("message item created with id: %d", *message.Id),
 		})
 	})
+}
+
+func GetContact(client pb.MessageStoreServiceClient, username string) *pb.Contact {
+
+	feed, err := client.GetFeed(context.Background(), &pb.Contact{Username: username})
+	if err != nil {
+		se, _ := status.FromError(err)
+		log.Printf("failed retrieving message feed: status=%s message=%s", se.Code(), se.Message())
+		return nil
+	}
+	return feed
 }
