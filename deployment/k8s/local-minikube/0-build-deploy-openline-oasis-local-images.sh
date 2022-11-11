@@ -123,6 +123,7 @@ if [ "x$1" == "xbuild" ]; then
 	  brew install protobuf
   fi
   cd $OASIS_HOME/channels-api;make install;make generate;cd $OASIS_HOME
+  cd $OASIS_HOME/oasis-api;make install;make generate;cd $OASIS_HOME
 
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
