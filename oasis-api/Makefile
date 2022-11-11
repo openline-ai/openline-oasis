@@ -1,9 +1,8 @@
 
 generate:
 	export PATH="${PATH}:$(shell go env GOPATH)/bin";go generate ./...
-	export PATH="${PATH}:$(shell go env GOPATH)/bin";protoc --go_out=./proto --go_opt=paths=source_relative \
-        --go-grpc_out=./proto --go-grpc_opt=paths=source_relative \
-        -I./../message-store/proto -I./proto \
+	export PATH="${PATH}:$(shell go env GOPATH)/bin";protoc --go_out=. --go_opt=paths=source_relative \
+        --go-grpc_out=. --go-grpc_opt=paths=source_relative \
         proto/oasisapi.proto
 
 build: generate

@@ -98,10 +98,7 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 				contact = GetContact(client, req.Sender)
 			}
 
-			_, err := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisApiMessage{
-				Contact: contact,
-				Message: message,
-			})
+			_, err := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisMessageId{MessageId: *message.Id})
 			if err != nil {
 				se, _ := status.FromError(err)
 				log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
@@ -111,7 +108,7 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		if contact == nil {
 			oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
 
-			_, err := oasisClient.NewFeedEvent(ctx, message.Contact)
+			_, err := oasisClient.NewFeedEvent(ctx, &pbOasis.OasisContact{Username: message.Username, Id: *message.Id})
 			if err != nil {
 				se, _ := status.FromError(err)
 				log.Printf("failed new feed event: status=%s message=%s", se.Code(), se.Message())
