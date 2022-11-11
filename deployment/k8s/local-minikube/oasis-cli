@@ -37,20 +37,12 @@ else
     wait
 fi
 
-declare -a OasisServices=("message-store" "channels-api" "oasis-api" "oasis-frontend" "kamailio" "asterisk")
+declare -a OasisServices=("channels-api" "oasis-api" "oasis-frontend" "kamailio" "asterisk")
 
 function setUp() {
     echo " --- Setup ${1}"
-    if [[ $1 == "message-store" ]]; then
-        cd "$OASIS_HOME"/message-store || exit
-        make install
-        make generate
-        cd - || exit
-        IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/message-store:$BRANCH
-        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/message-store/Dockerfile "$OASIS_HOME"
-        minikube image load "$IMAGE_NAME" --overwrite=true --daemon
-        kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/message-store.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/message-store-k8s-service.yaml
-    elif [[ $1 == "channels-api" ]]; then
+
+    if [[ $1 == "channels-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
         docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/channels-api/Dockerfile "$OASIS_HOME"
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
@@ -217,8 +209,8 @@ fi
 if [[ $1 == "help" ]]; then
     echo "                 --- oasis-cli commands ---                       "
     echo "--- oasis-cli build               build and deploy all services"
-    echo "--- oasis-cli build message-store build message-store docker and deploys it to minikube"
-    echo "--- oasis-cli del message-store   removes message store from minikube and docker---"
+    echo "--- oasis-cli build oasis-api      build oasis-api docker and deploys it to minikube"
+    echo "--- oasis-cli del oasis-api       removes oasis-api from minikube and docker---"
     echo "--- oasis-cli del                 removes all services from minikube and docker---"
     echo "--- oasis-cli delns               removes oasis namespace"
     echo "--- oasis-cli svc                 list all services"
