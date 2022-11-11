@@ -206,6 +206,10 @@ if [[ $1 == "restart" ]]; then
     fi
 fi
 
+if [[ $1 == "ns" ]]; then
+    kubectl get namespace
+fi
+
 if [[ $1 == "help" ]]; then
     echo "                 --- oasis-cli commands ---                       "
     echo "--- oasis-cli build               build and deploy all services"
@@ -219,6 +223,7 @@ if [[ $1 == "help" ]]; then
     echo "--- oasis-cli all:                list all resources"
     echo "--- oasis-cli help:               oasis-cli help"
     echo "--- oasis-cli postgres:           build postgres"
+    echo "--- oasis-cli ns:                 list namespaces"
 
     echo "--- oasis-cli restart message-store: build postgres"
 fi

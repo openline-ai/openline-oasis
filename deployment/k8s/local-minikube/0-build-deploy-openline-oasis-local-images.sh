@@ -166,12 +166,13 @@ cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-api-k8s-service.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-api-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/channels-api-k8s-service.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/channels-api-k8s-loadbalancer.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/channels-api-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend-k8s-service.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f apps-config/oasis-frontend-k8s-loadbalancer.yaml --namespace $NAMESPACE_NAME
+kubectl apply -f apps-config/oasis-frontend-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
 
 if [ $(uname -m) == "x86_64" ];
 then
