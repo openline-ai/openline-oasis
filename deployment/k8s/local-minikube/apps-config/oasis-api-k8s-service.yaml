@@ -8,5 +8,8 @@ spec:
     - name: http
       port: 8006
       targetPort: 8006
+    - name: grpc
+      port: 9006
+      targetPort: 9006
   selector:
     app: oasis-api         # Map any pod with label `app=oasis-api` to this service
