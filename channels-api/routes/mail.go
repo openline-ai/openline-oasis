@@ -41,7 +41,6 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			c.JSON(http.StatusForbidden, gin.H{"result": "Invalid API Key"})
 			return
 		}
-		c.JSON(http.StatusOK, "Mail POST endpoint. req sent: sender "+req.Sender+"; raw message: "+req.RawMessage)
 
 		log.Printf("Got message from %s", req.Sender)
 		mailReader := strings.NewReader(req.RawMessage)
@@ -84,7 +83,7 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 			})
 			return
 		}
-		defer msConn.Close()
+		defer oasisConn.Close()
 		if err != nil {
 			se, _ := status.FromError(err)
 			log.Printf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
