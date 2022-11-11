@@ -19,28 +19,6 @@ type OasisApiService struct {
 	mh   *hub.MessageHub
 }
 
-func (s OasisApiService) NewFeedEvent(c context.Context, oasisContact *op.OasisContact) (*op.OasisEmpty, error) {
-	conn, err := grpc.Dial(s.conf.Service.MessageStore, grpc.WithInsecure())
-	if err != nil {
-		log.Printf("Unable to connect to message store!")
-		return nil, err
-	}
-	defer conn.Close()
-	client := msProto.NewMessageStoreServiceClient(conn)
-
-	ctx := context.Background()
-	feed, err := client.GetFeed(ctx, &msProto.Contact{Username: oasisContact.Username, Id: &oasisContact.Id})
-	if err != nil {
-		log.Printf("Unable to connect to retrieve message!")
-		return nil, err
-	}
-	// Send a feed to hub
-	hubFeed := hub.MessageFeed{Username: feed.Username}
-	s.fh.FeedBroadcast <- hubFeed
-	log.Printf("successfully sent new feed for %s", feed.Username)
-	return &op.OasisEmpty{}, nil
-}
-
 func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMessageId) (*op.OasisEmpty, error) {
 	conn, err := grpc.Dial(s.conf.Service.MessageStore, grpc.WithInsecure())
 	if err != nil {
@@ -52,8 +30,9 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 
 	ctx := context.Background()
 	message, err := client.GetMessage(ctx, &msProto.Message{Id: &oasisId.MessageId})
+	feed, err := client.GetFeed(ctx, message.Contact)
 	if err != nil {
-		log.Printf("Unable to connect to retrieve message!")
+		log.Printf("Unable to connect to retrieve message feed!")
 		return nil, err
 	}
 
@@ -61,16 +40,23 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 		Seconds: strconv.FormatInt(message.Time.Seconds, 10),
 		Nanos:   fmt.Sprint(message.Time.Nanos),
 	}
+
 	// Send a feed to hub
+	messageFeed := hub.MessageFeed{Username: feed.Username}
+	s.fh.FeedBroadcast <- messageFeed
+	log.Printf("successfully sent new feed for %s", feed.Username)
+
+	// Send a message to hub
 	messageItem := hub.MessageItem{
 		Username:  message.Contact.Username,
 		Id:        strconv.FormatInt(*message.Id, 10),
-		FeedId:    strconv.FormatInt(*message.Contact.Id, 10),
+		FeedId:    strconv.FormatInt(*feed.Id, 10),
 		Direction: message.Direction.String(),
 		Message:   message.Message,
 		Time:      time,
 		Channel:   message.Channel.String(),
 	}
+	log.Printf("successfully sent new message for %s", messageItem)
 
 	s.mh.MessageBroadcast <- messageItem
 	log.Printf("successfully sent new message for %s", message.Username)
