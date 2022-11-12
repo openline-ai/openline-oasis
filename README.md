@@ -159,7 +159,7 @@ A massive thank you goes out to all these wonderful people ([emoji key][emoji]):
 [apache2]: https://www.apache.org/licenses/LICENSE-2.0
 [call]: https://meetings-eu1.hubspot.com/matt2/customer-demos
 [careers]: https://openline.ai
-[contributions]: https://github.com/openline-ai/community/blob/main/README.md
+[contributions]: https://github.com/openline-ai/openline.ai/blob/otter/docs/contribute/index.md
 [docs]: https://openline.ai
 [emoji]: https://allcontributors.org/docs/en/emoji-key
 [oasis-repo]: https://github.com/openline-ai/openline-customer-os/
