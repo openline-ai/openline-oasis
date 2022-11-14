@@ -8,6 +8,7 @@ import (
 	"net"
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/ent/proto"
+	"openline-ai/channels-api/hub"
 	"openline-ai/channels-api/routes"
 	"openline-ai/channels-api/service"
 )
@@ -18,11 +19,14 @@ func main() {
 		fmt.Printf("missing required config")
 		return
 	}
+
+	mh := hub.NewWebChatMessageHub()
+	go mh.RunWebChatMessageHub()
 	// Our server will live in the routes package
-	go routes.Run(&conf) // run this as a backround goroutine
+	go routes.Run(&conf, mh) // run this as a backround goroutine
 
 	// Initialize the generated User service.
-	svc := service.NewSendMessageService(&conf)
+	svc := service.NewSendMessageService(&conf, mh)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).
