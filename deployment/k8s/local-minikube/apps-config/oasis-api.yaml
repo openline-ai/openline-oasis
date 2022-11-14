@@ -27,7 +27,7 @@ spec:
             - name: CHANNELS_API_URL
               value: "channels-api-service.oasis-dev.svc.cluster.local:9013"
             - name: CORS_URL
-              value: "http://127.0.0.1:3006"
+              value: "http://localhost:3006"
             - name: OASIS_GRPC_PORT
               value: "9006"
             - name: OASIS_API_SERVER_ADDRESS
