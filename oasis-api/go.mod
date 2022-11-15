@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221114174909-e2216c8d1c50
+	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221115054401-979ddf76efc5
 	golang.org/x/net v0.1.0
 	google.golang.org/grpc v1.50.1
 	openline-ai/channels-api v0.0.0-00010101000000-000000000000
