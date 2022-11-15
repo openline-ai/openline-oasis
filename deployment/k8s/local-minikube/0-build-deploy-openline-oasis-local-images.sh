@@ -81,15 +81,6 @@ if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
 fi
 
 ## Build Images
-cd $OASIS_HOME/deployment/k8s/local-minikube
-
-minikube image load postgres:13.4 --pull
-
-kubectl apply -f postgres/postgresql-configmap.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f postgres/postgresql-storage.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f postgres/postgresql-deployment.yaml --namespace $NAMESPACE_NAME
-kubectl apply -f postgres/postgresql-service.yaml --namespace $NAMESPACE_NAME
-
 cd  $OASIS_HOME
 
 if [ "x$1" == "xbuild" ]; then
