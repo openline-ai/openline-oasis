@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"log"
@@ -67,7 +67,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		defer conn.Close()
 		client := msProto.NewMessageStoreServiceClient(conn)
 
-		contact := &msProto.Contact{Id: &feedId.ID, Username: ""}
+		contact := &msProto.Contact{Id: &feedId.ID}
 		pageInfo := &msProto.PageInfo{PageSize: 100}
 		pageContact := &msProto.PagedContact{Page: pageInfo, Contact: contact}
 		ctx := context.Background()
@@ -99,7 +99,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		defer conn.Close()
 		client := msProto.NewMessageStoreServiceClient(conn)
 
-		feed := &msProto.Contact{Id: &feedId.ID, Username: ""}
+		feed := &msProto.Contact{Id: &feedId.ID}
 		ctx := context.Background()
 
 		fullFeed, err := client.GetFeed(ctx, feed)
@@ -123,12 +123,16 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 			return
 		}
 
+		contact := &msProto.Contact{
+			Id: &feedId.ID,
+		}
 		log.Printf("After json bind %v", req)
 		message := &msProto.Message{
 			Username:  req.Username,
 			Message:   req.Message,
 			Direction: msProto.MessageDirection_OUTBOUND,
 			Type:      msProto.MessageType_MESSAGE,
+			Contact:   contact,
 		}
 		if req.Channel == "CHAT" {
 			message.Channel = msProto.MessageChannel_WIDGET

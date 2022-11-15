@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"google.golang.org/grpc"
 	"log"
 	c "openline-ai/oasis-api/config"
@@ -41,14 +41,15 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 		Nanos:   fmt.Sprint(message.Time.Nanos),
 	}
 
+	log.Printf("Got a feed of %v", feed)
 	// Send a feed to hub
-	messageFeed := hub.MessageFeed{Username: feed.Username}
+	messageFeed := hub.MessageFeed{FirstName: feed.FirstName, LastName: feed.LastName, ContactId: feed.ContactId}
 	s.fh.FeedBroadcast <- messageFeed
-	log.Printf("successfully sent new feed for %s", feed.Username)
+	log.Printf("successfully sent new feed for %v", messageFeed)
 
 	// Send a message to hub
 	messageItem := hub.MessageItem{
-		Username:  message.Contact.Username,
+		Username:  message.Username,
 		Id:        strconv.FormatInt(*message.Id, 10),
 		FeedId:    strconv.FormatInt(*feed.Id, 10),
 		Direction: message.Direction.String(),
@@ -56,7 +57,6 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 		Time:      time,
 		Channel:   message.Channel.String(),
 	}
-	log.Printf("successfully sent new message for %s", messageItem)
 
 	s.mh.MessageBroadcast <- messageItem
 	log.Printf("successfully sent new message for %s", message.Username)

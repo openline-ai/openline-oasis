@@ -28,7 +28,7 @@ func addWebSocketRoutes(rg *gin.RouterGroup, fh *hub.FeedHub, mh *hub.MessageHub
 	rg.GET("/ws", func(c *gin.Context) {
 		feedUpgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-		ws, err := msgUpgrader.Upgrade(c.Writer, c.Request, nil)
+		ws, err := feedUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if !errors.Is(err, nil) {
 			log.Println(err)
 		}

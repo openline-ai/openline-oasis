@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/ent/proto"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"google.golang.org/grpc"
 	"log"
@@ -59,7 +59,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 
 		err = email.Send(smtpClient)
 		if err != nil {
-			log.Printf("Unable to connect to mail server!")
+			log.Printf("Unable to send to mail server!")
 			return nil, err
 		}
 	}
