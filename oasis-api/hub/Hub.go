@@ -7,7 +7,9 @@ import (
 )
 
 type MessageFeed struct {
-	Username string `json:"username"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	ContactId string `json:"contactId"`
 }
 
 type Time struct {
@@ -67,8 +69,10 @@ func (h *FeedHub) RunFeedHub() {
 		select {
 		case feed := <-h.FeedBroadcast:
 			for client := range h.Clients {
-				if err := client.WriteJSON(feed); !errors.Is(err, nil) {
-					log.Printf("error occurred: %v", err)
+				if client != nil {
+					if err := client.WriteJSON(feed); !errors.Is(err, nil) {
+						log.Printf("error occurred: %v", err)
+					}
 				}
 			}
 		}

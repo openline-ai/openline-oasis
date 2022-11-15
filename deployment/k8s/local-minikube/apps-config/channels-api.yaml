@@ -31,12 +31,12 @@ spec:
             - name: CHANNELS_GRPC_PORT
               value: "9013"
             - name: SMTP_SERVER_ADDRESS
-              value: "my_mail_server"
+              value: "email-smtp.eu-west-1.amazonaws.com"
             - name: SMTP_SERVER_USER
-              value: "my_secure_username"
+              value: "AKIA3GH2ZMCWJBVFVKE5"
             - name: SMTP_SERVER_PASSWORD
-              value: "my_secure_password"
+              value: "BPIggJ3nCaWWqvuCG2bApvpQWfv9Qapn5kDREGuKBxQd"
             - name: SMTP_FROM_USER
-              value: "demo@example.com"
+              value: "AgentSmith@oasis.openline.ninja"
             - name: MAIL_API_KEY
-              value: "nobody-will-guess-this-api-key"
+              value: "01cc90b9-58f7-489b-8846-84a01b022203"

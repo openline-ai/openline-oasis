@@ -32,9 +32,10 @@ export const Chat = ({user}: any) => {
     });
 
     const [currentCustomer, setCurrentCustomer] = useState({
-        username: 'customer1',
+        contactId: 'customer1',
         firstName: 'John',
-        lastName: 'Doe'
+        lastName: 'Doe',
+        lastMailAddress: ''
     });
 
     const [currentCompany, setCurrentCompany] = useState({
@@ -85,7 +86,7 @@ export const Chat = ({user}: any) => {
                     });
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}`)
                     .then(res => {
-                        setCurrentCustomer({username: res.data.username, firstName: "John", lastName: "doe"});
+                        setCurrentCustomer({contactId: res.data.contactId, firstName: res.data.firstName, lastName: res.data.lastName, lastMailAddress: ''});
 
                     });
         }
@@ -129,6 +130,10 @@ export const Chat = ({user}: any) => {
             let hour = zeroPad(t.getHours());
             let minute = zeroPad(t.getMinutes());
 
+            if(msg.channel == 0 || msg.channel == 1) {
+                setCurrentCustomer({contactId: currentCustomer.contactId, firstName: currentCustomer.firstName, lastName: currentCustomer.lastName, lastMailAddress: msg.username});
+            }
+
             return (<div key={msg.id} style={{
                 display: 'block',
                 width: 'auto',
@@ -142,7 +147,7 @@ export const Chat = ({user}: any) => {
                             <div style={{
                                 fontSize: '10px',
                                 marginBottom: '10px'
-                            }}>{currentCustomer.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                            }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
                             <span style={{
                                 whiteSpace: 'pre-wrap',
                                 background: '#bbbbbb',
@@ -199,7 +204,7 @@ export const Chat = ({user}: any) => {
 
     const handleCall = () => {
         //setInCall(true);
-        let user = currentCustomer.username;
+        let user = currentCustomer.lastMailAddress;
         const regex = /.*<(.*)>/;
         const matches = user.match(regex);
         if (matches) {
@@ -218,7 +223,7 @@ export const Chat = ({user}: any) => {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
-            username: currentCustomer.username,
+            username: currentCustomer.lastMailAddress,
             message: currentText
         })
                 .then(res => {

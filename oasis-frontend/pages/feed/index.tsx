@@ -58,7 +58,8 @@ const Index: NextPage = () => {
                 <Layout>
                     <Toolbar left={leftContents}/>
                     <DataTable value={feeds}>
-                        <Column field="username" header="Name"></Column>
+                        <Column field="firstName" header="First Name"></Column>
+                        <Column field="lastName" header="Last Name"></Column>
                         <Column field="state" header="State"></Column>
                         <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
                     </DataTable>
