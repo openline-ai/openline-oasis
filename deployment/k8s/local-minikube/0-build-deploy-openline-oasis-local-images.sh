@@ -128,40 +128,16 @@ if [ "x$1" == "xbuild" ]; then
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
   docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --platform linux/amd64 --build-arg NODE_ENV=dev oasis-frontend
-  if [ $(uname -m) == "x86_64" ];
-  then
-    cd oasis-voice/kamailio/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter .;cd $OASIS_HOME
-    cd oasis-voice/asterisk/;docker build -t ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter .;cd $OASIS_HOME
-  fi
 else
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter
-  if [ $(uname -m) == "x86_64" ];
-  then
-    docker pull ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter
-    docker pull ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter
-  fi
-
-
 fi
 
 minikube image load ghcr.io/openline-ai/openline-oasis/oasis-api:otter --daemon
 minikube image load ghcr.io/openline-ai/openline-oasis/channels-api:otter --daemon
 minikube image load ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --daemon
 
-if [ $(uname -m) == "x86_64" ];
-then
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-kamailio-server:otter --daemon
-  minikube image load ghcr.io/openline-ai/openline-oasis/openline-asterisk-server:otter --daemon
-fi
-
-if [ $(uname -m) == "x86_64" ];
-then
-  cd $OASIS_HOME/oasis-voice/kamailio/sql
-  SQL_USER=openline-oasis SQL_DATABABASE=openline-oasis ./build_db.sh local-kube
-fi
-  
 cd $OASIS_HOME/deployment/k8s/local-minikube
 
 kubectl apply -f apps-config/oasis-api.yaml --namespace $NAMESPACE_NAME
@@ -173,14 +149,6 @@ kubectl apply -f apps-config/channels-api-k8s-loadbalancer-service.yaml --namesp
 kubectl apply -f apps-config/oasis-frontend.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend-k8s-service.yaml --namespace $NAMESPACE_NAME
 kubectl apply -f apps-config/oasis-frontend-k8s-loadbalancer-service.yaml --namespace $NAMESPACE_NAME
-
-if [ $(uname -m) == "x86_64" ];
-then
-  kubectl apply -f apps-config/asterisk.yaml --namespace $NAMESPACE_NAME
-  kubectl apply -f apps-config/asterisk-k8s-service.yaml --namespace $NAMESPACE_NAME
-  kubectl apply -f apps-config/kamailio.yaml --namespace $NAMESPACE_NAME
-  kubectl apply -f apps-config/kamailio-k8s-service.yaml --namespace $NAMESPACE_NAME
-fi
 
 kubectl rollout restart -n $NAMESPACE_NAME deployment/oasis-api
 kubectl rollout restart -n $NAMESPACE_NAME deployment/channels-api

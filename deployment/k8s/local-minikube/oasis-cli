@@ -37,7 +37,7 @@ else
     wait
 fi
 
-declare -a OasisServices=("channels-api" "oasis-api" "oasis-frontend" "kamailio" "asterisk")
+declare -a OasisServices=("channels-api" "oasis-api" "oasis-frontend")
 
 function setUp() {
     echo " --- Setup ${1}"
@@ -64,27 +64,6 @@ function setUp() {
         kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend.yaml \
             -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend-k8s-service.yaml \
             -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend-k8s-loadbalancer-service.yaml
-    elif [[ $1 == "kamailio" ]]; then
-        if [ "$(uname -m)" == "x86_64" ]; then
-            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-kamailio-server:$BRANCH
-            docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-voice/kamailio/Dockerfile "$OASIS_HOME"/oasis-voice/kamailio
-            minikube image load "$IMAGE_NAME" --overwrite=true --daemon
-            kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/kamailio.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/kamailio-k8s-service.yaml
-            cd "$OASIS_HOME"/oasis-voice/kamailio/sql || exit
-            SQL_USER=openline-oasis SQL_DATABASE=openline-oasis ./build_db.sh local-kube
-            cd - || exit
-        else
-            echo "skipping kamailio..."
-        fi
-    elif [[ $1 == "asterisk" ]]; then
-        if [ "$(uname -m)" == "x86_64" ]; then
-            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-asterisk-server:$BRANCH
-            docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-voice/asterisk/Dockerfile "$OASIS_HOME"/oasis-voice/asterisk
-            minikube image load "$IMAGE_NAME" --overwrite=true --daemon
-            kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/asterisk.yaml -f "$OASIS_DEPLOY_HOME"/apps-config/asterisk-k8s-service.yaml
-        else
-            echo "skipping asterisk..."
-        fi
     else
         echo -n "! unknown oasis service: $1: valid services: ${OasisServices[*]}"
     fi
@@ -117,24 +96,6 @@ function tearDown() {
         kubectl delete deployments/oasis-frontend service/oasis-frontend-service service/oasis-frontend-loadbalancer --namespace "$NS" --cascade=foreground
         minikube image unload "$IMAGE_NAME"
         docker image rm "$IMAGE_NAME"
-    elif [[ $1 == "kamailio" ]]; then
-        if [ "$(uname -m)" == "x86_64" ]; then
-            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
-            kubectl delete deployments/oasis-frontend service/oasis-frontend-service --namespace "$NS" --cascade=foreground
-            minikube image unload "$IMAGE_NAME"
-            docker image rm "$IMAGE_NAME"
-        else
-            echo "skipping kamailio..."
-        fi
-    elif [[ $1 == "asterisk" ]]; then
-        if [ "$(uname -m)" == "x86_64" ]; then
-            IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
-            kubectl delete deployments/oasis-frontend service/oasis-frontend-service --namespace "$NS" --cascade=foreground
-            minikube image unload "$IMAGE_NAME"
-            docker image rm "$IMAGE_NAME"
-        else
-            echo "skipping asterisk..."
-        fi
     else
         echo -n "! unknown oasis service: $1: valid services: ${OasisServices[*]}"
     fi
