@@ -1,9 +1,0 @@
-;
-; RTP Configuration
-;
-[general]
-rtpstart=10000
-rtpend=20000
-
-[ice_host_candidates]
-!LOCAL_IP! => !PUBLIC_IP!

@@ -44,11 +44,10 @@ TBD
 
 ## 🚀 Installation
 
-### set up a minikube envoronment
+### set up a minikube environment
 
 * This process has been tested in both macos and Ubuntu 20.04 the install process may need to be adapted for other platforms
 * If you use codespaces, be sure to use the 4 core environment
-* The voice network can not run on arm64, if arm64 is detected kamailio and asterisk will not be installed
 
 
 #### Set up your mail configuraiton
@@ -75,13 +74,9 @@ deployment/k8s/local-minikube/0-build-deploy-openline-oasis-local-images.sh buil
 
 after the script completes you can validate the status of the setup by running
 ```
-kubectl -n openline-development get pod
+kubectl -n oasis-dev get pods
 ```
 
-if you are not running the minikube on your local machine and the minikube is behind a nat you will probably need to install the turn server to have audio
-```
-./1-start-turn.sh
-```
 To start the tunnels for the core services you can run the folowing
 ```
 ./2-start-tunnels.sh
