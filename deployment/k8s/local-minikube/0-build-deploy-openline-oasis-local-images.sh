@@ -13,8 +13,8 @@ function getCustomerOs () {
     cd "$OASIS_HOME/../"
     git clone https://github.com/openline-ai/openline-customer-os.git
   fi
-  cd $CUSTOMER_OS_HOME/deployment/scripts/
-  ./0-get-config.sh
+  cd $CUSTOMER_OS_HOME/deployment/scripts/old/
+  ../0-get-config.sh
   cd "$OASIS_HOME/../"
 }
 
@@ -30,8 +30,8 @@ then
   if [ "x$(lsb_release -i|cut -d: -f 2|xargs)" == "xUbuntu" ];
   then
     echo "missing base dependencies, installing"
-    cd $CUSTOMER_OS_HOME/deployment/scripts/
-    $CUSTOMER_OS_HOME/deployment/scripts/1-ubuntu-dependencies.sh
+    cd $CUSTOMER_OS_HOME/deployment/scripts/old/
+    $CUSTOMER_OS_HOME/deployment/scripts/old/1-ubuntu-dependencies.sh
     if [ $INSTALLED_DOCKER == 1 ];
     then 
 	    echo "Docker has just been installed"
@@ -43,8 +43,8 @@ then
   if [ "x$(uname -s)" == "xDarwin" ]; 
   then
     echo "missing base dependencies, installing"
-    cd $CUSTOMER_OS_HOME/deployment/scripts/
-    $CUSTOMER_OS_HOME/deployment/scripts/1-mac-dependencies.sh
+    cd $CUSTOMER_OS_HOME/deployment/scripts/old/
+    $CUSTOMER_OS_HOME/deployment/scripts/old/1-mac-dependencies.sh
   fi
 fi
 
@@ -65,16 +65,16 @@ then
 else
   echo "Installing Customer OS Base"
   getCustomerOs
-  cd $CUSTOMER_OS_HOME/deployment/scripts/
-  $CUSTOMER_OS_HOME/deployment/scripts/2-base-install.sh
+  cd $CUSTOMER_OS_HOME/deployment/scripts/old/
+  $CUSTOMER_OS_HOME/deployment/scripts/old/2-base-install.sh
 fi
 
 if [ -z "$(kubectl get deployment customer-os-api -n $CUSTOMER_OS_NAME_SPACE)" ]; 
 then
   echo "Installing Customer OS Aplicaitons"
   getCustomerOs
-  cd $CUSTOMER_OS_HOME/deployment/scripts/
-  $CUSTOMER_OS_HOME/deployment/scripts/3-deploy.sh
+  cd $CUSTOMER_OS_HOME/deployment/scripts/old/
+  $CUSTOMER_OS_HOME/deployment/scripts/old/3-deploy.sh
 fi  
 
 if [[ $(kubectl get namespaces) == *"$NAMESPACE_NAME"* ]];
