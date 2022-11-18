@@ -43,6 +43,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jontyk",
+      "name": "Jonty Knox",
+      "avatar_url": "https://avatars.githubusercontent.com/u/81759836?v=4",
+      "profile": "https://openline.ai",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
