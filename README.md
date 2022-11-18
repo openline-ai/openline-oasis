@@ -137,6 +137,7 @@ A massive thank you goes out to all these wonderful people ([emoji key][emoji]):
       <td align="center"><a href="https://github.com/gabriel0003"><img src="https://avatars.githubusercontent.com/u/108665351?v=4?s=100" width="100px;" alt="Gabriel Gontariu"/><br /><sub><b>Gabriel Gontariu</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=gabriel0003" title="Code">💻</a> <a href="https://github.com/openline-ai/openline-oasis/pulls?q=is%3Apr+reviewed-by%3Agabriel0003" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/edifirut"><img src="https://avatars.githubusercontent.com/u/108661145?v=4?s=100" width="100px;" alt="edifirut"/><br /><sub><b>edifirut</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/pulls?q=is%3Apr+reviewed-by%3Aedifirut" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="http://qxip.net"><img src="https://avatars.githubusercontent.com/u/1423657?v=4?s=100" width="100px;" alt="Lorenzo Mangani"/><br /><sub><b>Lorenzo Mangani</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=lmangani" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://openline.ai"><img src="https://avatars.githubusercontent.com/u/81759836?v=4?s=100" width="100px;" alt="Jonty Knox"/><br /><sub><b>Jonty Knox</b></sub></a><br /><a href="https://github.com/openline-ai/openline-oasis/commits?author=jontyk" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
