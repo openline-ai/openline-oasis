@@ -1,10 +1,8 @@
-import React, {useCallback, useState} from "react"
+import React, {useState} from "react"
 
 import {styles} from "./styles"
 
 import {LoadingOutlined} from '@ant-design/icons'
-
-import useWebSocket, {ReadyState} from 'react-use-websocket';
 
 import Avatar from '../Avatar'
 

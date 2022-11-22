@@ -81,32 +81,37 @@ export const Chat = ({user}: any) => {
     useEffect(() => {
         if (id) {
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`)
-                    .then(res => {
-                        setMessageList(res.data);
-                    });
+                .then(res => {
+                    setMessageList(res.data);
+                });
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}`)
-                    .then(res => {
-                        setCurrentCustomer({contactId: res.data.contactId, firstName: res.data.firstName, lastName: res.data.lastName, lastMailAddress: ''});
-
+                .then(res => {
+                    setCurrentCustomer({
+                        contactId: res.data.contactId,
+                        firstName: res.data.firstName,
+                        lastName: res.data.lastName,
+                        lastMailAddress: ''
                     });
+
+                });
         }
     }, [id]);
 
     const refreshCredentials = () => {
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/call_credentials/?service=sip&username=` + currentUser.username + "@agent.openline.ai")
-                .then(res => {
-                    console.error("Got a key: " + JSON.stringify(res.data));
-                    if (webrtc.current?._ua) {
-                        webrtc.current?.stopUA();
-                    }
-                    webrtc.current?.setCredentials(res.data.username, res.data.password,
-                            () => {
-                                webrtc.current?.startUA()
-                            });
-                    setTimeout(() => {
-                        refreshCredentials()
-                    }, (res.data.ttl * 3000) / 4);
-                });
+            .then(res => {
+                console.error("Got a key: " + JSON.stringify(res.data));
+                if (webrtc.current?._ua) {
+                    webrtc.current?.stopUA();
+                }
+                webrtc.current?.setCredentials(res.data.username, res.data.password,
+                    () => {
+                        webrtc.current?.startUA()
+                    });
+                setTimeout(() => {
+                    refreshCredentials()
+                }, (res.data.ttl * 3000) / 4);
+            });
     }
     useEffect(() => {
         refreshCredentials();
@@ -130,8 +135,13 @@ export const Chat = ({user}: any) => {
             let hour = zeroPad(t.getHours());
             let minute = zeroPad(t.getMinutes());
 
-            if(msg.channel == 0 || msg.channel == 1) {
-                setCurrentCustomer({contactId: currentCustomer.contactId, firstName: currentCustomer.firstName, lastName: currentCustomer.lastName, lastMailAddress: msg.username});
+            if (msg.channel == 0 || msg.channel == 1) {
+                setCurrentCustomer({
+                    contactId: currentCustomer.contactId,
+                    firstName: currentCustomer.firstName,
+                    lastName: currentCustomer.lastName,
+                    lastMailAddress: msg.username
+                });
             }
 
             return (<div key={msg.id} style={{
@@ -143,39 +153,39 @@ export const Chat = ({user}: any) => {
                 margin: '0px 5px'
             }}>
                 {!msg.direction &&
-                        <div style={{textAlign: 'left'}}>
-                            <div style={{
-                                fontSize: '10px',
-                                marginBottom: '10px'
-                            }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                            <span style={{
-                                whiteSpace: 'pre-wrap',
-                                background: '#bbbbbb',
-                                lineHeight: '27px',
-                                borderRadius: '3px',
-                                padding: '7px 10px'
-                            }}>
+                    <div style={{textAlign: 'left'}}>
+                        <div style={{
+                            fontSize: '10px',
+                            marginBottom: '10px'
+                        }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                        <span style={{
+                            whiteSpace: 'pre-wrap',
+                            background: '#bbbbbb',
+                            lineHeight: '27px',
+                            borderRadius: '3px',
+                            padding: '7px 10px'
+                        }}>
                     <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                     </span>
-                        </div>
+                    </div>
                 }
                 {msg.direction == 1 &&
-                        <div style={{textAlign: 'right'}}>
-                            <div style={{
-                                fontSize: '10px',
-                                lineHeight: '16px',
-                                marginBottom: '10px'
-                            }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                            <span style={{
-                                whiteSpace: 'pre-wrap',
-                                background: '#bbbbbb',
-                                lineHeight: '27px',
-                                borderRadius: '3px',
-                                padding: '7px 10px'
-                            }}>
+                    <div style={{textAlign: 'right'}}>
+                        <div style={{
+                            fontSize: '10px',
+                            lineHeight: '16px',
+                            marginBottom: '10px'
+                        }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                        <span style={{
+                            whiteSpace: 'pre-wrap',
+                            background: '#bbbbbb',
+                            lineHeight: '27px',
+                            borderRadius: '3px',
+                            padding: '7px 10px'
+                        }}>
                             <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                         </span>
-                        </div>
+                    </div>
                 }
 
             </div>);
@@ -226,17 +236,17 @@ export const Chat = ({user}: any) => {
             username: currentCustomer.lastMailAddress,
             message: currentText
         })
-                .then(res => {
-                    setMessageList((messageList: any) => [...messageList, res.data]);
-                    setCurrentText('');
-                });
+            .then(res => {
+                setMessageList((messageList: any) => [...messageList, res.data]);
+                setCurrentText('');
+            });
     };
 
 
     const getTypingIndicator = useCallback(
-            () => {
-                return undefined;
-            }, [],
+        () => {
+            return undefined;
+        }, [],
     );
 
     const handleWebsocketMessage = function (msg: any) {
@@ -253,76 +263,76 @@ export const Chat = ({user}: any) => {
     }
 
     return (
-            <>
-                <Layout>
-                    <div style={{
-                        width: '100%',
-                        height: 'calc(100% - 100px)',
-                        overflowX: 'hidden',
-                        overflowY: 'auto'
-                    }}>
-                        {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                                <WebRTC
-                                        ref={webrtc}
-                                        websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                                        from={"sip:" + currentUser.username + "@agent.openline.ai"}
-                                        updateCallState={(state: boolean) => setInCall(state)}
-                                        autoStart={false}
+        <>
+            <Layout>
+                <div style={{
+                    width: '100%',
+                    height: 'calc(100% - 100px)',
+                    overflowX: 'hidden',
+                    overflowY: 'auto'
+                }}>
+                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                        <WebRTC
+                            ref={webrtc}
+                            websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                            from={"sip:" + currentUser.username + "@agent.openline.ai"}
+                            updateCallState={(state: boolean) => setInCall(state)}
+                            autoStart={false}
 
-                                />}
-                        {messages}
-                        <div ref={messageWrapper}></div>
-                    </div>
-                    <div style={{width: '100%', height: '100px'}}>
+                        />}
+                    {messages}
+                    <div ref={messageWrapper}></div>
+                </div>
+                <div style={{width: '100%', height: '100px'}}>
 
-                        <InputText style={{width: 'calc(100% - 150px)'}} value={currentText}
-                                   onChange={(e) => setCurrentText(e.target.value)}/>
+                    <InputText style={{width: 'calc(100% - 150px)'}} value={currentText}
+                               onChange={(e) => setCurrentText(e.target.value)}/>
 
-                        <Dropdown optionLabel="label" value={currentChannel} options={[
-                            {
-                                label: 'Web chat',
-                                value: 'CHAT'
-                            },
-                            {
-                                label: 'Email',
-                                value: 'EMAIL'
-                            },
+                    <Dropdown optionLabel="label" value={currentChannel} options={[
+                        {
+                            label: 'Web chat',
+                            value: 'CHAT'
+                        },
+                        {
+                            label: 'Email',
+                            value: 'EMAIL'
+                        },
 
-                        ]} onChange={(e) => setCurrentChannel(e.value)}/>
+                    ]} onChange={(e) => setCurrentChannel(e.value)}/>
 
-                        <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
-                                className='p-button-text'>
-                            <FontAwesomeIcon icon={faPlay} style={{color: 'black'}}/>
-                        </Button>
+                    <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
+                            className='p-button-text'>
+                        <FontAwesomeIcon icon={faPlay} style={{color: 'black'}}/>
+                    </Button>
 
-                        {/*{*/}
-                        {/*    !attachmentButtonHidden &&*/}
-                        {/*    <>*/}
-                        {/*        <Button onClick={() => fileUploadInput?.current.click()} className='p-button-text'>*/}
-                        {/*            <FontAwesomeIcon icon={faPaperclip} style={{color: 'black'}}/>*/}
-                        {/*        </Button>*/}
-                        {/*        <input ref={fileUploadInput} type="file" name="file" style={{display: 'none'}}/>*/}
-                        {/*    </>*/}
-                        {/*}*/}
+                    {/*{*/}
+                    {/*    !attachmentButtonHidden &&*/}
+                    {/*    <>*/}
+                    {/*        <Button onClick={() => fileUploadInput?.current.click()} className='p-button-text'>*/}
+                    {/*            <FontAwesomeIcon icon={faPaperclip} style={{color: 'black'}}/>*/}
+                    {/*        </Button>*/}
+                    {/*        <input ref={fileUploadInput} type="file" name="file" style={{display: 'none'}}/>*/}
+                    {/*    </>*/}
+                    {/*}*/}
 
-                        <span hidden={inCall}>
+                    <span hidden={inCall}>
                     <Button onClick={() => handleCall()} className='p-button-text' hidden={inCall}>
                                          {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                                                 <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
+                                             <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
                                          }
                     </Button>
                     </span>
-                        <span hidden={!inCall}>
+                    <span hidden={!inCall}>
                             <Button onClick={() => hangupCall()} className='p-button-text' hidden={!inCall}>
                             {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                                    <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
+                                <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
                             }
                             </Button>
                     </span>
-                    </div>
+                </div>
 
-                </Layout>
-            </>
+            </Layout>
+        </>
     );
 
 }

@@ -60,7 +60,7 @@ export default function WebChat(props: WebChatProps) {
                 bufferSize={props.trackerBufferSize}
                 minimumVisitLength={props.trackerMinimumVisitLength}
                 heartbeatDelay={props.trackerHeartbeatDelay}
-                />
+            />
         </div>
     )
 

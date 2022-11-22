@@ -100,8 +100,10 @@ const Login: NextPage = () => {
                                        }}/>
 
                             <div className="flex align-items-center justify-content-between mb-6">
-                                <a className="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Create your account!</a>
-                                <a className="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Forgot your password?</a>
+                                <a className="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Create your
+                                    account!</a>
+                                <a className="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Forgot
+                                    your password?</a>
                             </div>
 
                             <Button label="Sign In" icon="pi pi-user" className="w-full" onClick={() => handleLogin()}/>
