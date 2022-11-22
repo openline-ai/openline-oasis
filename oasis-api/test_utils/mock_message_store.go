@@ -15,10 +15,10 @@ type MockMessageServiceCallbacks struct {
 	GetFeed     func(context.Context, *msProto.Contact) (*msProto.Contact, error)
 }
 
-var callbacks = &MockMessageServiceCallbacks{}
+var messageCallbacks = &MockMessageServiceCallbacks{}
 
 func SetMessageStoreCallbacks(c *MockMessageServiceCallbacks) {
-	callbacks = c
+	messageCallbacks = c
 }
 
 type MockMessageService struct {
@@ -26,36 +26,36 @@ type MockMessageService struct {
 }
 
 func (s *MockMessageService) SaveMessage(ctx context.Context, message *msProto.Message) (*msProto.Message, error) {
-	if callbacks.SaveMessage != nil {
-		return callbacks.SaveMessage(ctx, message)
+	if messageCallbacks.SaveMessage != nil {
+		return messageCallbacks.SaveMessage(ctx, message)
 	}
 	return nil, status.Errorf(codes.Unimplemented, "method SaveMessage not implemented")
 }
 
 func (s *MockMessageService) GetMessage(ctx context.Context, message *msProto.Message) (*msProto.Message, error) {
-	if callbacks.GetMessage != nil {
-		return callbacks.GetMessage(ctx, message)
+	if messageCallbacks.GetMessage != nil {
+		return messageCallbacks.GetMessage(ctx, message)
 	}
 	return nil, status.Errorf(codes.Unimplemented, "method GetMessage not implemented")
 }
 
 func (s *MockMessageService) GetMessages(ctx context.Context, pc *msProto.PagedContact) (*msProto.MessageList, error) {
-	if callbacks.GetMessages != nil {
-		return callbacks.GetMessages(ctx, pc)
+	if messageCallbacks.GetMessages != nil {
+		return messageCallbacks.GetMessages(ctx, pc)
 	}
 	return nil, status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
 }
 
 func (s *MockMessageService) GetFeeds(ctx context.Context, empty *msProto.Empty) (*msProto.FeedList, error) {
-	if callbacks.GetFeeds != nil {
-		return callbacks.GetFeeds(ctx, empty)
+	if messageCallbacks.GetFeeds != nil {
+		return messageCallbacks.GetFeeds(ctx, empty)
 	}
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeeds not implemented")
 }
 
 func (s *MockMessageService) GetFeed(ctx context.Context, contact *msProto.Contact) (*msProto.Contact, error) {
-	if callbacks.GetFeed != nil {
-		return callbacks.GetFeed(ctx, contact)
+	if messageCallbacks.GetFeed != nil {
+		return messageCallbacks.GetFeed(ctx, contact)
 	}
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeed not implemented")
 }

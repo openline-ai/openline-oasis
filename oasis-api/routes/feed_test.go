@@ -25,8 +25,6 @@ import (
 	"time"
 )
 
-var x = 5
-
 func messageStoreDialer() func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1024 * 1024)
 
@@ -82,13 +80,12 @@ func MakeDialFactoryTest() util.DialFactory {
 	return *dfi
 }
 
-var router *gin.Engine
+var feedRouter *gin.Engine
 
 func init() {
 	dft := MakeDialFactoryTest()
-	router = gin.Default()
-	router.UseRawPath = true
-	route := router.Group("/")
+	feedRouter = gin.Default()
+	route := feedRouter.Group("/")
 
 	addFeedRoutes(route, &config.Config{}, dft)
 
@@ -109,7 +106,7 @@ func TestGetFeeds(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/feed", nil)
-	router.ServeHTTP(w, req)
+	feedRouter.ServeHTTP(w, req)
 	if !assert.Equal(t, w.Code, 200) {
 		return
 	}
@@ -155,7 +152,7 @@ func TestGetFeed(t *testing.T) {
 	}})
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/feed/0", nil)
-	router.ServeHTTP(w, req)
+	feedRouter.ServeHTTP(w, req)
 	log.Printf("Got Body %s", w.Body)
 	if !assert.Equal(t, w.Code, 200) {
 		return
@@ -174,7 +171,7 @@ func TestGetFeed(t *testing.T) {
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/feed/1", nil)
-	router.ServeHTTP(w, req)
+	feedRouter.ServeHTTP(w, req)
 	log.Printf("Got Body %s", w.Body)
 	if !assert.Equal(t, w.Code, 200) {
 		return
@@ -231,7 +228,7 @@ func TestGetMessages(t *testing.T) {
 	var resp []*msProto.Message
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/feed/"+fmt.Sprint(gabyId)+"/item", nil)
-	router.ServeHTTP(w, req)
+	feedRouter.ServeHTTP(w, req)
 	log.Printf("Got Body %s", w.Body)
 
 	if !assert.Equal(t, w.Code, 200) {
@@ -313,6 +310,13 @@ func TestSaveMessages(t *testing.T) {
 			}
 		}
 
+		test_utils.SetChannelApiCallbacks(&test_utils.MockChannelApi{SendMessageEvent: func(ctx context.Context, id *chanProto.MessageId) (*chanProto.EventEmpty, error) {
+			if !assert.Equal(t, id.MessageId, id1) {
+				return nil, status.Error(400, "Unexpected message id!")
+			}
+			return &chanProto.EventEmpty{}, nil
+		}})
+
 		message.Contact = &msProto.Contact{
 			ContactId: "77775553",
 			FirstName: "Gabriel",
@@ -328,7 +332,7 @@ func TestSaveMessages(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
 	log.Printf("Going to post body %s", reqBody)
-	router.ServeHTTP(w, req)
+	feedRouter.ServeHTTP(w, req)
 	log.Printf("Got Body %s", w.Body)
 	if !assert.Equal(t, w.Code, 200) {
 		return
