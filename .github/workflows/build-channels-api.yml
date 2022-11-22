@@ -3,7 +3,7 @@ name: Build Oasis Channels API
 on:
   push:
     paths:
-      - 'channels-api/**'
+      - 'packages/server/channels-api/**'
       - '.github/workflows/build-channels-api.yml'
 
 env:
@@ -32,19 +32,19 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Oasis api
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make install
 
       - name: Generate Oasis api
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make generate
         
       - name: Build
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make all
 
       - name: Test
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: go test -v
 
   publish:
@@ -69,11 +69,11 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Channel API
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make install generate
 
       - name: Generate Oasis api
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make generate
 
       - name: Log in to the Container registry
@@ -92,8 +92,8 @@ jobs:
       - name: Push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: .
-          file: channels-api/Dockerfile
+          context: ./packages/server/
+          file: ./packages/server/channels-api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

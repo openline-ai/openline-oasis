@@ -31,8 +31,8 @@ node_modules/
 bin
 
 # grpc
-channels-api/ent/proto
-oasis-api/proto/*.go
+packages/server/channels-api/ent/proto
+packages/server/oasis-api/proto/*.go
 
 # node
 *dist
