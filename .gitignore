@@ -30,9 +30,5 @@ node_modules/
 # bin. Go output dir
 bin
 
-# grpc
-packages/server/channels-api/ent/proto
-packages/server/oasis-api/proto/*.go
-
 # node
 *dist
