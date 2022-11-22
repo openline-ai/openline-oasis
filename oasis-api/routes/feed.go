@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	chanProto "openline-ai/channels-api/ent/proto"
+	"openline-ai/oasis-api/util"
 
 	c "openline-ai/oasis-api/config"
 )
@@ -22,16 +22,16 @@ type FeedPostRequest struct {
 }
 
 type FeedID struct {
-	ID int64 `uri:"id" binding:"required"`
+	ID int64 `uri:"id"`
 }
 
-func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
+func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.
 		empty := &msProto.Empty{}
 		//Set up a connection to the server.
-		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		conn, err := df.GetMessageStoreCon()
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -45,6 +45,13 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		ctx := context.Background()
 
 		contacts, err := client.GetFeeds(ctx, empty)
+		if err != nil {
+			log.Printf("did not get list of feeds: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not get list of feeds: %v", err),
+			})
+			return
+		}
 		log.Printf("Got the list of contacts!")
 		c.JSON(http.StatusOK, contacts)
 	})
@@ -56,7 +63,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		}
 
 		//Set up a connection to the server.
-		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		conn, err := df.GetMessageStoreCon()
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -83,12 +90,12 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 	rg.GET("/feed/:id", func(c *gin.Context) {
 		var feedId FeedID
 		if err := c.ShouldBindUri(&feedId); err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 
 		//Set up a connection to the server.
-		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		conn, err := df.GetMessageStoreCon()
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -104,7 +111,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 
 		fullFeed, err := client.GetFeed(ctx, feed)
 		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 		c.JSON(200, fullFeed)
@@ -114,12 +121,12 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		var req FeedPostRequest
 
 		if err := c.ShouldBindUri(&feedId); err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 
 		if err := c.BindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 
@@ -141,7 +148,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		}
 
 		//Set up a connection to the server.
-		conn, err := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		conn, err := df.GetMessageStoreCon()
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -161,7 +168,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config) {
 		}
 
 		// inform the channel api a new message
-		conn, err = grpc.Dial(conf.Service.ChannelsApi, grpc.WithInsecure())
+		conn, err = df.GetChannelsAPICon()
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{

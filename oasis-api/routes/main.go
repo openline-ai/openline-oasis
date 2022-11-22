@@ -6,6 +6,7 @@ import (
 	"log"
 	c "openline-ai/oasis-api/config"
 	"openline-ai/oasis-api/hub"
+	"openline-ai/oasis-api/util"
 )
 
 // Run will start the server
@@ -30,7 +31,8 @@ func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engin
 	router.Use(cors.New(corsConfig))
 
 	route := router.Group("/")
-	addFeedRoutes(route, config)
+	df := util.MakeDialFactory(config)
+	addFeedRoutes(route, config, df)
 	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
 	addWebSocketRoutes(route, fh, mh)
