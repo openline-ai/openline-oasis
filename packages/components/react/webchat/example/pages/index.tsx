@@ -68,7 +68,16 @@ export default function Home() {
       </footer>
         <WebChat apikey="nobody-will-guess-this-api-key"
                  httpServerPath="http://localhost:8013/api/v1"
-                 wsServerPath="ws://localhost:8013/api/v1"></WebChat>
+                 wsServerPath="ws://localhost:8013/api/v1"
+                 trackerEnabled={true}
+                 trackerAppId="openline-help-widget"
+                 trackerId="openline-help-widget-dev"
+                 trackerCollectorUrl="https://lzdyxrxc-uat-ninja.openline.ai"
+                 trackerBufferSize="1"
+                 trackerMinimumVisitLength="10"
+                 trackerHeartbeatDelay="10"
+
+          ></WebChat>
     </div>
   )
 }
