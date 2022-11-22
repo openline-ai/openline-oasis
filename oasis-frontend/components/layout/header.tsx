@@ -5,7 +5,7 @@ import {useRouter} from "next/router";
 import {Button} from "primereact/button";
 import axios from "axios";
 import {useState} from "react";
-import {getUserAccount, User} from "../../lib/loadUserAccount";
+import {getUserAccount} from "../../lib/loadUserAccount";
 
 
 const Header = (props: any) => {

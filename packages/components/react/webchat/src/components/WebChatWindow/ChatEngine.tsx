@@ -10,6 +10,7 @@ function useForceUpdate() {
     const [value, setValue] = useState(0)
     return () => setValue(() => value + 1)
 }
+
 interface ChatEngineProps {
     user: string,
     apikey: string,
@@ -42,7 +43,7 @@ export default function ChatEngine(props: ChatEngineProps) {
         }
     }, [lastMessage])
 
-    const handleMessage = (msg:string) => {
+    const handleMessage = (msg: string) => {
         fetch(`${props.httpServerPath}/webchat/`, {
             method: 'POST',
             mode: 'cors',
@@ -54,7 +55,7 @@ export default function ChatEngine(props: ChatEngineProps) {
                 "Content-Type": "application/json",
                 'WebChatApiKey': `${props.apikey}`
             },
-            body: JSON.stringify({ "username": `${props.user}`, "message": msg }),
+            body: JSON.stringify({"username": `${props.user}`, "message": msg}),
         }).then((response) => {
             if (!response.ok) {
                 throw Error(response.statusText);
@@ -90,7 +91,7 @@ export default function ChatEngine(props: ChatEngineProps) {
             />
             <Input
                 referance={inputReferance}
-                clear={(clear:() => { } ) => (clearRef = clear)}
+                clear={(clear: () => {}) => (clearRef = clear)}
                 placeholder='Write your message here.'
                 multiline={true}
                 maxHeight={50}

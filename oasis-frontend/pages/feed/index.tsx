@@ -22,10 +22,10 @@ const Index: NextPage = () => {
 
     useEffect(() => {
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
-                .then(res => {
-                    setFeeds(res.data?.contact)
-                    console.log(JSON.stringify(res.data?.contact))
-                })
+            .then(res => {
+                setFeeds(res.data?.contact)
+                console.log(JSON.stringify(res.data?.contact))
+            })
     }, []);
 
     useEffect(() => {
@@ -41,30 +41,30 @@ const Index: NextPage = () => {
     }
 
     const leftContents = (
-            <Fragment>
-            </Fragment>
+        <Fragment>
+        </Fragment>
     );
 
     const handleWebsocketMessage = function (msg: any) {
         console.log("Got a new feed!");
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
-                .then(res => {
-                    setFeeds(res.data?.contact);
-                });
+            .then(res => {
+                setFeeds(res.data?.contact);
+            });
     }
 
     return (
-            <>
-                <Layout>
-                    <Toolbar left={leftContents}/>
-                    <DataTable value={feeds}>
-                        <Column field="firstName" header="First Name"></Column>
-                        <Column field="lastName" header="Last Name"></Column>
-                        <Column field="state" header="State"></Column>
-                        <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
-                    </DataTable>
-                </Layout>
-            </>
+        <>
+            <Layout>
+                <Toolbar left={leftContents}/>
+                <DataTable value={feeds}>
+                    <Column field="firstName" header="First Name"></Column>
+                    <Column field="lastName" header="Last Name"></Column>
+                    <Column field="state" header="State"></Column>
+                    <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
+                </DataTable>
+            </Layout>
+        </>
     );
 }
 

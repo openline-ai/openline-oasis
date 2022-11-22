@@ -28,7 +28,7 @@ export default [
             resolve(),
             url(),
             commonjs(),
-            typescript({ tsconfig: "./tsconfig.json" }),
+            typescript({tsconfig: "./tsconfig.json"}),
             postcss({
                 extract: true,
                 plugins: [postcssImport(), autoprefixer()],
@@ -38,7 +38,7 @@ export default [
     },
     {
         input: "dist/esm/index.d.ts",
-        output: [{ file: "dist/index.d.ts", format: "esm" }],
+        output: [{file: "dist/index.d.ts", format: "esm"}],
         plugins: [dts()],
         external: [/\.css$/],
     },

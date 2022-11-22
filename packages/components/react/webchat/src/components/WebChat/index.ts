@@ -1,1 +1,1 @@
-export { default } from "./WebChat"
+export {default} from "./WebChat"

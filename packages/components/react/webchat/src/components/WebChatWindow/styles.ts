@@ -1,5 +1,4 @@
 import {CSSProperties} from "react";
-import logoUrl from './teamLogo.png';
 
 export const styles: { [key: string]: CSSProperties } = {
     supportWindow: {

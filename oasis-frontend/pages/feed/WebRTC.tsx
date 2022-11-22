@@ -6,12 +6,11 @@ import {faPhone, faPhoneSlash} from "@fortawesome/free-solid-svg-icons";
 import {
     EndEvent,
     IncomingAckEvent,
-    IncomingEvent, Originator,
+    IncomingEvent,
     OutgoingAckEvent,
-    OutgoingEvent, RTCSession,
+    OutgoingEvent,
     RTCSessionEventMap
 } from "jssip/lib/RTCSession";
-import {IncomingRequest, OutgoingRequest} from "jssip/lib/SIPMessage";
 import {IncomingRTCSessionEvent, OutgoingRTCSessionEvent, UAConfiguration} from "jssip/lib/UA";
 
 interface WebRTCState {
@@ -24,7 +23,7 @@ interface WebRTCState {
     autoStart: boolean
     username?: string
     password?: string
-    
+
 }
 
 interface WebRTCProps {
@@ -35,17 +34,18 @@ interface WebRTCProps {
 }
 
 export default class WebRTC extends React.Component<WebRTCProps> {
-    state:WebRTCState
-    _ua:JsSIP.UA|null
-    _session:any
-    remoteVideo:React.RefObject<HTMLVideoElement>
+    state: WebRTCState
+    _ua: JsSIP.UA | null
+    _session: any
+    remoteVideo: React.RefObject<HTMLVideoElement>
+
     //setState:Function
-    
-    constructor(props:WebRTCProps) {
+
+    constructor(props: WebRTCProps) {
         super(props);
         this.state =
             {
-                inCall  : false,
+                inCall: false,
                 websocket: props.websocket,
                 from: props.from,
                 updateCallState: props.updateCallState,
@@ -71,18 +71,17 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._session.answer();
 
 
-
     }
 
     hangupCall() {
         this.setState({inCall: false, ringing: false});
         this.state.updateCallState(false);
-        if(this._session) {
+        if (this._session) {
             this._session.terminate();
         }
     }
 
-    setCredentials(user: string, pass: string, callback?: (()=>void)) {
+    setCredentials(user: string, pass: string, callback?: (() => void)) {
         if (!callback) {
             this.setState({username: user, password: pass});
         } else {
@@ -93,45 +92,49 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     makeCall(destination: string) {
         var localScope = this;
         this.setState({inCall: true, ringing: false});
-        let eventHandlers:Partial<RTCSessionEventMap> = {
-            'progress': function(e:IncomingEvent|OutgoingEvent) {
+        let eventHandlers: Partial<RTCSessionEventMap> = {
+            'progress': function (e: IncomingEvent | OutgoingEvent) {
                 console.log('call is in progress');
                 localScope.setState({inCall: true});
                 localScope.state.updateCallState(true);
             },
-            'failed': function(e:EndEvent) {
-                console.log('call failed with cause: '+ JSON.stringify(e.cause));
+            'failed': function (e: EndEvent) {
+                console.log('call failed with cause: ' + JSON.stringify(e.cause));
                 localScope.setState({inCall: false})
                 localScope.state.updateCallState(false);
             },
-            'ended': function(e:EndEvent) {
-                console.log('call ended with cause: '+ JSON.stringify(e.cause));
+            'ended': function (e: EndEvent) {
+                console.log('call ended with cause: ' + JSON.stringify(e.cause));
                 localScope.setState({inCall: false});
                 localScope.state.updateCallState(false);
             },
-            'confirmed': function(e: IncomingAckEvent | OutgoingAckEvent) {
+            'confirmed': function (e: IncomingAckEvent | OutgoingAckEvent) {
                 console.log('call confirmed');
                 localScope.setState({inCall: true});
                 localScope.state.updateCallState(true);
             }
         };
 
-        var options:any = {
-            'eventHandlers'    : eventHandlers,
-            'mediaConstraints' : { 'audio': true, 'video': true },
+        var options: any = {
+            'eventHandlers': eventHandlers,
+            'mediaConstraints': {'audio': true, 'video': true},
         };
-	if(process.env.NEXT_PUBLIC_TURN_SERVER)
-	    options['pcConfig'] = {
-		    'iceServers': [
-		{ 'urls': [process.env.NEXT_PUBLIC_TURN_SERVER], 'username': process.env.NEXT_PUBLIC_TURN_USER, 'credential': process.env.NEXT_PUBLIC_TURN_USER},
-		 ]
-	    };
+        if (process.env.NEXT_PUBLIC_TURN_SERVER)
+            options['pcConfig'] = {
+                'iceServers': [
+                    {
+                        'urls': [process.env.NEXT_PUBLIC_TURN_SERVER],
+                        'username': process.env.NEXT_PUBLIC_TURN_USER,
+                        'credential': process.env.NEXT_PUBLIC_TURN_USER
+                    },
+                ]
+            };
 
         this.setState({inCall: true});
         this._session = this._ua?.call(destination, options);
         var peerconnection = this._session.connection;
         peerconnection.addEventListener('addstream', (event: any) => {
-                if(this.remoteVideo.current) {
+                if (this.remoteVideo.current) {
                     this.remoteVideo.current.srcObject = event.stream;
                 }
                 this.remoteVideo.current?.play();
@@ -140,14 +143,14 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     }
 
 
-    componentDidMount () {
-        if(this.state.autoStart) {
+    componentDidMount() {
+        if (this.state.autoStart) {
             this.startUA();
         }
     }
 
     stopUA() {
-        if(!this._ua) {
+        if (!this._ua) {
             console.log("UA not yet started! ignoring request");
             return;
         }
@@ -157,17 +160,17 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     }
 
     startUA() {
-        if(this._ua) {
+        if (this._ua) {
             console.log("UA already started! ignoring request");
             return;
         }
         let socket: JsSIP.Socket = new JsSIP.WebSocketInterface(this.state.websocket);
-        let configuration : UAConfiguration= {
+        let configuration: UAConfiguration = {
             sockets: [socket],
             uri: this.state.from
         };
 
-        if(this.state.username) {
+        if (this.state.username) {
             configuration.authorization_user = this.state.username;
             configuration.password = this.state.password;
         }
@@ -205,25 +208,34 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._ua.start();
     }
 
-    render () {
+    render() {
 
         return (
             <>
-                <div style={{ position: "absolute", zIndex: 9, width: 'calc(100% - 150px)'}} hidden={!this.state.inCall}>
-                <video controls={false} hidden={!this.state.inCall}
-                       ref={this.remoteVideo} autoPlay>
+                <div style={{position: "absolute", zIndex: 9, width: 'calc(100% - 150px)'}} hidden={!this.state.inCall}>
+                    <video controls={false} hidden={!this.state.inCall}
+                           ref={this.remoteVideo} autoPlay>
 
-                </video>
-                <div style={{position: "absolute", top: "50%", left: "50%",  width: "50%", textAlign: "center",
-                    transform: "translate(-50%, -50%)", background: "lightgrey", borderRadius: '3px', border: "1px solid black"}} hidden={!this.state.inCall || !this.state.ringing}>
-                    Incomming call from {this.state.callerId}<br/>
-                    <Button onClick={() => this.answerCall()} className='p-button-text'>
-                        <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
-                    </Button>
-                    <Button onClick={() => this.hangupCall()} className='p-button-text'>
-                        <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
-                    </Button>
-                </div>
+                    </video>
+                    <div style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        width: "50%",
+                        textAlign: "center",
+                        transform: "translate(-50%, -50%)",
+                        background: "lightgrey",
+                        borderRadius: '3px',
+                        border: "1px solid black"
+                    }} hidden={!this.state.inCall || !this.state.ringing}>
+                        Incomming call from {this.state.callerId}<br/>
+                        <Button onClick={() => this.answerCall()} className='p-button-text'>
+                            <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
+                        </Button>
+                        <Button onClick={() => this.hangupCall()} className='p-button-text'>
+                            <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
+                        </Button>
+                    </div>
                 </div>
             </>
 
