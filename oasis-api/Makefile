@@ -9,7 +9,7 @@ build: generate
 	go build -v -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -o bin/oasis-api
 
 test:
-	go test -v
+	go test -v ./... -cover
 
 install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
