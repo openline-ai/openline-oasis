@@ -9,6 +9,7 @@ import (
 	"net"
 	"openline-ai/oasis-api/hub"
 	"openline-ai/oasis-api/proto"
+	"openline-ai/oasis-api/util"
 
 	c "openline-ai/oasis-api/config"
 	"openline-ai/oasis-api/routes"
@@ -33,7 +34,8 @@ func main() {
 	go routes.Run(&conf, fh, mh) // run this as a background goroutine
 
 	// Initialize the generated User service.
-	svc := service.NewOasisApiService(&conf, fh, mh)
+	df := util.MakeDialFactory(&conf)
+	svc := service.NewOasisApiService(df, fh, mh)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).

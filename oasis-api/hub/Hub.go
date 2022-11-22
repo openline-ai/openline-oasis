@@ -33,7 +33,7 @@ type FeedHub struct {
 }
 
 type MessageHub struct {
-	Clients          map[string]*websocket.Conn
+	Clients          map[string]map[*websocket.Conn]bool
 	MessageBroadcast chan MessageItem
 }
 
@@ -46,7 +46,7 @@ func NewFeedHub() *FeedHub {
 
 func NewMessageHub() *MessageHub {
 	return &MessageHub{
-		Clients:          make(map[string]*websocket.Conn),
+		Clients:          make(map[string]map[*websocket.Conn]bool),
 		MessageBroadcast: make(chan MessageItem),
 	}
 }
@@ -55,9 +55,18 @@ func (h *MessageHub) RunMessageHub() {
 	for {
 		select {
 		case message := <-h.MessageBroadcast:
-			if conn := h.Clients[message.FeedId]; conn != nil {
-				if err := conn.WriteJSON(message); !errors.Is(err, nil) {
-					log.Printf("error occurred: %v", err)
+			log.Printf("Message Hub: got message for feed id %s", message.FeedId)
+			if message.Id == "quit" {
+				log.Printf("Message Hub: Got the kill command, shutting down")
+				h.MessageBroadcast <- MessageItem{}
+				return
+			}
+			if conns := h.Clients[message.FeedId]; conns != nil {
+				for conn := range conns {
+					log.Printf("Sending message to Webscoket")
+					if err := conn.WriteJSON(message); !errors.Is(err, nil) {
+						log.Printf("error occurred: %v", err)
+					}
 				}
 			}
 		}
@@ -68,6 +77,11 @@ func (h *FeedHub) RunFeedHub() {
 	for {
 		select {
 		case feed := <-h.FeedBroadcast:
+			if feed.ContactId == "quit" {
+				log.Printf("Feed Hub: Got the kill command, shutting down")
+				h.FeedBroadcast <- MessageFeed{}
+				return
+			}
 			for client := range h.Clients {
 				if client != nil {
 					if err := client.WriteJSON(feed); !errors.Is(err, nil) {
