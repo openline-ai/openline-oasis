@@ -6,7 +6,7 @@ name: Build, test and publish Openline Agent Platform Frontend App
 on:
   push:
     paths:
-      - 'oasis-frontend/**'
+      - 'packages/apps/oasis/oasis-frontend/**'
       - '.github/workflows/oasis-frontend.yml'
 
 env:
@@ -47,7 +47,7 @@ jobs:
       - name: Push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: oasis-frontend/
+          context: packages/apps/oasis/oasis-frontend/
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -83,7 +83,7 @@ jobs:
       - name: Push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: oasis-frontend/
+          context: packages/apps/oasis/oasis-frontend/
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
