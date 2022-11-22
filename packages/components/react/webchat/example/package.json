@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@openline-ai/openline-web-chat": "1.0.0",
+    "@openline-ai/openline-web-chat": "1.0.3",
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
