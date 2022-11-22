@@ -10,7 +10,6 @@ on:
       - 'packages/components/react/webchat/**'
       - '.github/workflows/webchat-ci.yml'
   pull_request:
-    branches: [ "otter" ]
 
 jobs:
   build:

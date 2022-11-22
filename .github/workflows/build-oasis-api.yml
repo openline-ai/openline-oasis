@@ -7,7 +7,6 @@ on:
       - 'packages/server/oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
   pull_request:
-    branches: [ "otter" ]
   release:
     types: [created, edited]
 

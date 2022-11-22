@@ -7,7 +7,6 @@ on:
       - 'packages/server/channels-api/**'
       - '.github/workflows/build-channels-api.yml'
   pull_request:
-    branches: [ "otter" ]
   release:
     types: [created, edited]
 

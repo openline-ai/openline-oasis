@@ -10,7 +10,6 @@ on:
       - 'packages/apps/oasis/oasis-frontend/**'
       - '.github/workflows/oasis-frontend.yml'
   pull_request:
-    branches: [ "otter" ]
   release:
     types: [created, edited]
 
