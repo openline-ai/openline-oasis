@@ -5,9 +5,14 @@ name: Build, test and publish Openline Agent Platform Frontend App
 
 on:
   push:
+    branches: [ "otter"]
     paths:
       - 'packages/apps/oasis/oasis-frontend/**'
       - '.github/workflows/oasis-frontend.yml'
+  pull_request:
+    branches: [ "otter" ]
+  release:
+    types: [created, edited]
 
 env:
   REGISTRY: ghcr.io
