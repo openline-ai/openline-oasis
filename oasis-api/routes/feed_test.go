@@ -8,82 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	chanProto "openline-ai/channels-api/ent/proto"
 	"openline-ai/oasis-api/config"
 	"openline-ai/oasis-api/test_utils"
-	"openline-ai/oasis-api/util"
 	"testing"
 	"time"
 )
 
-func messageStoreDialer() func(context.Context, string) (net.Conn, error) {
-	listener := bufconn.Listen(1024 * 1024)
-
-	server := grpc.NewServer()
-
-	msProto.RegisterMessageStoreServiceServer(server, &test_utils.MockMessageService{})
-
-	go func() {
-		if err := server.Serve(listener); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	return func(context.Context, string) (net.Conn, error) {
-		return listener.Dial()
-	}
-}
-
-func channelApiDialer() func(context.Context, string) (net.Conn, error) {
-	listener := bufconn.Listen(1024 * 1024)
-
-	server := grpc.NewServer()
-
-	chanProto.RegisterMessageEventServiceServer(server, &test_utils.MockSendMessageService{})
-
-	go func() {
-		if err := server.Serve(listener); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	return func(context.Context, string) (net.Conn, error) {
-		return listener.Dial()
-	}
-}
-
-type DialFactoryTestImpl struct {
-	conf *config.Config
-}
-
-func (dfi DialFactoryTestImpl) GetMessageStoreCon() (*grpc.ClientConn, error) {
-	ctx := context.Background()
-	return grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(messageStoreDialer()))
-
-}
-func (dfi DialFactoryTestImpl) GetChannelsAPICon() (*grpc.ClientConn, error) {
-	ctx := context.Background()
-	return grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(channelApiDialer()))
-}
-
-func MakeDialFactoryTest() util.DialFactory {
-	dfi := new(DialFactoryTestImpl)
-	return *dfi
-}
-
 var feedRouter *gin.Engine
 
 func init() {
-	dft := MakeDialFactoryTest()
+	dft := test_utils.MakeDialFactoryTest()
 	feedRouter = gin.Default()
 	route := feedRouter.Group("/")
 

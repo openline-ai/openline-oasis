@@ -33,9 +33,9 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//Set up a connection to the server.
 		conn, err := df.GetMessageStoreCon()
 		if err != nil {
-			log.Printf("did not connect: %v", err)
+			log.Printf("did not connect: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err),
+				"result": fmt.Sprintf("did not connect: %v", err.Error()),
 			})
 			return
 		}
@@ -46,9 +46,9 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		contacts, err := client.GetFeeds(ctx, empty)
 		if err != nil {
-			log.Printf("did not get list of feeds: %v", err)
+			log.Printf("did not get list of feeds: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not get list of feeds: %v", err),
+				"result": fmt.Sprintf("did not get list of feeds: %v", err.Error()),
 			})
 			return
 		}
@@ -58,16 +58,16 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 	rg.GET("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
 		if err := c.ShouldBindUri(&feedId); err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 
 		//Set up a connection to the server.
 		conn, err := df.GetMessageStoreCon()
 		if err != nil {
-			log.Printf("did not connect: %v", err)
+			log.Printf("did not connect: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err),
+				"result": fmt.Sprintf("did not connect: %v", err.Error()),
 			})
 			return
 		}
@@ -82,7 +82,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		messages, err := client.GetMessages(ctx, pageContact)
 		log.Printf("Got the list of messages!")
 		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, messages.GetMessage())
@@ -99,7 +99,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		if err != nil {
 			log.Printf("did not connect: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err),
+				"result": fmt.Sprintf("did not connect: %v", err.Error()),
 			})
 			return
 		}
@@ -150,9 +150,9 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//Set up a connection to the server.
 		conn, err := df.GetMessageStoreCon()
 		if err != nil {
-			log.Printf("did not connect: %v", err)
+			log.Printf("did not connect: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err),
+				"result": fmt.Sprintf("did not connect: %v", err.Error()),
 			})
 			return
 		}
@@ -163,16 +163,16 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		newMsg, err := client.SaveMessage(ctx, message)
 		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
+			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 
 		// inform the channel api a new message
 		conn, err = df.GetChannelsAPICon()
 		if err != nil {
-			log.Printf("did not connect: %v", err)
+			log.Printf("did not connect: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect to channel api: %v", err),
+				"result": fmt.Sprintf("did not connect to channel api: %v", err.Error()),
 			})
 			return
 		}
@@ -183,7 +183,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		_, err = channelClient.SendMessageEvent(ctx, &chanProto.MessageId{MessageId: newMsg.GetId()})
 		if err != nil {
-			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err)})
+			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return
 		}
 

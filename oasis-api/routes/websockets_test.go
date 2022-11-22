@@ -1,50 +1,12 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"net/http/httptest"
-	"net/url"
 	"openline-ai/oasis-api/hub"
+	"openline-ai/oasis-api/test_utils"
 	"testing"
+	"time"
 )
-
-var wsRouter *gin.Engine
-
-func httpToWS(t *testing.T, u string) string {
-	t.Helper()
-
-	wsURL, err := url.Parse(u)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	switch wsURL.Scheme {
-	case "http":
-		wsURL.Scheme = "ws"
-	case "https":
-		wsURL.Scheme = "wss"
-	}
-
-	return wsURL.String()
-}
-
-func makeWSCinnection(t *testing.T, server *httptest.Server, path string) *websocket.Conn {
-	wsURL := httpToWS(t, server.URL) + path
-
-	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return ws
-}
-func newWSServer(t *testing.T) *httptest.Server {
-
-	server := httptest.NewServer(wsRouter)
-
-	return server
-}
 
 var feedHub *hub.FeedHub
 var messageHub *hub.MessageHub
@@ -59,9 +21,7 @@ func setup(t *testing.T) {
 	go mh.RunMessageHub()
 	messageHub = mh
 
-	wsRouter = gin.Default()
-	route := wsRouter.Group("/")
-	addWebSocketRoutes(route, fh, mh)
+	test_utils.SetupWebSocketServer(fh, mh, AddWebSocketRoutes)
 
 	t.Cleanup(func() {
 		mh.MessageBroadcast <- hub.MessageItem{Id: "quit"}
@@ -72,12 +32,36 @@ func setup(t *testing.T) {
 	})
 }
 
-func TestWebsocket(t *testing.T) {
+func TestWebsocketCleanup(t *testing.T) {
 	setup(t)
-	s := newWSServer(t)
+	s := test_utils.NewWSServer(t)
 	defer s.Close()
-	ws := makeWSCinnection(t, s, "/ws")
+	ws := test_utils.MakeWSConnection(t, s, "/ws")
 	assert.Equal(t, 1, len(feedHub.Clients))
 	ws.Close()
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, 0, len(feedHub.Clients))
+
+	ws1 := test_utils.MakeWSConnection(t, s, "/ws/1")
+	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
+	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
+	ws2 := test_utils.MakeWSConnection(t, s, "/ws/1")
+	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
+	assert.Equal(t, 2, len(messageHub.Clients["1"]), "incorrecct number of messages")
+	ws3 := test_utils.MakeWSConnection(t, s, "/ws/2")
+	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
+	assert.Equal(t, 1, len(messageHub.Clients["2"]), "incorrecct number of messages")
+
+	ws1.Close()
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
+	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
+
+	ws2.Close()
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
+
+	ws3.Close()
+	time.Sleep(2 * time.Second)
+	assert.Equal(t, 0, len(messageHub.Clients), "incorrecct number of feeds")
 }

@@ -35,6 +35,6 @@ func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engin
 	addFeedRoutes(route, config, df)
 	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
-	addWebSocketRoutes(route, fh, mh)
+	AddWebSocketRoutes(route, fh, mh)
 	return router
 }
