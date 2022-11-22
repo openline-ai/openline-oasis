@@ -25,3 +25,5 @@ To run this service to run on your laptop you need the following environemnt var
 | SMTP_FROM_USER              | email address to send email as                                                         |
 | MAIL_API_KEY                | The api key used to validated received emails, must mach what is set in the AWS Lambda |
 | OASIS_API_URL               | IP & port of the GRPC interface of oasis api                                           |
+| CHANNELS_API_CORS_URL       | url of the frontend, needed to allow cros-site scripting                               |
+| WEBCHAT_API_KEY             | The api key used to validated received messages and login requests                     |

@@ -1,22 +1,39 @@
 package routes
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 	c "openline-ai/channels-api/config"
+	"openline-ai/channels-api/hub"
+	"strings"
 )
 
 // Run will start the server
-func Run(conf *c.Config) {
-	router := getRouter(conf)
+func Run(conf *c.Config, fh *hub.WebChatMessageHub) {
+	router := getRouter(conf, fh)
 	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRouter(conf *c.Config) *gin.Engine {
+func getRouter(conf *c.Config, fh *hub.WebChatMessageHub) *gin.Engine {
 	router := gin.New()
+	corsConfig := cors.DefaultConfig()
+
+	corsConfig.AllowOrigins = strings.Split(conf.Service.CorsUrl, " ")
+	// To be able to send tokens to the server.
+	corsConfig.AllowCredentials = true
+
+	// OPTIONS method for ReactJS
+	corsConfig.AddAllowMethods("OPTIONS", "POST", "GET")
+	corsConfig.AddAllowHeaders("WebChatApiKey")
+
+	router.Use(cors.New(corsConfig))
 	route := router.Group("/api/v1/")
+
 	addMailRoutes(conf, route)
+	addWebSocketRoutes(route, fh)
+	addWebChatRoutes(conf, route)
 	return router
 }
