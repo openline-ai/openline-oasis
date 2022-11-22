@@ -2,9 +2,13 @@ name: Build Oasis API
 
 on:
   push:
+    branches: [ "otter"]
     paths:
-      - 'oasis-api/**'
+      - 'packages/server/oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
+  pull_request:
+  release:
+    types: [created, edited]
 
 env:
   REGISTRY: ghcr.io
@@ -32,19 +36,19 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Channels Api
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make install
 
       - name: Generate Channels Api
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make generate
 
       - name: Build
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make build
 
       - name: Test
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make test
 
   publish:
@@ -69,15 +73,15 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Channels Api
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make install
 
       - name: Generate Channels Api
-        working-directory: ./channels-api
+        working-directory: ./packages/server/channels-api
         run: make generate
 
       - name: Generate Oasis Api
-        working-directory: ./oasis-api
+        working-directory: ./packages/server/oasis-api
         run: make generate
 
       - name: Log in to the Container registry
@@ -96,8 +100,8 @@ jobs:
       - name: Push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: .
-          file: oasis-api/Dockerfile
+          context: ./packages/server/ 
+          file: ./packages/server/oasis-api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

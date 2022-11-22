@@ -5,9 +5,11 @@ name: Webchat CI
 
 on:
   push:
+    branches: [ "otter"]
     paths:
       - 'packages/components/react/webchat/**'
       - '.github/workflows/webchat-ci.yml'
+  pull_request:
 
 jobs:
   build:

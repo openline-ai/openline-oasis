@@ -4,8 +4,10 @@
 name: Webchat Package
 
 on:
+  push:
+    branches: [ "otter"]
   release:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   build:
