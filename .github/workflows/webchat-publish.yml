@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          always-auth: true
           scope: '@openline-ai'
 
       - run: yarn install
