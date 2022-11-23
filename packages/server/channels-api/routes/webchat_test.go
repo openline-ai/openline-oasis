@@ -167,3 +167,36 @@ func TestSendWebchatInvalidApiKey(t *testing.T) {
 	assert.False(t, sentSaveMessage, "NewMessageEvent called when it shouldn't!")
 
 }
+
+func TestKeyValidator(t *testing.T) {
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/webchat/?email=gabi@example.org", nil)
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	req.Header.Set("WebChatApiKey", webchatApiKey)
+	webchatRouter.ServeHTTP(w, req)
+	log.Printf("Got Body %s", w.Body)
+	if !assert.Equal(t, w.Code, 200) {
+		return
+	}
+	var resp LoginResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Errorf("TestKeyValidator: %v\n", err.Error())
+		return
+	}
+	assert.Equal(t, "gabi@example.org", resp.UserName)
+}
+
+func TestKeyValidatorInvalidKey(t *testing.T) {
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/webchat/?email=gabi@example.org", nil)
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	webchatRouter.ServeHTTP(w, req)
+	log.Printf("Got Body %s", w.Body)
+	if !assert.Equal(t, w.Code, 403) {
+		return
+	}
+
+}
