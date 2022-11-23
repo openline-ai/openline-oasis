@@ -31,7 +31,7 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 
 		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if !errors.Is(err, nil) {
-			log.Println(err)
+			log.Println(err.Error())
 		}
 		defer ws.Close()
 
