@@ -16,7 +16,7 @@ env:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   build:
@@ -61,10 +61,16 @@ jobs:
         with:
           report_paths: packages/server/oasis-api/unit-tests.xml    # Path to test results
           include_passed: true
+          annotate_only: true
+          detailed_summary: true
 
       - name: Compute Code Coverage
         working-directory: ./packages/server/oasis-api
-        run: go tool cover -html=cover.out -o coverage.html
+        run: | 
+             echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+             echo "|Filename|Function|Coverage|" >> $GITHUB_STEP_SUMMARY
+             echo "|--------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+             go tool cover -func=cover.out |sed -r  's/[[:space:]]+/|/g'|sed -r 's/$/|/g'|sed -r 's/^/|/g' >> $GITHUB_STEP_SUMMARY
 
   publish:
     name: publish image
