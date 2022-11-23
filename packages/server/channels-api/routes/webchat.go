@@ -28,13 +28,6 @@ type LoginResponse struct {
 	LastName  string `json:"lastname"`
 }
 
-type WebchatRequest struct {
-	Sender     string `json:"sender"`
-	RawMessage string `json:"rawMessage"`
-	Subject    string `json:"subject"`
-	ApiKey     string `json:"api-key"`
-}
-
 func AddWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 
 	rg.GET("/webchat/", func(c *gin.Context) {
