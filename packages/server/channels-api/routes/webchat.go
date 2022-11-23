@@ -5,11 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	pb "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 	c "openline-ai/channels-api/config"
+	"openline-ai/channels-api/util"
 	pbOasis "openline-ai/oasis-api/proto"
 )
 
@@ -28,14 +28,7 @@ type LoginResponse struct {
 	LastName  string `json:"lastname"`
 }
 
-type WebchatRequest struct {
-	Sender     string `json:"sender"`
-	RawMessage string `json:"rawMessage"`
-	Subject    string `json:"subject"`
-	ApiKey     string `json:"api-key"`
-}
-
-func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
+func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 
 	rg.GET("/webchat/", func(c *gin.Context) {
 		email := c.Query("email")
@@ -52,10 +45,11 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 
 	rg.POST("/webchat/", func(c *gin.Context) {
 		var req WebchatMessage
+
 		if err := c.BindJSON(&req); err != nil {
-			log.Printf("unable to parse json: %v", err)
+			log.Printf("unable to parse json: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("unable to parse json: %v", err),
+				"result": fmt.Sprintf("unable to parse json: %v", err.Error()),
 			})
 			return
 		}
@@ -77,11 +71,11 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		}
 
 		//Set up a connection to the oasis-api server.
-		oasisConn, oasisErr := grpc.Dial(conf.Service.OasisApiUrl, grpc.WithInsecure())
+		oasisConn, oasisErr := df.GetOasisAPICon()
 		if oasisErr != nil {
 			log.Printf("did not connect: %v", oasisErr)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", oasisErr),
+				"result": fmt.Sprintf("did not connect: %v", oasisErr.Error()),
 			})
 			return
 		}
@@ -89,11 +83,11 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
 
 		//Set up a connection to the message store server.
-		msConn, msErr := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		msConn, msErr := df.GetMessageStoreCon()
 		if msErr != nil {
 			log.Printf("did not connect: %v", msErr)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", msErr),
+				"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
 			})
 			return
 		}

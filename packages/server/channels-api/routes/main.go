@@ -6,6 +6,7 @@ import (
 	"log"
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/hub"
+	"openline-ai/channels-api/util"
 	"strings"
 )
 
@@ -32,8 +33,9 @@ func getRouter(conf *c.Config, fh *hub.WebChatMessageHub) *gin.Engine {
 	router.Use(cors.New(corsConfig))
 	route := router.Group("/api/v1/")
 
-	addMailRoutes(conf, route)
-	addWebSocketRoutes(route, fh)
-	addWebChatRoutes(conf, route)
+	df := util.MakeDialFactory(conf)
+	addMailRoutes(conf, df, route)
+	AddWebSocketRoutes(route, fh)
+	AddWebChatRoutes(conf, df, route)
 	return router
 }

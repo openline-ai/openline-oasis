@@ -5,22 +5,22 @@ import (
 	"fmt"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	mail "github.com/xhit/go-simple-mail/v2"
-	"google.golang.org/grpc"
 	"log"
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/ent/proto"
 	"openline-ai/channels-api/hub"
-	"time"
+	"openline-ai/channels-api/util"
 )
 
 type sendMessageService struct {
 	proto.UnimplementedMessageEventServiceServer
 	conf *c.Config
 	mh   *hub.WebChatMessageHub
+	df   util.DialFactory
 }
 
 func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
-	conn, err := grpc.Dial(s.conf.Service.MessageStore, grpc.WithInsecure())
+	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
 		return nil, err
@@ -36,13 +36,13 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	}
 	switch msg.Channel {
 	case msProto.MessageChannel_MAIL:
-		mailErr := sendMail(s, msg)
+		mailErr := s.sendMail(msg)
 		if mailErr != nil {
 			return nil, mailErr
 		}
 		return &proto.EventEmpty{}, nil
 	case msProto.MessageChannel_WIDGET:
-		webChatErr := sendWebChat(msg, s)
+		webChatErr := s.sendWebChat(msg)
 		if webChatErr != nil {
 			return nil, webChatErr
 		}
@@ -53,7 +53,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	}
 }
 
-func sendWebChat(msg *msProto.Message, s sendMessageService) error {
+func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the webchat hub
 	messageItem := hub.WebChatMessageItem{
 		Username: msg.Username,
@@ -65,18 +65,9 @@ func sendWebChat(msg *msProto.Message, s sendMessageService) error {
 	return nil
 }
 
-func sendMail(s sendMessageService, msg *msProto.Message) error {
-	server := mail.NewSMTPClient()
-	server.Host = s.conf.Mail.SMTPSeverAddress
-	server.Port = 465
-	server.Username = s.conf.Mail.SMTPSeverUser
-	server.Password = s.conf.Mail.SMTPSeverPassword
-	server.Encryption = mail.EncryptionSSLTLS
-	server.ConnectTimeout = 10 * time.Second
-	server.SendTimeout = 10 * time.Second
+func (s sendMessageService) sendMail(msg *msProto.Message) error {
 
-	log.Printf("Trying to connect to server %s:%d", server.Host, server.Port)
-	smtpClient, err := server.Connect()
+	smtpClient, err := s.df.GetSMTPClientCon()
 	if err != nil {
 		log.Printf("Unable to connect to mail server! %v", err)
 		return err
@@ -99,9 +90,10 @@ func sendMail(s sendMessageService, msg *msProto.Message) error {
 	return nil
 }
 
-func NewSendMessageService(c *c.Config, mh *hub.WebChatMessageHub) *sendMessageService {
+func NewSendMessageService(c *c.Config, df util.DialFactory, mh *hub.WebChatMessageHub) *sendMessageService {
 	ms := new(sendMessageService)
 	ms.conf = c
 	ms.mh = mh
+	ms.df = df
 	return ms
 }

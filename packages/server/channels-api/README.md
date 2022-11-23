@@ -22,6 +22,7 @@ To run this service to run on your laptop you need the following environemnt var
 | SMTP_SERVER_ADDRESS         | hostname of smtp server to connect to                                                  |
 | SMTP_SERVER_USER            | user to authenticate with the smtp server as                                           |
 | SMTP_SERVER_PASSWORD        | password to authenticate with the smtp server                                          |
+| SMTP_FROM_PORT              | optional, specify the smtp port, default to 465                                        |
 | SMTP_FROM_USER              | email address to send email as                                                         |
 | MAIL_API_KEY                | The api key used to validated received emails, must mach what is set in the AWS Lambda |
 | OASIS_API_URL               | IP & port of the GRPC interface of oasis api                                           |

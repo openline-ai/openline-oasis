@@ -2,7 +2,7 @@ name: Build Oasis Channels API
 
 on:
   push:
-    branches: [ "otter"]
+    branches: [ "otter", "102-update-repo-structure-to-standard"]
     paths:
       - 'packages/server/channels-api/**'
       - '.github/workflows/build-channels-api.yml'
@@ -43,13 +43,33 @@ jobs:
         working-directory: ./packages/server/oasis-api
         run: make generate
         
+      - name: Install
+        working-directory: ./packages/server/channels-api
+        run: make install
+
       - name: Build
         working-directory: ./packages/server/channels-api
         run: make all
 
       - name: Test
         working-directory: ./packages/server/channels-api
-        run: go test -v
+        run: gotestsum --junitfile unit-tests.xml -- -coverprofile=cover.out ./...
+      - name: Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          report_paths: packages/server/channels-api/unit-tests.xml    # Path to test results
+          include_passed: true
+          annotate_only: true
+          detailed_summary: true
+
+      - name: Compute Code Coverage
+        working-directory: ./packages/server/channels-api
+        run: | 
+             echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+             echo "|Filename|Function|Coverage|" >> $GITHUB_STEP_SUMMARY
+             echo "|--------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+             go tool cover -func=cover.out |sed -r  's/[[:space:]]+/|/g'|sed -r 's/$/|/g'|sed -r 's/^/|/g' >> $GITHUB_STEP_SUMMARY
 
   publish:
     name: publish image

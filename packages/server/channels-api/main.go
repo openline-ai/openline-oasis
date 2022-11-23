@@ -11,6 +11,7 @@ import (
 	"openline-ai/channels-api/hub"
 	"openline-ai/channels-api/routes"
 	"openline-ai/channels-api/service"
+	"openline-ai/channels-api/util"
 )
 
 func main() {
@@ -26,7 +27,8 @@ func main() {
 	go routes.Run(&conf, mh) // run this as a backround goroutine
 
 	// Initialize the generated User service.
-	svc := service.NewSendMessageService(&conf, mh)
+	df := util.MakeDialFactory(&conf)
+	svc := service.NewSendMessageService(&conf, df, mh)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).
