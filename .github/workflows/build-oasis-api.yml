@@ -56,12 +56,10 @@ jobs:
         run: gotestsum --junitfile unit-tests.xml -- -coverprofile=cover.out ./...
 
       - name: Test Report
-        uses: dorny/test-reporter@v1
+        uses: mikepenz/action-junit-report@v3
         if: success() || failure()    # run this step even if previous step failed
         with:
-          name: Procees test Results  # Name of the check run which will be created
-          path: packages/server/oasis-api/unit-tests.xml    # Path to test results
-          reporter: jest-junit        # Format of test results
+          report_paths: packages/server/oasis-api/unit-tests.xml    # Path to test results
 
       - name: Compute Code Coverage
         working-directory: ./packages/server/oasis-api
