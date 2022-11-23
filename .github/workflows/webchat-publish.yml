@@ -17,6 +17,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - run: yarn install
+        working-directory: ./packages/components/react/webchat
+
       - run: yarn build
         working-directory: ./packages/components/react/webchat
 
