@@ -5,9 +5,13 @@ name: Webchat Package
 
 on:
   push:
-    branches: [ "otter"]
-  release:
-    types: [created, edited]
+#    branches: [ "otter" ]
+#  release:
+#    types: [created, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   publish-npm:
