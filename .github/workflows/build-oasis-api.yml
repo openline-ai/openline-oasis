@@ -60,7 +60,7 @@ jobs:
         if: success() || failure()    # run this step even if previous step failed
         with:
           report_paths: packages/server/oasis-api/unit-tests.xml    # Path to test results
-i         include_passed: true
+          include_passed: true
 
       - name: Compute Code Coverage
         working-directory: ./packages/server/oasis-api
