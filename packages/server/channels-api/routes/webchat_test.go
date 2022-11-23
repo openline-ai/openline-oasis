@@ -24,11 +24,11 @@ var webchatRouter *gin.Engine
 const webchatApiKey = "89ab1b51-0d03-4ce2-942b-ce0445188563"
 
 func init() {
-	dft := test_utils.MakeDialFactoryTest()
 	webchatRouter = gin.Default()
 	route := webchatRouter.Group("/")
 
 	conf := &config.Config{}
+	dft := test_utils.MakeDialFactoryTest(conf)
 	conf.WebChat.ApiKey = webchatApiKey
 	AddWebChatRoutes(conf, dft, route)
 }

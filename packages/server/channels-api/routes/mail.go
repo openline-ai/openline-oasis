@@ -55,7 +55,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		//Contact the server and print out its response.
 		mi := &pb.Message{
 			Type:      pb.MessageType_MESSAGE,
-			Message:   email.TextBody,
+			Message:   strings.Trim(email.TextBody, "\r\n"),
 			Direction: pb.MessageDirection_INBOUND,
 			Channel:   pb.MessageChannel_MAIL,
 			Username:  req.Sender,

@@ -24,11 +24,11 @@ var mailRouter *gin.Engine
 const mailApiKey = "f76f637a-0863-4509-8956-591fdec6a73e"
 
 func init() {
-	dft := test_utils.MakeDialFactoryTest()
 	mailRouter = gin.Default()
 	route := mailRouter.Group("/")
 
 	conf := &config.Config{}
+	dft := test_utils.MakeDialFactoryTest(conf)
 	conf.Mail.ApiKey = mailApiKey
 	addMailRoutes(conf, dft, route)
 }
