@@ -35,7 +35,7 @@ type WebchatRequest struct {
 	ApiKey     string `json:"api-key"`
 }
 
-func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
+func AddWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 
 	rg.GET("/webchat/", func(c *gin.Context) {
 		email := c.Query("email")
@@ -53,9 +53,9 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 	rg.POST("/webchat/", func(c *gin.Context) {
 		var req WebchatMessage
 		if err := c.BindJSON(&req); err != nil {
-			log.Printf("unable to parse json: %v", err)
+			log.Printf("unable to parse json: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("unable to parse json: %v", err),
+				"result": fmt.Sprintf("unable to parse json: %v", err.Error()),
 			})
 			return
 		}
@@ -81,7 +81,7 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		if oasisErr != nil {
 			log.Printf("did not connect: %v", oasisErr)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", oasisErr),
+				"result": fmt.Sprintf("did not connect: %v", oasisErr.Error()),
 			})
 			return
 		}
@@ -93,7 +93,7 @@ func addWebChatRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		if msErr != nil {
 			log.Printf("did not connect: %v", msErr)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", msErr),
+				"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
 			})
 			return
 		}

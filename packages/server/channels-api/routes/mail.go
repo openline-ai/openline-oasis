@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	pb "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
 	c "openline-ai/channels-api/config"
+	"openline-ai/channels-api/util"
 	pbOasis "openline-ai/oasis-api/proto"
 	"strings"
 )
@@ -22,7 +22,7 @@ type MailPostRequest struct {
 	ApiKey     string `json:"api-key"`
 }
 
-func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
+func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 	mail := rg.Group("/mail")
 	mail.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "mail get")
@@ -30,9 +30,9 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 	mail.POST("/", func(c *gin.Context) {
 		var req MailPostRequest
 		if err := c.BindJSON(&req); err != nil {
-			log.Printf("unable to parse json: %v", err)
+			log.Printf("unable to parse json: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("unable to parse json: %v", err),
+				"result": fmt.Sprintf("unable to parse json: %v", err.Error()),
 			})
 			return
 		}
@@ -46,9 +46,9 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		mailReader := strings.NewReader(req.RawMessage)
 		email, err := parsemail.Parse(mailReader) // returns Email struct and error
 		if err != nil {
-			log.Printf("Unable to parse Email: %v", err)
+			log.Printf("Unable to parse Email: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("Unable to parse Email: %v", err),
+				"result": fmt.Sprintf("Unable to parse Email: %v", err.Error()),
 			})
 			return
 		}
@@ -62,11 +62,11 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		}
 
 		//Set up a connection to the oasis-api server.
-		oasisConn, oasisErr := grpc.Dial(conf.Service.OasisApiUrl, grpc.WithInsecure())
+		oasisConn, oasisErr := df.GetOasisAPICon()
 		if oasisErr != nil {
-			log.Printf("did not connect: %v", oasisErr)
+			log.Printf("did not connect: %v", oasisErr.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", oasisErr),
+				"result": fmt.Sprintf("did not connect: %v", oasisErr.Error()),
 			})
 			return
 		}
@@ -74,7 +74,7 @@ func addMailRoutes(conf *c.Config, rg *gin.RouterGroup) {
 		oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
 
 		//Set up a connection to the message store server.
-		msConn, msErr := grpc.Dial(conf.Service.MessageStore, grpc.WithInsecure())
+		msConn, msErr := df.GetMessageStoreCon()
 		if msErr != nil {
 			log.Printf("did not connect: %v", msErr)
 			c.JSON(http.StatusInternalServerError, gin.H{

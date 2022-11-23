@@ -251,13 +251,6 @@ func TestSaveMessages(t *testing.T) {
 			}
 		}
 
-		test_utils.SetChannelApiCallbacks(&test_utils.MockChannelApi{SendMessageEvent: func(ctx context.Context, id *chanProto.MessageId) (*chanProto.EventEmpty, error) {
-			if !assert.Equal(t, id.MessageId, id1) {
-				return nil, status.Error(400, "Unexpected message id!")
-			}
-			return &chanProto.EventEmpty{}, nil
-		}})
-
 		message.Contact = &msProto.Contact{
 			ContactId: "77775553",
 			FirstName: "Gabriel",
@@ -266,6 +259,14 @@ func TestSaveMessages(t *testing.T) {
 		}
 		return message, nil
 	}})
+
+	test_utils.SetChannelApiCallbacks(&test_utils.MockChannelApi{SendMessageEvent: func(ctx context.Context, id *chanProto.MessageId) (*chanProto.EventEmpty, error) {
+		if !assert.Equal(t, id.MessageId, id1) {
+			return nil, status.Error(400, "Unexpected message id!")
+		}
+		return &chanProto.EventEmpty{}, nil
+	}})
+
 	var resp msProto.Message
 	w := httptest.NewRecorder()
 	reqBody, _ := json.Marshal(fpr)
