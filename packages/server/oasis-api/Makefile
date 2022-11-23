@@ -14,6 +14,7 @@ test:
 install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+	go install gotest.tools/gotestsum@latest
 
 clean:
 	find proto -mindepth 1 -maxdepth 1 -not \( -name 'oasisapi.proto' \) -exec rm -r {} \;

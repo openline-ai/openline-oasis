@@ -2,7 +2,7 @@ name: Build Oasis API
 
 on:
   push:
-    branches: [ "otter"]
+    branches: [ "otter", "102-update-repo-structure-to-standard"]
     paths:
       - 'packages/server/oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
@@ -43,13 +43,29 @@ jobs:
         working-directory: ./packages/server/channels-api
         run: make generate
 
+      - name: Install
+        working-directory: ./packages/server/oasis-api
+        run: make install
+
       - name: Build
         working-directory: ./packages/server/oasis-api
         run: make build
 
       - name: Test
         working-directory: ./packages/server/oasis-api
-        run: make test
+        run: gotestsum --junitfile unit-tests.xml -- -coverprofile=cover.out ./...
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Procees test Results  # Name of the check run which will be created
+          path: packages/server/oasis-api/unit-tests.xml    # Path to test results
+          reporter: jest-junit        # Format of test results
+
+      - name: Compute Code Coverage
+        working-directory: ./packages/server/oasis-api
+        run: go tool cover -html=cover.out -o coverage.html
 
   publish:
     name: publish image
