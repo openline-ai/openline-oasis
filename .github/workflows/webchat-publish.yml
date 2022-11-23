@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        working-directory: ./packages/components/react/webchat
         with:
+          working-directory: ./packages/components/react/webchat
           node-version: 18
           always-auth: true
           scope: '@openline-ai'
