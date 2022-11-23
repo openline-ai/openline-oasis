@@ -9,22 +9,18 @@ on:
 #  release:
 #    types: [created, edited]
 
-permissions:
-  contents: read
-  packages: write 
-  pull-requests: read
-
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          registry-url: 'https://npm.pkg.github.com'
-          always-auth: true
-          scope: '@openline-ai'
 
       - run: yarn install
         working-directory: ./packages/components/react/webchat
