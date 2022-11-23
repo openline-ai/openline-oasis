@@ -45,6 +45,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 
 	rg.POST("/webchat/", func(c *gin.Context) {
 		var req WebchatMessage
+
 		if err := c.BindJSON(&req); err != nil {
 			log.Printf("unable to parse json: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{

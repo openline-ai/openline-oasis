@@ -35,7 +35,7 @@ func getRouter(conf *c.Config, fh *hub.WebChatMessageHub) *gin.Engine {
 
 	df := util.MakeDialFactory(conf)
 	addMailRoutes(conf, df, route)
-	addWebSocketRoutes(route, fh)
+	AddWebSocketRoutes(route, fh)
 	AddWebChatRoutes(conf, df, route)
 	return router
 }

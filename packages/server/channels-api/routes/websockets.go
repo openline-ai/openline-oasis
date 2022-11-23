@@ -18,12 +18,13 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-func addWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
+func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 
 	rg.GET("/ws/:username", func(c *gin.Context) {
-		var username string
-		if err := c.ShouldBindUri(&username); err != nil {
-			c.JSON(400, gin.H{"msg": err})
+		username := c.Param("username")
+
+		if username == "" {
+			c.JSON(400, gin.H{"msg": "username missing from path"})
 			return
 		}
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
@@ -34,9 +35,24 @@ func addWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 		}
 		defer ws.Close()
 
-		fh.Clients[username] = ws
+		if _, exists := fh.Clients[username]; !exists {
+			log.Printf("making new feed for %s", username)
+			fh.Clients[username] = make(map[*websocket.Conn]bool)
+		}
+		fh.Clients[username][ws] = true
 
-		select {}
-
+		log.Println("Connected!")
+		for {
+			_, _, err := ws.ReadMessage()
+			if err != nil {
+				log.Printf("Cleaning Up Webchat Websocket")
+				delete(fh.Clients[username], ws)
+				if len(fh.Clients[username]) == 0 {
+					log.Printf("No more ws for user %s, deleting feed", username)
+					delete(fh.Clients, username)
+				}
+				return
+			}
+		}
 	})
 }
