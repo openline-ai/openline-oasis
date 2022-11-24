@@ -119,12 +119,12 @@ if [ "x$1" == "xbuild" ]; then
   then
 	  brew install protobuf
   fi
-  cd $OASIS_HOME/channels-api;make install;make generate;cd $OASIS_HOME
-  cd $OASIS_HOME/oasis-api;make install;make generate;cd $OASIS_HOME
+  cd $OASIS_HOME/packages/server/channels-api;make install;make generate;cd $OASIS_HOME
+  cd $OASIS_HOME/packages/server/oasis-api;make install;make generate;cd $OASIS_HOME
 
-  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f oasis-api/Dockerfile .
-  docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f channels-api/Dockerfile .
-  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --platform linux/amd64 --build-arg NODE_ENV=dev oasis-frontend
+  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-api:otter -f packages/server/oasis-api/Dockerfile ./packages/server/.
+  docker build -t ghcr.io/openline-ai/openline-oasis/channels-api:otter -f packages/server/channels-api/Dockerfile ./packages/server/.
+  docker build -t ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter --platform linux/amd64 --build-arg NODE_ENV=dev ./packages/apps/oasis/oasis-frontend
 else
   docker pull ghcr.io/openline-ai/openline-oasis/oasis-api:otter
   docker pull ghcr.io/openline-ai/openline-oasis/channels-api:otter
