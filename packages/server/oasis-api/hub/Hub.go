@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 )
 
 type MessageFeed struct {
@@ -30,17 +31,20 @@ type MessageItem struct {
 type FeedHub struct {
 	Clients       map[*websocket.Conn]bool
 	FeedBroadcast chan MessageFeed
+	Sync          *sync.Cond
 }
 
 type MessageHub struct {
 	Clients          map[string]map[*websocket.Conn]bool
 	MessageBroadcast chan MessageItem
+	Sync             *sync.Cond
 }
 
 func NewFeedHub() *FeedHub {
 	return &FeedHub{
 		Clients:       make(map[*websocket.Conn]bool),
 		FeedBroadcast: make(chan MessageFeed),
+		Sync:          sync.NewCond(new(sync.Mutex)),
 	}
 }
 
@@ -48,6 +52,7 @@ func NewMessageHub() *MessageHub {
 	return &MessageHub{
 		Clients:          make(map[string]map[*websocket.Conn]bool),
 		MessageBroadcast: make(chan MessageItem),
+		Sync:             sync.NewCond(new(sync.Mutex)),
 	}
 }
 

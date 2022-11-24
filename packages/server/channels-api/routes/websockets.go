@@ -39,18 +39,24 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 			log.Printf("making new feed for %s", username)
 			fh.Clients[username] = make(map[*websocket.Conn]bool)
 		}
+		fh.Sync.L.Lock()
 		fh.Clients[username][ws] = true
-
 		log.Println("Connected!")
+		fh.Sync.Signal()
+		fh.Sync.L.Unlock()
+
 		for {
 			_, _, err := ws.ReadMessage()
 			if err != nil {
+				fh.Sync.L.Lock()
 				log.Printf("Cleaning Up Webchat Websocket")
 				delete(fh.Clients[username], ws)
 				if len(fh.Clients[username]) == 0 {
 					log.Printf("No more ws for user %s, deleting feed", username)
 					delete(fh.Clients, username)
 				}
+				fh.Sync.Signal()
+				fh.Sync.L.Unlock()
 				return
 			}
 		}
