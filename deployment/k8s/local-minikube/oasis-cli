@@ -44,14 +44,14 @@ function setUp() {
 
     if [[ $1 == "channels-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/channels-api:$BRANCH
-        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/channels-api/Dockerfile "$OASIS_HOME"
+        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/packages/server/channels-api/Dockerfile "$OASIS_HOME/packages/server/."
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
         kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api.yaml \
                                         -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-service.yaml \
                                         -f "$OASIS_DEPLOY_HOME"/apps-config/channels-api-k8s-loadbalancer-service.yaml
     elif [[ $1 == "oasis-api" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-api:$BRANCH
-        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/oasis-api/Dockerfile "$OASIS_HOME"
+        docker build -t "$IMAGE_NAME" -f "$OASIS_HOME"/packages/server/oasis-api/Dockerfile "$OASIS_HOME/packages/server/."
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
         kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api.yaml \
                                         -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-api-k8s-service.yaml \
@@ -59,7 +59,7 @@ function setUp() {
 
     elif [[ $1 == "oasis-frontend" ]]; then
         IMAGE_NAME=$OASIS_IMAGE_TAG_PREFIX/oasis-frontend-dev:$BRANCH
-        docker build -t "$IMAGE_NAME" --platform linux/amd64 -f "$OASIS_HOME"/oasis-frontend/Dockerfile "$OASIS_HOME"/oasis-frontend/
+        docker build -t "$IMAGE_NAME" --platform linux/amd64 -f "$OASIS_HOME"/packages/apps/oasis/oasis-frontend/Dockerfile "$OASIS_HOME"/packages/apps/oasis/oasis-frontend/
         minikube image load "$IMAGE_NAME" --overwrite=true --daemon
         kubectl apply --namespace "$NS" -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend.yaml \
             -f "$OASIS_DEPLOY_HOME"/apps-config/oasis-frontend-k8s-service.yaml \
