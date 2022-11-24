@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"openline-ai/oasis-api/hub"
 	"openline-ai/oasis-api/test_utils"
+	"sync"
 	"testing"
 	"time"
 )
@@ -32,36 +33,73 @@ func setup(t *testing.T) {
 	})
 }
 
+func waitTimeout(t *testing.T, cond *sync.Cond, timeout time.Duration) {
+	done := make(chan struct{})
+	go func() {
+		cond.Wait()
+		close(done)
+	}()
+	select {
+	case <-time.After(timeout):
+		t.Fatal("Sync Thread Never Woke Up!")
+	case <-done:
+		// Wait returned
+	}
+}
+
 func TestWebsocketCleanup(t *testing.T) {
 	setup(t)
 	s := test_utils.NewWSServer(t)
 	defer s.Close()
+	feedHub.Sync.L.Lock()
 	ws := test_utils.MakeWSConnection(t, s, "/ws")
+	waitTimeout(t, feedHub.Sync, 5*time.Second)
+	feedHub.Sync.L.Unlock()
+
+	feedHub.Sync.L.Lock()
 	assert.Equal(t, 1, len(feedHub.Clients))
 	ws.Close()
-	time.Sleep(2 * time.Second)
+	waitTimeout(t, feedHub.Sync, 5*time.Second)
+	feedHub.Sync.L.Unlock()
 	assert.Equal(t, 0, len(feedHub.Clients))
 
+	messageHub.Sync.L.Lock()
 	ws1 := test_utils.MakeWSConnection(t, s, "/ws/1")
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
 	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
+
+	messageHub.Sync.L.Lock()
 	ws2 := test_utils.MakeWSConnection(t, s, "/ws/1")
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
 	assert.Equal(t, 2, len(messageHub.Clients["1"]), "incorrecct number of messages")
+
+	messageHub.Sync.L.Lock()
 	ws3 := test_utils.MakeWSConnection(t, s, "/ws/2")
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
 	assert.Equal(t, 1, len(messageHub.Clients["2"]), "incorrecct number of messages")
 
+	messageHub.Sync.L.Lock()
 	ws1.Close()
-	time.Sleep(2 * time.Second)
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
 	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
 
+	messageHub.Sync.L.Lock()
 	ws2.Close()
-	time.Sleep(2 * time.Second)
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
 
+	messageHub.Sync.L.Lock()
 	ws3.Close()
-	time.Sleep(2 * time.Second)
+	waitTimeout(t, messageHub.Sync, 5*time.Second)
+	messageHub.Sync.L.Unlock()
 	assert.Equal(t, 0, len(messageHub.Clients), "incorrecct number of feeds")
 }

@@ -33,13 +33,11 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.FeedHub, mh *hub.MessageHub
 			log.Println(err)
 		}
 		defer ws.Close()
-		fh.Clients[ws] = true
-		log.Println("Connected!")
+		addFeedHubConn(fh, ws)
 		for {
 			_, _, err := ws.ReadMessage()
 			if err != nil {
-				log.Printf("Cleaning Up Feed Websocket")
-				delete(fh.Clients, ws)
+				removeFeedHubConn(fh, ws)
 				return
 			}
 		}
@@ -55,23 +53,54 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.FeedHub, mh *hub.MessageHub
 			log.Println(err)
 		}
 		defer ws.Close()
-		if _, exists := mh.Clients[feedId]; !exists {
-			log.Println("making new feed")
-			mh.Clients[feedId] = make(map[*websocket.Conn]bool)
-		}
-		mh.Clients[feedId][ws] = true
-		log.Println("Connected!")
+		addMessageHubConn(mh, feedId, ws)
 		for {
 			_, _, err := ws.ReadMessage()
 			if err != nil {
-				log.Printf("Cleaning Up Message Websocket")
-				delete(mh.Clients[feedId], ws)
-				if len(mh.Clients[feedId]) == 0 {
-					log.Printf("No more ws for feed %s, deleting feed", feedId)
-					delete(mh.Clients, feedId)
-				}
+				removeMessageHubConn(mh, feedId, ws)
 				return
 			}
 		}
 	})
+}
+
+func removeFeedHubConn(fh *hub.FeedHub, ws *websocket.Conn) {
+	fh.Sync.L.Lock()
+	defer fh.Sync.L.Unlock()
+	log.Printf("Cleaning Up Feed Websocket")
+	delete(fh.Clients, ws)
+	fh.Sync.Signal()
+}
+
+func addFeedHubConn(fh *hub.FeedHub, ws *websocket.Conn) {
+	fh.Sync.L.Lock()
+	fh.Clients[ws] = true
+	log.Println("Connected!")
+	fh.Sync.Signal()
+	fh.Sync.L.Unlock()
+}
+
+func removeMessageHubConn(mh *hub.MessageHub, feedId string, ws *websocket.Conn) {
+	mh.Sync.L.Lock()
+	defer mh.Sync.L.Unlock()
+
+	log.Printf("Cleaning Up Message Websocket")
+	delete(mh.Clients[feedId], ws)
+	if len(mh.Clients[feedId]) == 0 {
+		log.Printf("No more ws for feed %s, deleting feed", feedId)
+		delete(mh.Clients, feedId)
+	}
+	mh.Sync.Signal()
+}
+
+func addMessageHubConn(mh *hub.MessageHub, feedId string, ws *websocket.Conn) {
+	mh.Sync.L.Lock()
+	defer mh.Sync.L.Unlock()
+	if _, exists := mh.Clients[feedId]; !exists {
+		log.Println("making new feed")
+		mh.Clients[feedId] = make(map[*websocket.Conn]bool)
+	}
+	mh.Clients[feedId][ws] = true
+	log.Println("Connected!")
+	mh.Sync.Signal()
 }

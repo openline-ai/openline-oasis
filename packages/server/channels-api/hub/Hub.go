@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 )
 
 type WebChatMessageItem struct {
@@ -15,12 +16,14 @@ type WebChatMessageItem struct {
 type WebChatMessageHub struct {
 	Clients          map[string]map[*websocket.Conn]bool
 	MessageBroadcast chan WebChatMessageItem
+	Sync             *sync.Cond
 }
 
 func NewWebChatMessageHub() *WebChatMessageHub {
 	return &WebChatMessageHub{
 		Clients:          make(map[string]map[*websocket.Conn]bool),
 		MessageBroadcast: make(chan WebChatMessageItem),
+		Sync:             sync.NewCond(new(sync.Mutex)),
 	}
 }
 

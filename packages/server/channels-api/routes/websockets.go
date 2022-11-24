@@ -35,24 +35,39 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 		}
 		defer ws.Close()
 
-		if _, exists := fh.Clients[username]; !exists {
-			log.Printf("making new feed for %s", username)
-			fh.Clients[username] = make(map[*websocket.Conn]bool)
-		}
-		fh.Clients[username][ws] = true
+		addChatMessageConn(fh, username, ws)
 
-		log.Println("Connected!")
 		for {
 			_, _, err := ws.ReadMessage()
 			if err != nil {
-				log.Printf("Cleaning Up Webchat Websocket")
-				delete(fh.Clients[username], ws)
-				if len(fh.Clients[username]) == 0 {
-					log.Printf("No more ws for user %s, deleting feed", username)
-					delete(fh.Clients, username)
-				}
+				removeChatMessageConn(fh, username, ws)
 				return
 			}
 		}
 	})
+}
+
+func removeChatMessageConn(fh *hub.WebChatMessageHub, username string, ws *websocket.Conn) {
+	fh.Sync.L.Lock()
+	defer fh.Sync.L.Unlock()
+
+	log.Printf("Cleaning Up Webchat Websocket")
+	delete(fh.Clients[username], ws)
+	if len(fh.Clients[username]) == 0 {
+		log.Printf("No more ws for user %s, deleting feed", username)
+		delete(fh.Clients, username)
+	}
+	fh.Sync.Signal()
+}
+
+func addChatMessageConn(fh *hub.WebChatMessageHub, username string, ws *websocket.Conn) {
+	fh.Sync.L.Lock()
+	defer fh.Sync.L.Unlock()
+	if _, exists := fh.Clients[username]; !exists {
+		log.Printf("making new feed for %s", username)
+		fh.Clients[username] = make(map[*websocket.Conn]bool)
+	}
+	fh.Clients[username][ws] = true
+	log.Println("Connected!")
+	fh.Sync.Signal()
 }
