@@ -9,7 +9,6 @@ on:
     paths:
       - 'packages/apps/oasis/oasis-frontend/**'
       - '.github/workflows/oasis-frontend.yml'
-  pull_request:
   release:
     types: [created, edited]
 

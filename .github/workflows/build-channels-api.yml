@@ -2,7 +2,7 @@ name: Build Oasis Channels API
 
 on:
   push:
-    branches: [ "otter", "166-only-publish-on-release-push-to-otter" ]
+    branches: [ "otter" ]
     paths:
       - 'packages/server/channels-api/**'
       - '.github/workflows/build-channels-api.yml'
