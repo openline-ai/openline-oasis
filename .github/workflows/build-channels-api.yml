@@ -76,7 +76,7 @@ jobs:
     needs:
       - build
 
-    if: github.ref_name == '166-only-publish-on-release-push-to-otter' || github.event_name == 'release' 
+    if: github.ref_name == 'otter' || github.event_name == 'release' 
     runs-on: ubuntu-latest
 
     steps:
