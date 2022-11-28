@@ -80,10 +80,7 @@ export const Chat = ({user}: any) => {
 
     useEffect(() => {
         if (id) {
-            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`)
-                .then(res => {
-                    setMessageList(res.data);
-                });
+
             axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}`)
                 .then(res => {
                     setCurrentCustomer({
@@ -91,6 +88,10 @@ export const Chat = ({user}: any) => {
                         firstName: res.data.firstName,
                         lastName: res.data.lastName,
                         lastMailAddress: ''
+                    });
+                    axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`)
+                    .then(res => {
+                        setMessageList(res.data);
                     });
 
                 });
