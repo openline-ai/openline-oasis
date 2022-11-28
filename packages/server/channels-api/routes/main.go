@@ -37,5 +37,8 @@ func getRouter(conf *c.Config, fh *hub.WebChatMessageHub) *gin.Engine {
 	addMailRoutes(conf, df, route)
 	AddWebSocketRoutes(route, fh)
 	AddWebChatRoutes(conf, df, route)
+	route2 := router.Group("/")
+
+	addHealthRoutes(route2)
 	return router
 }
