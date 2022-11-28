@@ -12,8 +12,8 @@ import (
 var healthRouter *gin.Engine
 
 func init() {
-	feedRouter = gin.Default()
-	route := feedRouter.Group("/")
+	healthRouter = gin.Default()
+	route := healthRouter.Group("/")
 
 	addHealthRoutes(route)
 }
@@ -25,7 +25,7 @@ type HealthResponse struct {
 func TestHealthCheck(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/health", nil)
-	feedRouter.ServeHTTP(w, req)
+	healthRouter.ServeHTTP(w, req)
 	if !assert.Equal(t, w.Code, 200) {
 		return
 	}
