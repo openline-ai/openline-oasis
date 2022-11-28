@@ -13,7 +13,7 @@ spec:
         app: oasis-frontend
     spec:                        # Spec for the container which will run in the Pod
       containers:
-        - image: ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:otter
+        - image: ghcr.io/openline-ai/openline-oasis/oasis-frontend-dev:latest
           name: oasis-frontend
           imagePullPolicy: Never
           ports:
