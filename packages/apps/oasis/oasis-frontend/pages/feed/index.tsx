@@ -22,7 +22,7 @@ const Index: NextPage = () => {
     });
 
     useEffect(() => {
-        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
+        axios.get(`/server/feed`)
             .then(res => {
                 setFeeds(res.data?.contact)
                 console.log(JSON.stringify(res.data?.contact))

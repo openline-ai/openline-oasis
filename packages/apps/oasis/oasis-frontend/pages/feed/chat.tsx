@@ -81,7 +81,7 @@ export const Chat = ({user}: any) => {
     useEffect(() => {
         if (id) {
 
-            axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}`)
+            axios.get(`/server/feed/${id}`)
                 .then(res => {
                     setCurrentCustomer({
                         contactId: res.data.contactId,
@@ -89,7 +89,7 @@ export const Chat = ({user}: any) => {
                         lastName: res.data.lastName,
                         lastMailAddress: ''
                     });
-                    axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`)
+                    axios.get(`/server/feed/${id}/item`)
                     .then(res => {
                         setMessageList(res.data);
                     });
@@ -99,7 +99,7 @@ export const Chat = ({user}: any) => {
     }, [id]);
 
     const refreshCredentials = () => {
-        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/call_credentials/?service=sip&username=` + currentUser.username + "@agent.openline.ai")
+        axios.get(`/server/call_credentials/?service=sip&username=` + currentUser.username + "@agent.openline.ai")
             .then(res => {
                 console.error("Got a key: " + JSON.stringify(res.data));
                 if (webrtc.current?._ua) {
@@ -230,7 +230,7 @@ export const Chat = ({user}: any) => {
     }
 
     const handleSendMessage = () => {
-        axios.post(`${process.env.NEXT_PUBLIC_BE_PATH}/feed/${id}/item`, {
+        axios.post(`/server/feed/${id}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
