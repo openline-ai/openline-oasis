@@ -6,14 +6,20 @@ import 'primeicons/primeicons.css';
 import '../styles/globals.css'
 import "../styles/login.css";
 import axios from "axios";
+import { SessionProvider } from "next-auth/react"
+
 
 axios.defaults.withCredentials = true
 
 export default function App({
                                 Component,
-                                pageProps
+                                pageProps: { session, ...pageProps }
                             }: any) {
 
-    return <Component {...pageProps} />;
+    return (
+        <SessionProvider session={session}>
+          <Component {...pageProps} />
+        </SessionProvider>
+      );
 
 }
