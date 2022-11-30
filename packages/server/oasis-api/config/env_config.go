@@ -7,6 +7,7 @@ type Config struct {
 		CorsUrl       string `env:"CORS_URL,required"`
 		ServerAddress string `env:"OASIS_API_SERVER_ADDRESS,required"`
 		GRPCPort      int    `env:"OASIS_GRPC_PORT,required"`
+		ApiKey        string `env:"OASIS_API_KEY,required"`
 	}
 	WebRTC struct {
 		AuthSecret string `env:"WEBRTC_AUTH_SECRET,required"`

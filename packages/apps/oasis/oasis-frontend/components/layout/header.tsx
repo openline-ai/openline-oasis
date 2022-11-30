@@ -38,10 +38,10 @@ const Header = (props: any) => {
     const rightContents = (
         <Fragment>
             {
-                session &&
+                session && session.user &&
                 <Button icon="pi pi-sign-out" iconPos="right"
                         className="p-button-rounded p-button-text text-sm w-auto"
-                        label={session.user?.email}
+                        label={session.user?.email?? "Unknown"}
                         onClick={async () => signOut()
                         }/>
             }

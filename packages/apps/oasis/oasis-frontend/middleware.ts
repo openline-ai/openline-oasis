@@ -1,9 +1,9 @@
-import { withAuth } from "next-auth/middleware"
+import { withAuth, NextRequestWithAuth } from "next-auth/middleware"
 import {NextRequest, NextResponse} from "next/server";
 
 // More on how NextAuth.js middleware works: https://next-auth.js.org/configuration/nextjs#middleware
 
-export default withAuth(function middleware(request: NextRequest) {
+export default withAuth(function middleware(request: NextRequestWithAuth) {
     var newURL=process.env.NEXT_PUBLIC_BE_PATH + "/" + request.nextUrl.pathname.substring(("/server/").length);
     console.log("Rewriting url to " + newURL);
     console.log("middleware: " + JSON.stringify(request.nextauth.token));
