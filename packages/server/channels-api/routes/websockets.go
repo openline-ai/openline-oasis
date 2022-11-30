@@ -32,6 +32,7 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.WebChatMessageHub) {
 		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if !errors.Is(err, nil) {
 			log.Println(err.Error())
+			return // do not add invalid websockets to map
 		}
 		defer ws.Close()
 

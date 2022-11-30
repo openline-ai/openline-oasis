@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006",
-    "build:dev": "env-cmd -f .env.local next build",
-    "build:uat-ninja": "env-cmd -f .env.uat-ninja next build",
-    "build:minikube": "env-cmd -f .env.minikube next build",
+    "build": "next build",
     "start": "next start -p 3006",
     "lint": "next lint"
   },
@@ -18,6 +16,7 @@
     "axios": "^0.27.2",
     "env-cmd": "^10.1.0",
     "formik": "^2.2.9",
+    "http-proxy-middleware": "^2.0.6",
     "jssip": "^3.9.1",
     "next": "^13.0.5",
     "next-auth": "^4.17.0",

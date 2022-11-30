@@ -35,4 +35,6 @@ spec:
             - name: WEBRTC_AUTH_SECRET
               value: "2c42a1b6-d776-4083-b0b6-44fecea2d022"
             - name: WEBRTC_AUTH_TTL
-              value: "3600"             
+              value: "3600" 
+            - name: OASIS_API_KEY
+              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"               
