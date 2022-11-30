@@ -18,6 +18,7 @@ type Config struct {
 	}
 
 	WebChat struct {
-		ApiKey string `env:"WEBCHAT_API_KEY,required"`
+		ApiKey          string `env:"WEBCHAT_API_KEY,required"`
+		SlackWebhookUrl string `env:"SLACK_WEBHOOK_URL"`
 	}
 }
