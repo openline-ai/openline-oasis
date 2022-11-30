@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
@@ -185,6 +187,13 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return
+		}
+
+		if conf.SlackWebhookUrl != "" {
+			values := map[string]string{"text": fmt.Sprintf("New message arrived from: %s\n%s", newMsg.Username, newMsg.Message)}
+			json_data, _ := json.Marshal(values)
+
+			http.Post(conf.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))
 		}
 
 		c.JSON(http.StatusOK, newMsg)
