@@ -2,31 +2,22 @@ import Header from "./header";
 import LayoutMenu from "./menu";
 import {useRouter} from "next/router";
 import {useEffect, useState} from "react";
-import {getUserAccount, loadUserAccount, User} from "../../lib/loadUserAccount";
-import {useApi} from "../../lib/useApi";
+import { useSession, signIn, signOut } from "next-auth/react"
 
 export default function Layout({children}: any) {
     const router = useRouter();
-    const [user, setUser] = useState<User | undefined>();
-    const axiosInstance = useApi();
+    const { data: session, status } = useSession();
 
-    useEffect(() => {
-        loadUserAccount(axiosInstance).then(() => {
-            if (!getUserAccount()) {
-                router.push('/login'); //todo check if we redirect to login
-            } else {
-                setUser(getUserAccount);
-            }
-        })
-    }, []);
+    if (status == "unauthenticated") {
+        signIn();
+    } 
 
     return (
-        <>
-            {!user &&
-                <div>loading</div>
-            }
 
-            {user &&
+        <>
+
+
+            {session &&
                 <>
                     <Header height={'70px'}/>
 

@@ -31,6 +31,7 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.FeedHub, mh *hub.MessageHub
 		ws, err := feedUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if !errors.Is(err, nil) {
 			log.Println(err)
+			return // do not add invalid ws to the map
 		}
 		defer ws.Close()
 		addFeedHubConn(fh, ws)
@@ -51,6 +52,7 @@ func AddWebSocketRoutes(rg *gin.RouterGroup, fh *hub.FeedHub, mh *hub.MessageHub
 		ws, err := msgUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if !errors.Is(err, nil) {
 			log.Println(err)
+			return // do not add invalid ws to the map
 		}
 		defer ws.Close()
 		addMessageHubConn(mh, feedId, ws)

@@ -31,11 +31,19 @@ func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engin
 	router.Use(cors.New(corsConfig))
 
 	route := router.Group("/")
+	route.Use(apiKeyChecker(config.Service.ApiKey))
+
 	df := util.MakeDialFactory(config)
 	addFeedRoutes(route, config, df)
 	addCallCredentialRoutes(route, config)
 	addLoginRoutes(route)
-	AddWebSocketRoutes(route, fh, mh)
-	addHealthRoutes(route)
+
+	// TODO: a different typ of auth for websockets
+	route2 := router.Group("/")
+	AddWebSocketRoutes(route2, fh, mh)
+
+	// no api key (or cors) for health check
+	route3 := router.Group("/")
+	addHealthRoutes(route3)
 	return router
 }

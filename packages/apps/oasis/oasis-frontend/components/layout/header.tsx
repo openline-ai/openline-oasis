@@ -5,12 +5,12 @@ import {useRouter} from "next/router";
 import {Button} from "primereact/button";
 import axios from "axios";
 import {useState} from "react";
-import {getUserAccount} from "../../lib/loadUserAccount";
+import { useSession, signIn, signOut } from "next-auth/react"
 
 
 const Header = (props: any) => {
     const router = useRouter();
-    const [user] = useState(getUserAccount());
+    const { data: session } = useSession()
 
     const leftContents = (
         <Fragment>
@@ -38,21 +38,12 @@ const Header = (props: any) => {
     const rightContents = (
         <Fragment>
             {
-                user &&
+                session && session.user &&
                 <Button icon="pi pi-sign-out" iconPos="right"
                         className="p-button-rounded p-button-text text-sm w-auto"
-                        label={user.email}
-                        onClick={async () => {
-                            await axios.post(`${process.env.NEXT_PUBLIC_BE_PATH}/logout`).then((response: any) => {
-                                localStorage.removeItem('userData');
-                                router.push('/login');
-                            }).catch(err => {
-                                return {
-                                    error: true,
-                                    response: err.response
-                                }
-                            });
-                        }}/>
+                        label={session.user?.email?? "Unknown"}
+                        onClick={async () => signOut()
+                        }/>
             }
         </Fragment>
     );

@@ -11,10 +11,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
+RUN rm .env*
 
-ARG NODE_ENV=minikube
-
-RUN npm run-script "build:$NODE_ENV" # TODO set the environment as external
+RUN npm run-script "build" # TODO set the environment as external
 
 FROM node:16.16-alpine AS runner
 WORKDIR /app
