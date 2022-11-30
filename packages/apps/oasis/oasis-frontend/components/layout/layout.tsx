@@ -1,59 +1,79 @@
-import Header from "./header";
-import LayoutMenu from "./menu";
 import {useRouter} from "next/router";
-import {useEffect, useState} from "react";
-import { useSession, signIn, signOut } from "next-auth/react"
+import {Button} from "primereact/button";
+import {OverlayPanel} from "primereact/overlaypanel";
+import {useEffect, useRef, useState} from "react";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faArrowDownShortWide, faCaretDown, faIdCard, faUserSecret, faUsersRectangle} from "@fortawesome/free-solid-svg-icons";
+import {Menu} from "primereact/menu";
+import {signOut, useSession} from "next-auth/react";
 
 export default function Layout({children}: any) {
     const router = useRouter();
-    const { data: session, status } = useSession();
+    const {data: session, status} = useSession();
 
-    if (status == "unauthenticated") {
-        signIn();
-    } 
+    const userSettingsContainerRef = useRef<OverlayPanel>(null);
+    const notificationsContainerRef = useRef<OverlayPanel>(null);
+
+    let items = [
+        {
+            label: 'Chats',
+            icon: 'pi pi-mobile',
+            className: router.pathname.split('/')[1] === 'feed' ? 'selected' : '',
+            command: () => {
+                router.push('/feed');
+            }
+        },
+        {
+            label: 'Sign out',
+            command: () => {
+                signOut();
+            }
+        }
+    ];
+
 
     return (
+            <div className="flex h-full w-full">
 
-        <>
+                <div className="flex flex-column flex-grow-0 h-full text-white overflow-hidden" style={{width: '250px', background: '#100024'}}>
 
+                    <div className="flex flex-row align-items-center justify-content-between" style={{padding: '10px 10px 0px 10px', background: 'black'}}>
 
-            {session &&
-                <>
-                    <Header height={'70px'}/>
+                        <div className="flex-grow-1">
 
-                    <div className="flex" style={{height: 'calc(100vh - 90px)'}}>
+                            <Button className="light-button" onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
+                                <span>Millie Brown</span>
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
+                            </Button>
 
-                        <div className="flex-grow-0 flex"
-                             style={{width: '200px', height: '100%'}}>
-
-                            <div style={{
-                                width: '100%',
-                                height: '100%',
-                                padding: '10px 0px 10px 10px',
-                                overflow: 'hidden'
-                            }}>
-
-                                <LayoutMenu/>
-
-                            </div>
+                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                                user settings TODO
+                            </OverlayPanel>
 
                         </div>
 
-                        <div className="flex-grow-1 flex" style={{height: '100%'}}>
-                            <div style={{
-                                width: '100%',
-                                height: '100%',
-                                margin: '10px',
-                                border: '1px solid #0b213f',
-                                borderRadius: '6px'
-                            }}>
-                                {children}
-                            </div>
-                        </div>
+                        <Button className="light-button" style={{padding: '10px 10px'}} onClick={(e: any) => notificationsContainerRef?.current?.toggle(e)}>
+                            <i className="pi pi-bell"></i>
+                        </Button>
+
+                        <OverlayPanel ref={notificationsContainerRef} dismissable>
+                            notifications TODO
+                        </OverlayPanel>
+
                     </div>
-                </>
-            }
 
-        </>
+                    <div className="flex w-full h-full">
+                        <Menu model={items} className={'openline-menu'}/>
+                    </div>
+
+                </div>
+
+                <div className="flex-grow-1 flex h-full overflow-auto">
+                    <div className="w-full h-full">
+                        {children}
+                    </div>
+                </div>
+            </div>
     )
 }
