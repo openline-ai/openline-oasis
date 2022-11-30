@@ -10,6 +10,8 @@ import {Dropdown} from "primereact/dropdown";
 import Layout from "../../components/layout/layout";
 import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
+import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
+import {getSession} from "next-auth/react";
 
 export const Chat = ({user}: any) => {
     const router = useRouter();
@@ -36,10 +38,6 @@ export const Chat = ({user}: any) => {
         firstName: 'John',
         lastName: 'Doe',
         lastMailAddress: ''
-    });
-
-    const [currentCompany, setCurrentCompany] = useState({
-        name: 'Google'
     });
 
     function zeroPad(number: number) {
@@ -243,13 +241,6 @@ export const Chat = ({user}: any) => {
             });
     };
 
-
-    const getTypingIndicator = useCallback(
-        () => {
-            return undefined;
-        }, [],
-    );
-
     const handleWebsocketMessage = function (msg: any) {
         let newMsg = {
             message: msg.message,
@@ -265,7 +256,6 @@ export const Chat = ({user}: any) => {
 
     return (
         <>
-            <Layout>
                 <div style={{
                     width: '100%',
                     height: 'calc(100% - 100px)',
@@ -331,11 +321,13 @@ export const Chat = ({user}: any) => {
                             </Button>
                     </span>
                 </div>
-
-            </Layout>
         </>
     );
 
+}
+
+export async function getServerSideProps(context: any) {
+    return loggedInOrRedirectToLogin(await getSession(context));
 }
 
 export default Chat;

@@ -1,0 +1,61 @@
+.light-button {
+    color: white;
+    background: none;
+    border: none;
+}
+
+.light-button:hover{
+    background: #313044!important;
+    color: white!important;
+}
+
+.openline-menu{
+    width: 100%;
+    background: none;
+    border: none;
+    color: white;
+    margin: 10px;
+}
+
+/*Overriding default theme colors for the menu in the layout*/
+.openline-menu.p-menu .p-menuitem-link {
+    color: #dee2e6;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+.openline-menu.p-menu .p-menuitem-link .p-menuitem-text {
+    color: #dee2e6;
+}
+.openline-menu.p-menu .p-menuitem-link .p-menuitem-icon {
+    color: #dee2e6;
+}
+.openline-menu.p-menu .p-menuitem-link .p-submenu-icon {
+    color: #dee2e6;
+}
+
+/*remove border effect on click on menu*/
+.openline-menu.p-menu .p-menuitem-link:focus{
+    box-shadow: none;
+}
+
+/* hover*/
+.openline-menu.p-menu .p-menuitem-link:not(.p-disabled):hover {
+    background: #313044;
+}
+.openline-menu.p-menu .p-menuitem-link:not(.p-disabled):hover .p-menuitem-text{
+    color: white;
+}
+.openline-menu.p-menu .p-menuitem-link:not(.p-disabled):hover svg {
+    color: white;
+}
+
+/*selected item*/
+.openline-menu.p-menu .p-menuitem.selected{
+    background: #313044;
+    color: white!important;
+    border-radius: 10px;
+}
+.openline-menu.p-menu .p-menuitem.selected svg, .openline-menu.p-menu .p-menuitem.selected .p-menuitem-text{
+    background: #313044;
+    color: white!important;
+}

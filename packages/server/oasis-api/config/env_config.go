@@ -13,5 +13,4 @@ type Config struct {
 		AuthSecret string `env:"WEBRTC_AUTH_SECRET,required"`
 		TTL        int    `env:"WEBRTC_AUTH_TTL,required"`
 	}
-	SlackWebhookUrl string `env:"SLACK_WEBHOOK_URL"`
 }

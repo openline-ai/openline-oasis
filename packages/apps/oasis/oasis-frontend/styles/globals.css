@@ -1,16 +1,62 @@
+@font-face {
+    font-family: mona-sans-black;
+    src: url('../fonts/Mona-Sans-Medium.woff');
+}
+
 html,
 body {
     padding: 0;
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    font-family: mona-sans-black, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-size: 14px;
 }
 
-a {
-    color: inherit;
-    text-decoration: none;
+html,
+body,
+body > div:first-child,
+div#__next,
+div#__next > div {
+    height: 100%;
 }
 
-* {
-    box-sizing: border-box;
+.cta {
+    color: var(--primary-color);
+}
+
+.cta:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.text-black {
+    color: black !important;
+}
+
+ul li {
+    list-style-type: none;
+}
+
+.text-bg-color {
+    color: var(--background-color);
+}
+
+.bg-dark-1 {
+    border: solid 1px var(--gray-color-1);
+}
+
+.bg-dark-2 {
+    border: solid 1px var(--gray-color-2);
+}
+
+.bg-dark-3 {
+    border: solid 1px var(--gray-color-3);
+}
+
+.bg-dark-4 {
+    border: solid 1px var(--gray-color-4);
+}
+
+.bg-dark-5 {
+    border: solid 1px var(--gray-color-5);
 }

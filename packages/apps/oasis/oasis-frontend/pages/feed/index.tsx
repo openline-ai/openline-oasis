@@ -9,6 +9,8 @@ import {Fragment} from "preact";
 import Layout from "../../components/layout/layout";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
+import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
+import {getSession} from "next-auth/react";
 
 
 const Index: NextPage = () => {
@@ -41,11 +43,6 @@ const Index: NextPage = () => {
                        onClick={() => router.push(`/feed/${rowData.id}`)}/>;
     }
 
-    const leftContents = (
-        <Fragment>
-        </Fragment>
-    );
-
     const handleWebsocketMessage = function (msg: any) {
         console.log("Got a new feed!");
         axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
@@ -56,17 +53,18 @@ const Index: NextPage = () => {
 
     return (
         <>
-            <Layout>
-                <Toolbar left={leftContents}/>
                 <DataTable value={feeds}>
                     <Column field="firstName" header="First Name"></Column>
                     <Column field="lastName" header="Last Name"></Column>
                     <Column field="state" header="State"></Column>
                     <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
                 </DataTable>
-            </Layout>
         </>
     );
+}
+
+export async function getServerSideProps(context: any) {
+    return loggedInOrRedirectToLogin(await getSession(context));
 }
 
 export default Index
