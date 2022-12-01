@@ -11,7 +11,7 @@ import (
 
 func addCallCredentialRoutes(rg *gin.RouterGroup, conf *c.Config) {
 
-	rg.GET("/call_credentials/", func(c *gin.Context) {
+	rg.GET("/call_credentials", func(c *gin.Context) {
 		expiresTime := time.Now().Unix() + int64(conf.WebRTC.TTL)
 		timeLimitedUser := fmt.Sprintf("%d:%s", expiresTime, c.Query("username"))
 		password := util.GetSignature(timeLimitedUser, conf.WebRTC.AuthSecret)
