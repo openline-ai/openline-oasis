@@ -28,8 +28,8 @@ func NewWebChatMessageHub() *WebChatMessageHub {
 	}
 }
 
-func (h *WebChatMessageHub) RunWebChatMessageHub() {
-	ticker := time.NewTicker(30 * time.Second)
+func (h *WebChatMessageHub) RunWebChatMessageHub(pingInterval time.Duration) {
+	ticker := time.NewTicker(pingInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -50,7 +50,7 @@ func (h *WebChatMessageHub) RunWebChatMessageHub() {
 			log.Printf("Sending pings for WebChat hub")
 			for username := range h.Clients {
 				for conn := range h.Clients[username] {
-					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					conn.SetWriteDeadline(time.Now().Add(pingInterval / 2))
 					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 						log.Printf("Ping Failed on websocket")
 					}

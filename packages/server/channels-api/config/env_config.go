@@ -20,5 +20,6 @@ type Config struct {
 	WebChat struct {
 		ApiKey          string `env:"WEBCHAT_API_KEY,required"`
 		SlackWebhookUrl string `env:"SLACK_WEBHOOK_URL"`
+		PingInterval    int    `env:"WEBSOCKET_PING_INTERVAL"`
 	}
 }

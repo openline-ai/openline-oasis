@@ -28,3 +28,4 @@ To run this service to run on your laptop you need the following environemnt var
 | OASIS_API_URL               | IP & port of the GRPC interface of oasis api                                           |
 | CHANNELS_API_CORS_URL       | url of the frontend, needed to allow cros-site scripting                               |
 | WEBCHAT_API_KEY             | The api key used to validated received messages and login requests                     |
+| WEBSOCKET_PING_INTERVAL     | Ping interval in seconds to monitor websocket connections                              |

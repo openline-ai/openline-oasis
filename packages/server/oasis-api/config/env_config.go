@@ -10,7 +10,8 @@ type Config struct {
 		ApiKey        string `env:"OASIS_API_KEY,required"`
 	}
 	WebRTC struct {
-		AuthSecret string `env:"WEBRTC_AUTH_SECRET,required"`
-		TTL        int    `env:"WEBRTC_AUTH_TTL,required"`
+		AuthSecret   string `env:"WEBRTC_AUTH_SECRET,required"`
+		TTL          int    `env:"WEBRTC_AUTH_TTL,required"`
+		PingInterval int    `env:"WEBSOCKET_PING_INTERVAL"`
 	}
 }
