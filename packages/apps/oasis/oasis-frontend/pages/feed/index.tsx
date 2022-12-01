@@ -56,7 +56,8 @@ const FeedPage: NextPage = () => {
                 <DataTable value={feeds}>
                     <Column field="firstName" header="First Name"></Column>
                     <Column field="lastName" header="Last Name"></Column>
-                    <Column field="state" header="State"></Column>
+                    <Column field="email" header="E-Mail"></Column>
+                    <Column field="phone" header="Phone"></Column>
                     <Column field="actions" header="Actions" align={'right'} body={actionsColumn}></Column>
                 </DataTable>
         </>

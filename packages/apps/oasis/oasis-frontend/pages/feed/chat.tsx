@@ -36,7 +36,8 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
         contactId: 'customer1',
         firstName: 'John',
         lastName: 'Doe',
-        lastMailAddress: ''
+        lastMailAddress: '',
+        telephoneNumber: '',
     });
 
     function zeroPad(number: number) {
@@ -67,6 +68,11 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
         return "CHAT";
     }
 
+    function callingAllowed() {
+        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && 
+        (currentCustomer.telephoneNumber || currentCustomer.lastMailAddress == "echo@oasis.openline.ai");
+    }
+
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
     const [attachmentButtonHidden, setAttachmentButtonHidden] = useState(false);
@@ -84,7 +90,8 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
                         contactId: res.data.contactId,
                         firstName: res.data.firstName,
                         lastName: res.data.lastName,
-                        lastMailAddress: ''
+                        lastMailAddress: res.data.email,
+                        telephoneNumber: res.data.phone,
                     });
                     axios.get(`/server/feed/${id}/item`)
                     .then(res => {
@@ -138,7 +145,8 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
                     contactId: currentCustomer.contactId,
                     firstName: currentCustomer.firstName,
                     lastName: currentCustomer.lastName,
-                    lastMailAddress: msg.username
+                    lastMailAddress: msg.username,
+                    telephoneNumber: currentCustomer.telephoneNumber,
                 });
             }
 
@@ -212,11 +220,16 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
 
     const handleCall = () => {
         //setInCall(true);
-        let user = currentCustomer.lastMailAddress;
-        const regex = /.*<(.*)>/;
-        const matches = user.match(regex);
-        if (matches) {
-            user = matches[1];
+        let user = '';
+        if (currentCustomer.telephoneNumber) {
+            user = currentUser + "@oasis.openline.ai";
+        } else {
+            user = currentCustomer.lastMailAddress;
+            const regex = /.*<(.*)>/;
+            const matches = user.match(regex);
+            if (matches) {
+                user = matches[1];
+            }
         }
         webrtc.current?.makeCall("sip:" + user);
     }
@@ -261,7 +274,7 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
                     overflowX: 'hidden',
                     overflowY: 'auto'
                 }}>
-                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL  &&
                         <WebRTC
                             ref={webrtc}
                             websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
@@ -307,14 +320,14 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
 
                     <span hidden={inCall}>
                     <Button onClick={() => handleCall()} className='p-button-text' hidden={inCall}>
-                                         {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                                         {callingAllowed() &&
                                              <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
                                          }
                     </Button>
                     </span>
                     <span hidden={!inCall}>
                             <Button onClick={() => hangupCall()} className='p-button-text' hidden={!inCall}>
-                            {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                            {callingAllowed()  &&
                                 <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
                             }
                             </Button>
