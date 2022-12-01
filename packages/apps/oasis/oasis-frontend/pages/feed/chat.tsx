@@ -222,7 +222,7 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
         //setInCall(true);
         let user = '';
         if (currentCustomer.telephoneNumber) {
-            user = currentUser + "@oasis.openline.ai";
+            user = currentCustomer.telephoneNumber + "@oasis.openline.ai";
         } else {
             user = currentCustomer.lastMailAddress;
             const regex = /.*<(.*)>/;
