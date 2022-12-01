@@ -37,4 +37,6 @@ spec:
             - name: WEBRTC_AUTH_TTL
               value: "3600" 
             - name: OASIS_API_KEY
-              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"               
+              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"     
+            - name: WEBSOCKET_PING_INTERVAL
+              value: "30"              

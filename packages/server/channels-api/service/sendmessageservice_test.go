@@ -50,7 +50,7 @@ func channelApiDialer() (*grpc.ClientConn, error) {
 func setup(t *testing.T) {
 
 	fh := hub.NewWebChatMessageHub()
-	go fh.RunWebChatMessageHub()
+	go fh.RunWebChatMessageHub(60 * time.Second)
 	webchatMessageHub = fh
 	// You can pass empty smtpmock.ConfigurationAttr{}. It means that smtpmock will use default settings
 	mailServer := smtpmock.New(smtpmock.ConfigurationAttr{

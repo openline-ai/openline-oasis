@@ -12,3 +12,4 @@ To run this service to run on your laptop you need the following environemnt var
 | WEBRTC_AUTH_TTL          | Validity time in seconds of the Ephemeral Auth credentials                                               |
 | OASIS_GRPC_PORT          | The grpc port that oasis-api uses                                                                        |
 | OASIS_API_KEY            | API key the server expects to see in rest requests received                                              |
+| WEBSOCKET_PING_INTERVAL  | Ping interval in seconds to monitor websocket connections                                                |

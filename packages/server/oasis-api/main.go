@@ -10,6 +10,7 @@ import (
 	"openline-ai/oasis-api/hub"
 	"openline-ai/oasis-api/proto"
 	"openline-ai/oasis-api/util"
+	"time"
 
 	c "openline-ai/oasis-api/config"
 	"openline-ai/oasis-api/routes"
@@ -25,10 +26,10 @@ func main() {
 		return
 	}
 	fh := hub.NewFeedHub()
-	go fh.RunFeedHub()
+	go fh.RunFeedHub(time.Duration(conf.WebRTC.PingInterval) * time.Second)
 
 	mh := hub.NewMessageHub()
-	go mh.RunMessageHub()
+	go mh.RunMessageHub(time.Duration(conf.WebRTC.PingInterval) * time.Second)
 
 	// Our server will live in the routes package
 	go routes.Run(&conf, fh, mh) // run this as a background goroutine

@@ -57,13 +57,12 @@ func NewMessageHub() *MessageHub {
 	}
 }
 
-func (h *MessageHub) RunMessageHub() {
-	ticker := time.NewTicker(30 * time.Second)
+func (h *MessageHub) RunMessageHub(pingInterval time.Duration) {
+	ticker := time.NewTicker(pingInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		case message := <-h.MessageBroadcast:
-			log.Printf("Message Hub: got message for feed id %s", message.FeedId)
 			if message.Id == "quit" {
 				log.Printf("Message Hub: Got the kill command, shutting down")
 				h.MessageBroadcast <- MessageItem{}
@@ -78,10 +77,9 @@ func (h *MessageHub) RunMessageHub() {
 				}
 			}
 		case <-ticker.C:
-			log.Printf("Sending pings for message hub")
 			for feedId := range h.Clients {
 				for conn := range h.Clients[feedId] {
-					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					conn.SetWriteDeadline(time.Now().Add(pingInterval / 2))
 					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 						log.Printf("Ping Failed on websocket")
 					}
@@ -92,8 +90,8 @@ func (h *MessageHub) RunMessageHub() {
 	}
 }
 
-func (h *FeedHub) RunFeedHub() {
-	ticker := time.NewTicker(30 * time.Second)
+func (h *FeedHub) RunFeedHub(pingInterval time.Duration) {
+	ticker := time.NewTicker(pingInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -111,9 +109,8 @@ func (h *FeedHub) RunFeedHub() {
 				}
 			}
 		case <-ticker.C:
-			log.Printf("Sending pings for feed hub")
 			for conn := range h.Clients {
-				conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+				conn.SetWriteDeadline(time.Now().Add(pingInterval / 2))
 				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 					log.Printf("Ping Failed on websocket")
 				}

@@ -44,3 +44,5 @@ spec:
               value: "http://localhost:3000"
             - name: WEBCHAT_API_KEY
               value: "nobody-will-guess-this-api-key"
+            - name: WEBSOCKET_PING_INTERVAL
+              value: "30"              
