@@ -10,7 +10,7 @@ const Home: NextPage = () => {
 
     useEffect(() => {
                 router.push('/feed'); //todo switch to default user path ( depending on role )
-    }, []);
+    }, [router]);
 
 
     return (

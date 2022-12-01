@@ -13,10 +13,9 @@ import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession} from "next-auth/react";
 
-export const Chat = ({user}: any) => {
-    const router = useRouter();
 
-    const {id} = router.query;
+export const Chat = ({id}: {id: string|string[]|undefined}) => {
+//    const router = useRouter();
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${id}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -95,26 +94,26 @@ export const Chat = ({user}: any) => {
                 });
         }
     }, [id]);
-
-    const refreshCredentials = () => {
-        axios.get(`/server/call_credentials/?service=sip&username=` + currentUser.username + "@agent.openline.ai")
-            .then(res => {
-                console.error("Got a key: " + JSON.stringify(res.data));
-                if (webrtc.current?._ua) {
-                    webrtc.current?.stopUA();
-                }
-                webrtc.current?.setCredentials(res.data.username, res.data.password,
-                    () => {
-                        webrtc.current?.startUA()
-                    });
-                setTimeout(() => {
-                    refreshCredentials()
-                }, (res.data.ttl * 3000) / 4);
-            });
-    }
     useEffect(() => {
+
+        const refreshCredentials = () => {
+            axios.get(`/server/call_credentials?service=sip&username=` + currentUser.username + "@agent.openline.ai")
+                .then(res => {
+                    console.error("Got a key: " + JSON.stringify(res.data));
+                    if (webrtc.current?._ua) {
+                        webrtc.current?.stopUA();
+                    }
+                    webrtc.current?.setCredentials(res.data.username, res.data.password,
+                        () => {
+                            webrtc.current?.startUA()
+                        });
+                    setTimeout(() => {
+                        refreshCredentials()
+                    }, (res.data.ttl * 3000) / 4);
+                });
+        }
         refreshCredentials();
-    }, []);
+    }, [currentUser]);
 
 
     useEffect(() => {

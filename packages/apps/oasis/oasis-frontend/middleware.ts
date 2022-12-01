@@ -10,12 +10,6 @@ export default withAuth(function middleware(request: NextRequestWithAuth) {
 
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('X-Openline-API-KEY', process.env.OASIS_API_KEY?process.env.OASIS_API_KEY:"")
-    const response = NextResponse.next({
-      request: {
-        // New request headers
-        headers: requestHeaders,
-      },
-    })
       return NextResponse.rewrite(new URL(newURL, request.url), 
         {
         request: {

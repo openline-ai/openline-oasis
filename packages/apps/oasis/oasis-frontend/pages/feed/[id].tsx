@@ -6,7 +6,7 @@ function CaseDetails() {
     const {id} = router.query;
 
     return (
-        <Chat/>
+        <Chat id={id}/>
     );
 }
 
