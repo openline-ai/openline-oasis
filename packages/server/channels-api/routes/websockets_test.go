@@ -14,7 +14,7 @@ var webchatMessageHub *hub.WebChatMessageHub
 func setup(t *testing.T) {
 
 	fh := hub.NewWebChatMessageHub()
-	go fh.RunWebChatMessageHub()
+	go fh.RunWebChatMessageHub(60)
 	webchatMessageHub = fh
 
 	test_utils.SetupWebSocketServer(fh, AddWebSocketRoutes)

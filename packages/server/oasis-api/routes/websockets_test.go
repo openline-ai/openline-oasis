@@ -15,11 +15,11 @@ var messageHub *hub.MessageHub
 func setup(t *testing.T) {
 
 	fh := hub.NewFeedHub()
-	go fh.RunFeedHub()
+	go fh.RunFeedHub(60)
 	feedHub = fh
 
 	mh := hub.NewMessageHub()
-	go mh.RunMessageHub()
+	go mh.RunMessageHub(60)
 	messageHub = mh
 
 	test_utils.SetupWebSocketServer(fh, mh, AddWebSocketRoutes)

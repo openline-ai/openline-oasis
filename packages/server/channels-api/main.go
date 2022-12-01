@@ -12,6 +12,7 @@ import (
 	"openline-ai/channels-api/routes"
 	"openline-ai/channels-api/service"
 	"openline-ai/channels-api/util"
+	"time"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 	}
 
 	mh := hub.NewWebChatMessageHub()
-	go mh.RunWebChatMessageHub()
+	go mh.RunWebChatMessageHub(time.Duration(conf.WebChat.PingInterval) * time.Second)
 	// Our server will live in the routes package
 	go routes.Run(&conf, mh) // run this as a backround goroutine
 
