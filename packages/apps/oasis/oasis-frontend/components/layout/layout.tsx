@@ -43,7 +43,7 @@ export default function Layout({children}: any) {
 
                             <Button className="light-button" onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
                                 <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
-                                <span>Millie Brown</span>
+                                <span>{session?.user?.email}</span>
                                 <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
                             </Button>
 
