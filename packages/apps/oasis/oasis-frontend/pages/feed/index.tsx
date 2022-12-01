@@ -13,7 +13,7 @@ import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession} from "next-auth/react";
 
 
-const Index: NextPage = () => {
+const FeedPage: NextPage = () => {
     const router = useRouter()
     const [feeds, setFeeds] = useState([] as any)
 
@@ -67,4 +67,4 @@ export async function getServerSideProps(context: any) {
     return loggedInOrRedirectToLogin(await getSession(context));
 }
 
-export default Index
+export default FeedPage

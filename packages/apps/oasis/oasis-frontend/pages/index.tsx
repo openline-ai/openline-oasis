@@ -3,19 +3,15 @@ import {useEffect} from "react";
 import {useRouter} from "next/router";
 import {useSession, signIn, signOut, getSession} from "next-auth/react"
 import {loggedInOrRedirectToLogin} from "../utils/logged-in";
+import FeedPage from "./feed";
 
 
 const Home: NextPage = () => {
     const router = useRouter();
 
-    useEffect(() => {
-                router.push('/feed'); //todo switch to default user path ( depending on role )
-    }, [router]);
-
-
     return (
         <>
-            <div>Loading ...</div>
+            <FeedPage/>
         </>
     )
 }
