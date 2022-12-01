@@ -5,6 +5,9 @@ import {NextRequest, NextResponse} from "next/server";
 
 export default withAuth(function middleware(request: NextRequestWithAuth) {
     var newURL=process.env.NEXT_PUBLIC_BE_PATH + "/" + request.nextUrl.pathname.substring(("/server/").length);
+    if (request.nextUrl.searchParams) {
+      newURL = newURL + "?" + request.nextUrl.searchParams.toString()
+    }
     console.log("Rewriting url to " + newURL);
     console.log("middleware: " + JSON.stringify(request.nextauth.token));
 

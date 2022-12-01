@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"sync"
+	"time"
 )
 
 type MessageFeed struct {
@@ -57,6 +58,8 @@ func NewMessageHub() *MessageHub {
 }
 
 func (h *MessageHub) RunMessageHub() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case message := <-h.MessageBroadcast:
@@ -74,11 +77,24 @@ func (h *MessageHub) RunMessageHub() {
 					}
 				}
 			}
+		case <-ticker.C:
+			log.Printf("Sending pings for message hub")
+			for feedId := range h.Clients {
+				for conn := range h.Clients[feedId] {
+					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+						log.Printf("Ping Failed on websocket")
+					}
+				}
+			}
+
 		}
 	}
 }
 
 func (h *FeedHub) RunFeedHub() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case feed := <-h.FeedBroadcast:
@@ -94,6 +110,15 @@ func (h *FeedHub) RunFeedHub() {
 					}
 				}
 			}
+		case <-ticker.C:
+			log.Printf("Sending pings for feed hub")
+			for conn := range h.Clients {
+				conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					log.Printf("Ping Failed on websocket")
+				}
+			}
+
 		}
 	}
 }
