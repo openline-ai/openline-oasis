@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"sync"
+	"time"
 )
 
 type WebChatMessageItem struct {
@@ -28,6 +29,8 @@ func NewWebChatMessageHub() *WebChatMessageHub {
 }
 
 func (h *WebChatMessageHub) RunWebChatMessageHub() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case message := <-h.MessageBroadcast:
@@ -43,6 +46,17 @@ func (h *WebChatMessageHub) RunWebChatMessageHub() {
 					}
 				}
 			}
+		case <-ticker.C:
+			log.Printf("Sending pings for WebChat hub")
+			for username := range h.Clients {
+				for conn := range h.Clients[username] {
+					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+						log.Printf("Ping Failed on websocket")
+					}
+				}
+			}
+
 		}
 	}
 }
