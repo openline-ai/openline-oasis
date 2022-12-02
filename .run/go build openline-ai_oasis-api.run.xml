@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go build openline-ai/oasis-api" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+    <module name="openline-oasis" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="CHANNELS_API_URL" value="localhist:9013" />
+      <env name="CORS_URL" value="http://localhost:3006" />
+      <env name="MESSAGE_STORE_URL" value="localhost:9009" />
+      <env name="OASIS_API_SERVER_ADDRESS" value=":8006" />
+      <env name="OASIS_GRPC_PORT" value="9006" />
+      <env name="WEBRTC_AUTH_SECRET" value="2c42a1b6-d776-4083-b0b6-44fecea2d022" />
+      <env name="WEBRTC_AUTH_TTL" value="3600" />
+    </envs>
+    <kind value="DIRECTORY" />
+    <directory value="$PROJECT_DIR$/packages/server/oasis-api" />
+    <filePath value="$PROJECT_DIR$" />
+    <method v="2" />
+  </configuration>
+</component>
