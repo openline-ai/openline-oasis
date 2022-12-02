@@ -25,7 +25,7 @@ spec:
             - name: MESSAGE_STORE_URL
               value: "message-store-service.openline.svc.cluster.local:9009"
             - name: CHANNELS_API_URL
-              value: "channels-api-service.oasis-dev.svc.cluster.local:9013"
+              value: "channels-api-service.openline.svc.cluster.local:9013"
             - name: CORS_URL
               value: "http://localhost:3006"
             - name: OASIS_GRPC_PORT
