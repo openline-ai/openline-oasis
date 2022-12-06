@@ -15,15 +15,15 @@ import (
 	"net"
 	"openline-ai/channels-api/config"
 	"openline-ai/channels-api/ent/proto"
-	"openline-ai/channels-api/hub"
 	"openline-ai/channels-api/routes"
+	"openline-ai/channels-api/routes/chatHub"
 	"openline-ai/channels-api/test_utils"
 	"strings"
 	"testing"
 	"time"
 )
 
-var webchatMessageHub *hub.WebChatMessageHub
+var webchatMessageHub *chatHub.Hub
 var channelsApi *sendMessageService
 var mockMailServer *smtpmock.Server
 
@@ -49,8 +49,8 @@ func channelApiDialer() (*grpc.ClientConn, error) {
 
 func setup(t *testing.T) {
 
-	fh := hub.NewWebChatMessageHub()
-	go fh.RunWebChatMessageHub(60 * time.Second)
+	fh := chatHub.NewHub()
+	go fh.Run()
 	webchatMessageHub = fh
 	// You can pass empty smtpmock.ConfigurationAttr{}. It means that smtpmock will use default settings
 	mailServer := smtpmock.New(smtpmock.ConfigurationAttr{
@@ -74,8 +74,8 @@ func setup(t *testing.T) {
 	test_utils.SetupWebSocketServer(fh, routes.AddWebSocketRoutes)
 
 	t.Cleanup(func() {
-		fh.MessageBroadcast <- hub.WebChatMessageItem{Kill: true}
-		_ = <-fh.MessageBroadcast
+		fh.Quit <- true
+		//_ = <-fh.MessageBroadcast
 		mailServer.Stop()
 
 	})
@@ -127,7 +127,7 @@ func TestChatMessageEvent(t *testing.T) {
 		t.Fatal("Error sending new message event!")
 	}
 
-	var mhResponse hub.WebChatMessageItem
+	var mhResponse chatHub.MessageItem
 	err = ws1.ReadJSON(&mhResponse)
 	if err != nil {
 		t.Fatal("Error getting Message Event!")

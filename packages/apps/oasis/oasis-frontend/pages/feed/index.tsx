@@ -45,7 +45,7 @@ const FeedPage: NextPage = () => {
 
     const handleWebsocketMessage = function (msg: any) {
         console.log("Got a new feed!");
-        axios.get(`${process.env.NEXT_PUBLIC_BE_PATH}/feed`)
+        axios.get(`/server/feed`)
             .then(res => {
                 setFeeds(res.data?.contact);
             });

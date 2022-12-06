@@ -12,17 +12,15 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"net"
-	"openline-ai/oasis-api/hub"
 	"openline-ai/oasis-api/proto"
 	"openline-ai/oasis-api/routes"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/test_utils"
 	"openline-ai/oasis-api/util"
 	"testing"
 	"time"
 )
-
-var feedHub *hub.FeedHub
-var messageHub *hub.MessageHub
 
 var dft util.DialFactory
 var oasisApi *OasisApiService
@@ -53,22 +51,20 @@ func oasisApiDialer() (*grpc.ClientConn, error) {
 
 func setup(t *testing.T) {
 
-	fh := hub.NewFeedHub()
-	go fh.RunFeedHub(60 * time.Second)
-	feedHub = fh
+	fh := FeedHub.NewFeedHub()
+	go fh.Run()
 
-	mh := hub.NewMessageHub()
-	go mh.RunMessageHub(60 * time.Second)
-	messageHub = mh
+	mh := MessageHub.NewMessageHub()
+	go mh.Run()
 
 	test_utils.SetupWebSocketServer(fh, mh, routes.AddWebSocketRoutes)
 	oasisApi = NewOasisApiService(dft, fh, mh)
 
 	t.Cleanup(func() {
-		mh.MessageBroadcast <- hub.MessageItem{Id: "quit"}
-		_ = <-mh.MessageBroadcast
-		fh.FeedBroadcast <- hub.MessageFeed{ContactId: "quit"}
-		_ = <-fh.FeedBroadcast
+		//mh.MessageBroadcast <- hub.MessageItem{Id: "quit"}
+		//_ = <-mh.MessageBroadcast
+		//fh.FeedBroadcast <- hub.MessageFeed{ContactId: "quit"}
+		//_ = <-fh.FeedBroadcast
 
 	})
 }
@@ -136,7 +132,7 @@ func TestMessageEvent(t *testing.T) {
 		t.Fatal("Error sending new message event!")
 	}
 
-	var mhResponse hub.MessageItem
+	var mhResponse MessageHub.MessageItem
 	err = ws1.ReadJSON(&mhResponse)
 	if err != nil {
 		t.Fatal("Error getting Message Event!")
@@ -157,7 +153,7 @@ func TestMessageEvent(t *testing.T) {
 	assert.Equal(t, "INBOUND", mhResponse.Direction)
 	assert.Equal(t, "MAIL", mhResponse.Channel)
 
-	var fhResponse hub.MessageFeed
+	var fhResponse FeedHub.MessageFeed
 	err = feed_ws1.ReadJSON(&fhResponse)
 	if err != nil {
 		t.Fatal("Error getting Feed Event!")

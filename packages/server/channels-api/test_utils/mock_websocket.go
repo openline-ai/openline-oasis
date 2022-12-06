@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http/httptest"
 	"net/url"
-	"openline-ai/channels-api/hub"
+	"openline-ai/channels-api/routes/chatHub"
 	"testing"
 )
 
@@ -45,8 +45,8 @@ func NewWSServer(t *testing.T) *httptest.Server {
 	return server
 }
 
-func SetupWebSocketServer(fh *hub.WebChatMessageHub, socketRoutes func(*gin.RouterGroup, *hub.WebChatMessageHub)) {
+func SetupWebSocketServer(fh *chatHub.Hub, socketRoutes func(*gin.RouterGroup, *chatHub.Hub, int)) {
 	wsRouter = gin.Default()
 	route := wsRouter.Group("/")
-	socketRoutes(route, fh)
+	socketRoutes(route, fh, 30)
 }

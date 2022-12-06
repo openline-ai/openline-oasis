@@ -1,43 +1,26 @@
 package routes
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"openline-ai/channels-api/hub"
+	"openline-ai/channels-api/routes/chatHub"
 	"openline-ai/channels-api/test_utils"
-	"sync"
+	"strconv"
 	"testing"
 	"time"
 )
 
-var webchatMessageHub *hub.WebChatMessageHub
+var hub *chatHub.Hub
 
 func setup(t *testing.T) {
 
-	fh := hub.NewWebChatMessageHub()
-	go fh.RunWebChatMessageHub(60 * time.Second)
-	webchatMessageHub = fh
-
-	test_utils.SetupWebSocketServer(fh, AddWebSocketRoutes)
-
+	ch := chatHub.NewHub()
+	go ch.Run()
+	hub = ch
+	test_utils.SetupWebSocketServer(ch, AddWebSocketRoutes)
 	t.Cleanup(func() {
-		fh.MessageBroadcast <- hub.WebChatMessageItem{Kill: true}
-		_ = <-fh.MessageBroadcast
-
+		ch.Quit <- true
 	})
-}
-
-func waitTimeout(t *testing.T, cond *sync.Cond, timeout time.Duration) {
-	done := make(chan struct{})
-	go func() {
-		cond.Wait()
-		close(done)
-	}()
-	select {
-	case <-time.After(timeout):
-		t.Fatal("Sync Thread Never Woke Up!")
-	case <-done:
-		// Wait returned
-	}
 }
 
 func TestWebsocketCleanup(t *testing.T) {
@@ -45,46 +28,20 @@ func TestWebsocketCleanup(t *testing.T) {
 	s := test_utils.NewWSServer(t)
 	defer s.Close()
 
-	var username1 = "gabi@example.org"
-	var username2 = "torrey@example.org"
+	var username = "user@example.org"
 
-	webchatMessageHub.Sync.L.Lock()
-	ws1 := test_utils.MakeWSConnection(t, s, "/ws/"+username1)
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(webchatMessageHub.Clients), "incorrect number of users")
-	assert.Equal(t, 1, len(webchatMessageHub.Clients[username1]), "incorrect number of connections")
+	numberOfUsers := 100
 
-	webchatMessageHub.Sync.L.Lock()
-	ws2 := test_utils.MakeWSConnection(t, s, "/ws/"+username1)
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(webchatMessageHub.Clients), "incorrect number of users")
-	assert.Equal(t, 2, len(webchatMessageHub.Clients[username1]), "incorrect number of connections")
+	var messages = make([]*websocket.Conn, numberOfUsers)
+	for i := 0; i < numberOfUsers; i++ {
+		messages[i] = test_utils.MakeWSConnection(t, s, "/ws/"+strconv.Itoa(i)+username)
+	}
 
-	webchatMessageHub.Sync.L.Lock()
-	ws3 := test_utils.MakeWSConnection(t, s, "/ws/"+username2)
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 2, len(webchatMessageHub.Clients), "incorrect number of users")
-	assert.Equal(t, 1, len(webchatMessageHub.Clients[username2]), "incorrect number of connections")
+	assert.Eventually(t, func() bool { return len(hub.Clients) == numberOfUsers }, 2*time.Second, 10*time.Millisecond, "incorrect number of messages")
+	for _, message := range messages {
+		message.Close()
+	}
 
-	webchatMessageHub.Sync.L.Lock()
-	ws1.Close()
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 2, len(webchatMessageHub.Clients), "incorrect number of users")
-	assert.Equal(t, 1, len(webchatMessageHub.Clients[username1]), "incorrect number of connections")
+	assert.Eventually(t, func() bool { return len(hub.Clients) == 0 }, 2*time.Second, 10*time.Millisecond, "Message Hub Clients didn't cleanup: ", len(hub.Clients))
 
-	webchatMessageHub.Sync.L.Lock()
-	ws2.Close()
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(webchatMessageHub.Clients), "incorrect number of users")
-
-	webchatMessageHub.Sync.L.Lock()
-	ws3.Close()
-	waitTimeout(t, webchatMessageHub.Sync, 5*time.Second)
-	webchatMessageHub.Sync.L.Unlock()
-	assert.Equal(t, 0, len(webchatMessageHub.Clients), "incorrect number of users")
 }

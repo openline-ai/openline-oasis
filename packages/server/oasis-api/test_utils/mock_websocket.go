@@ -5,7 +5,8 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http/httptest"
 	"net/url"
-	"openline-ai/oasis-api/hub"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"testing"
 )
 
@@ -45,8 +46,8 @@ func NewWSServer(t *testing.T) *httptest.Server {
 	return server
 }
 
-func SetupWebSocketServer(fh *hub.FeedHub, mh *hub.MessageHub, socketRoutes func(*gin.RouterGroup, *hub.FeedHub, *hub.MessageHub)) {
+func SetupWebSocketServer(fh *FeedHub.FeedHub, mh *MessageHub.MessageHub, socketRoutes func(*gin.RouterGroup, *FeedHub.FeedHub, *MessageHub.MessageHub, int)) {
 	wsRouter = gin.Default()
 	route := wsRouter.Group("/")
-	socketRoutes(route, fh, mh)
+	socketRoutes(route, fh, mh, 30)
 }
