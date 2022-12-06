@@ -8,14 +8,14 @@ import (
 	"log"
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/ent/proto"
-	"openline-ai/channels-api/hub"
+	"openline-ai/channels-api/routes/chatHub"
 	"openline-ai/channels-api/util"
 )
 
 type sendMessageService struct {
 	proto.UnimplementedMessageEventServiceServer
 	conf *c.Config
-	mh   *hub.WebChatMessageHub
+	mh   *chatHub.Hub
 	df   util.DialFactory
 }
 
@@ -54,13 +54,13 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 }
 
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
-	// Send a message to the webchat hub
-	messageItem := hub.WebChatMessageItem{
+	// Send a message to the hub
+	messageItem := chatHub.MessageItem{
 		Username: msg.Username,
 		Message:  msg.Message,
 	}
 
-	s.mh.MessageBroadcast <- messageItem
+	s.mh.Broadcast <- messageItem
 	log.Printf("successfully sent new message for %s", msg.Username)
 	return nil
 }
@@ -90,7 +90,7 @@ func (s sendMessageService) sendMail(msg *msProto.Message) error {
 	return nil
 }
 
-func NewSendMessageService(c *c.Config, df util.DialFactory, mh *hub.WebChatMessageHub) *sendMessageService {
+func NewSendMessageService(c *c.Config, df util.DialFactory, mh *chatHub.Hub) *sendMessageService {
 	ms := new(sendMessageService)
 	ms.conf = c
 	ms.mh = mh

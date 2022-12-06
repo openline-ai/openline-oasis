@@ -1,105 +1,68 @@
 package routes
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
-	"openline-ai/oasis-api/hub"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/test_utils"
-	"sync"
+	"strconv"
 	"testing"
 	"time"
 )
 
-var feedHub *hub.FeedHub
-var messageHub *hub.MessageHub
+var feedHub *FeedHub.FeedHub
+var messageHub *MessageHub.MessageHub
 
 func setup(t *testing.T) {
 
-	fh := hub.NewFeedHub()
-	go fh.RunFeedHub(60 * time.Second)
+	fh := FeedHub.NewFeedHub()
+	go fh.Run()
 	feedHub = fh
 
-	mh := hub.NewMessageHub()
-	go mh.RunMessageHub(60 * time.Second)
+	mh := MessageHub.NewMessageHub()
+	go mh.Run()
 	messageHub = mh
 
 	test_utils.SetupWebSocketServer(fh, mh, AddWebSocketRoutes)
 
 	t.Cleanup(func() {
-		mh.MessageBroadcast <- hub.MessageItem{Id: "quit"}
-		_ = <-mh.MessageBroadcast
-		fh.FeedBroadcast <- hub.MessageFeed{ContactId: "quit"}
-		_ = <-fh.FeedBroadcast
-
+		mh.Quit <- true
+		fh.Quit <- true
 	})
-}
-
-func waitTimeout(t *testing.T, cond *sync.Cond, timeout time.Duration) {
-	done := make(chan struct{})
-	go func() {
-		cond.Wait()
-		close(done)
-	}()
-	select {
-	case <-time.After(timeout):
-		t.Fatal("Sync Thread Never Woke Up!")
-	case <-done:
-		// Wait returned
-	}
 }
 
 func TestWebsocketCleanup(t *testing.T) {
 	setup(t)
 	s := test_utils.NewWSServer(t)
 	defer s.Close()
-	feedHub.Sync.L.Lock()
-	ws := test_utils.MakeWSConnection(t, s, "/ws")
-	waitTimeout(t, feedHub.Sync, 5*time.Second)
-	feedHub.Sync.L.Unlock()
 
-	feedHub.Sync.L.Lock()
-	assert.Equal(t, 1, len(feedHub.Clients))
-	ws.Close()
-	waitTimeout(t, feedHub.Sync, 5*time.Second)
-	feedHub.Sync.L.Unlock()
-	assert.Equal(t, 0, len(feedHub.Clients))
+	numberOfFeeds := 20
 
-	messageHub.Sync.L.Lock()
-	ws1 := test_utils.MakeWSConnection(t, s, "/ws/1")
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
-	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
+	var feeds = make([]*websocket.Conn, numberOfFeeds)
+	for i := 0; i < numberOfFeeds; i++ {
+		feeds[i] = test_utils.MakeWSConnection(t, s, "/ws")
+	}
 
-	messageHub.Sync.L.Lock()
-	ws2 := test_utils.MakeWSConnection(t, s, "/ws/1")
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
-	assert.Equal(t, 2, len(messageHub.Clients["1"]), "incorrecct number of messages")
+	assert.Eventually(t, func() bool { return len(feedHub.Clients) == numberOfFeeds }, 2*time.Second, 10*time.Millisecond)
 
-	messageHub.Sync.L.Lock()
-	ws3 := test_utils.MakeWSConnection(t, s, "/ws/2")
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
-	assert.Equal(t, 1, len(messageHub.Clients["2"]), "incorrecct number of messages")
+	for _, feed := range feeds {
+		feed.Close()
+	}
 
-	messageHub.Sync.L.Lock()
-	ws1.Close()
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 2, len(messageHub.Clients), "incorrecct number of feeds")
-	assert.Equal(t, 1, len(messageHub.Clients["1"]), "incorrecct number of messages")
+	assert.Eventually(t, func() bool { return len(feedHub.Clients) == 0 }, 2*time.Second, 10*time.Millisecond, "Feed Hub clients didn't cleanup")
 
-	messageHub.Sync.L.Lock()
-	ws2.Close()
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 1, len(messageHub.Clients), "incorrecct number of feeds")
+	numberOfMessages := 100
 
-	messageHub.Sync.L.Lock()
-	ws3.Close()
-	waitTimeout(t, messageHub.Sync, 5*time.Second)
-	messageHub.Sync.L.Unlock()
-	assert.Equal(t, 0, len(messageHub.Clients), "incorrecct number of feeds")
+	var messages = make([]*websocket.Conn, numberOfMessages)
+	for i := 0; i < numberOfMessages; i++ {
+		messages[i] = test_utils.MakeWSConnection(t, s, "/ws/"+strconv.Itoa(i))
+	}
+
+	assert.Eventually(t, func() bool { return len(messageHub.Clients) == numberOfMessages }, 2*time.Second, 10*time.Millisecond, "incorrect number of messages")
+	for _, message := range messages {
+		message.Close()
+	}
+
+	assert.Eventually(t, func() bool { return len(messageHub.Clients) == 0 }, 2*time.Second, 10*time.Millisecond, "Message Hub Clients didn't cleanup")
 }

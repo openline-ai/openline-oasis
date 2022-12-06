@@ -5,19 +5,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	c "openline-ai/oasis-api/config"
-	"openline-ai/oasis-api/hub"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/util"
 )
 
 // Run will start the server
-func Run(conf *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) {
+func Run(conf *c.Config, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) {
 	router := getRouter(conf, fh, mh)
 	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engine {
+func getRouter(config *c.Config, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) *gin.Engine {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
@@ -40,7 +41,7 @@ func getRouter(config *c.Config, fh *hub.FeedHub, mh *hub.MessageHub) *gin.Engin
 
 	// TODO: a different typ of auth for websockets
 	route2 := router.Group("/")
-	AddWebSocketRoutes(route2, fh, mh)
+	AddWebSocketRoutes(route2, fh, mh, config.WebRTC.PingInterval)
 
 	// no api key (or cors) for health check
 	route3 := router.Group("/")

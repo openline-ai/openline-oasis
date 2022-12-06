@@ -164,7 +164,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		newMsg, err := client.SaveMessage(ctx, message)
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
-			return
+			//return
 		}
 
 		// inform the channel api a new message

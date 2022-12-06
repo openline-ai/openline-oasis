@@ -106,12 +106,11 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 				"result": fmt.Sprintf("failed creating message item: status=%s message=%s", se.Code(), se.Message()),
 			})
 			return
-		} else {
-			_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisMessageId{MessageId: *message.Id})
-			if mEventErr != nil {
-				se, _ := status.FromError(mEventErr)
-				log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
-			}
+		}
+		_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisMessageId{MessageId: *message.Id})
+		if mEventErr != nil {
+			se, _ := status.FromError(mEventErr)
+			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
 		}
 
 		log.Printf("message item created with id: %d", *message.Id)

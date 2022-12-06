@@ -5,8 +5,9 @@ import (
 	"fmt"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
 	"log"
-	"openline-ai/oasis-api/hub"
 	op "openline-ai/oasis-api/proto"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/util"
 	"strconv"
 )
@@ -14,8 +15,8 @@ import (
 type OasisApiService struct {
 	op.UnimplementedOasisApiServiceServer
 	df util.DialFactory
-	fh *hub.FeedHub
-	mh *hub.MessageHub
+	mh *MessageHub.MessageHub
+	fh *FeedHub.FeedHub
 }
 
 func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMessageId) (*op.OasisEmpty, error) {
@@ -39,19 +40,19 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 		return nil, err
 	}
 
-	time := hub.Time{
+	time := MessageHub.Time{
 		Seconds: strconv.FormatInt(message.Time.Seconds, 10),
 		Nanos:   fmt.Sprint(message.Time.Nanos),
 	}
 
 	log.Printf("Got a feed of %v", feed)
 	// Send a feed to hub
-	messageFeed := hub.MessageFeed{FirstName: feed.FirstName, LastName: feed.LastName, ContactId: feed.ContactId}
-	s.fh.FeedBroadcast <- messageFeed
+	messageFeed := FeedHub.MessageFeed{FirstName: feed.FirstName, LastName: feed.LastName, ContactId: feed.ContactId}
+	s.fh.Broadcast <- messageFeed
 	log.Printf("successfully sent new feed for %v", messageFeed)
 
 	// Send a message to hub
-	messageItem := hub.MessageItem{
+	messageItem := MessageHub.MessageItem{
 		Username:  message.Username,
 		Id:        strconv.FormatInt(*message.Id, 10),
 		FeedId:    strconv.FormatInt(*feed.Id, 10),
@@ -61,12 +62,12 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 		Channel:   message.Channel.String(),
 	}
 
-	s.mh.MessageBroadcast <- messageItem
+	s.mh.Broadcast <- messageItem
 	log.Printf("successfully sent new message for %s", message.Username)
 	return &op.OasisEmpty{}, nil
 }
 
-func NewOasisApiService(df util.DialFactory, fh *hub.FeedHub, mh *hub.MessageHub) *OasisApiService {
+func NewOasisApiService(df util.DialFactory, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) *OasisApiService {
 	ms := new(OasisApiService)
 	ms.df = df
 	ms.fh = fh

@@ -7,14 +7,13 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"openline-ai/oasis-api/hub"
-	"openline-ai/oasis-api/proto"
-	"openline-ai/oasis-api/util"
-	"time"
-
 	c "openline-ai/oasis-api/config"
+	"openline-ai/oasis-api/proto"
 	"openline-ai/oasis-api/routes"
+	"openline-ai/oasis-api/routes/FeedHub"
+	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/service"
+	"openline-ai/oasis-api/util"
 )
 
 func main() {
@@ -25,11 +24,11 @@ func main() {
 		fmt.Printf("missing required config")
 		return
 	}
-	fh := hub.NewFeedHub()
-	go fh.RunFeedHub(time.Duration(conf.WebRTC.PingInterval) * time.Second)
+	fh := FeedHub.NewFeedHub()
+	go fh.Run()
 
-	mh := hub.NewMessageHub()
-	go mh.RunMessageHub(time.Duration(conf.WebRTC.PingInterval) * time.Second)
+	mh := MessageHub.NewMessageHub()
+	go mh.Run()
 
 	// Our server will live in the routes package
 	go routes.Run(&conf, fh, mh) // run this as a background goroutine
