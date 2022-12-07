@@ -60,3 +60,12 @@ ul li {
 .bg-dark-5 {
     border: solid 1px var(--gray-color-5);
 }
+
+.contact-hover {
+    border: solid 1px white;
+}
+
+.contact-hover:hover {
+    cursor: pointer;
+    border: solid 1px var(--gray-color-5);
+}
