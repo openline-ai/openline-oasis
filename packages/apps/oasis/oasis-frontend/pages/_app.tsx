@@ -4,9 +4,10 @@ import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 
 import '../styles/globals.css'
+import '../styles/theme-override.css'
 import '../styles/layout.css'
 import axios from "axios";
-import { SessionProvider } from "next-auth/react"
+import {SessionProvider} from "next-auth/react"
 import Layout from "../components/layout/layout";
 
 
@@ -14,15 +15,13 @@ axios.defaults.withCredentials = true
 
 export default function App({
                                 Component,
-                                pageProps: { session, ...pageProps }
+                                pageProps: {session, ...pageProps}
                             }: any) {
 
     return (
             <SessionProvider session={session}>
-                <Layout>
-                    <Component {...pageProps} />
-                </Layout>
+                <Component {...pageProps} />
             </SessionProvider>
-      );
+    );
 
 }

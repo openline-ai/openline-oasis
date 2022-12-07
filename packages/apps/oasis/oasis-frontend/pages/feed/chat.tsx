@@ -14,8 +14,7 @@ import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession} from "next-auth/react";
 
 
-export const Chat = ({id}: {id: string|string[]|undefined}) => {
-//    const router = useRouter();
+export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${id}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -24,7 +23,6 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
     })
 
     const messageWrapper: React.RefObject<HTMLDivElement> = useRef(null);
-
 
     const [currentUser, setCurrentUser] = useState({
         username: 'AgentSmith',
@@ -69,13 +67,12 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
     }
 
     function callingAllowed() {
-        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && 
-        (currentCustomer.telephoneNumber || currentCustomer.lastMailAddress == "echo@oasis.openline.ai");
+        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                (currentCustomer.telephoneNumber || currentCustomer.lastMailAddress == "echo@oasis.openline.ai");
     }
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
-    const [attachmentButtonHidden, setAttachmentButtonHidden] = useState(false);
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [inCall, setInCall] = useState(false);
     const [messageList, setMessageList] = useState([] as any);
@@ -85,46 +82,46 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
         if (id) {
 
             axios.get(`/server/feed/${id}`)
-                .then(res => {
-                    setCurrentCustomer({
-                        contactId: res.data.contactId,
-                        firstName: res.data.firstName,
-                        lastName: res.data.lastName,
-                        lastMailAddress: res.data.email,
-                        telephoneNumber: res.data.phone,
-                    });
-                    axios.get(`/server/feed/${id}/item`)
                     .then(res => {
-                        setMessageList(res.data);
-                    });
+                        setCurrentCustomer({
+                            contactId: res.data.contactId,
+                            firstName: res.data.firstName,
+                            lastName: res.data.lastName,
+                            lastMailAddress: res.data.email,
+                            telephoneNumber: res.data.phone,
+                        });
+                        axios.get(`/server/feed/${id}/item`)
+                                .then(res => {
+                                    setMessageList(res.data);
+                                });
 
-                });
+                    });
         }
     }, [id]);
     useEffect(() => {
 
         const refreshCredentials = () => {
             axios.get(`/server/call_credentials?service=sip&username=` + currentUser.username + "@agent.openline.ai")
-                .then(res => {
-                    console.error("Got a key: " + JSON.stringify(res.data));
-                    if (webrtc.current?._ua) {
-                        webrtc.current?.stopUA();
-                    }
-                    webrtc.current?.setCredentials(res.data.username, res.data.password,
-                        () => {
-                            webrtc.current?.startUA()
-                        });
-                    setTimeout(() => {
-                        refreshCredentials()
-                    }, (res.data.ttl * 3000) / 4);
-                });
+                    .then(res => {
+                        console.error("Got a key: " + JSON.stringify(res.data));
+                        if (webrtc.current?._ua) {
+                            webrtc.current?.stopUA();
+                        }
+                        webrtc.current?.setCredentials(res.data.username, res.data.password,
+                                () => {
+                                    webrtc.current?.startUA()
+                                });
+                        setTimeout(() => {
+                            refreshCredentials()
+                        }, (res.data.ttl * 3000) / 4);
+                    });
         }
         refreshCredentials();
     }, [currentUser]);
 
 
     useEffect(() => {
-        setMessages(messageList.map((msg: any) => {
+        setMessages(messageList?.map((msg: any) => {
             console.log("Have a message:\n" + JSON.stringify(msg));
             let lines = msg.message.split('\n');
 
@@ -159,39 +156,39 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
                 margin: '0px 5px'
             }}>
                 {!msg.direction &&
-                    <div style={{textAlign: 'left'}}>
-                        <div style={{
-                            fontSize: '10px',
-                            marginBottom: '10px'
-                        }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                        <span style={{
-                            whiteSpace: 'pre-wrap',
-                            background: '#bbbbbb',
-                            lineHeight: '27px',
-                            borderRadius: '3px',
-                            padding: '7px 10px'
-                        }}>
+                        <div style={{textAlign: 'left'}}>
+                            <div style={{
+                                fontSize: '10px',
+                                marginBottom: '10px'
+                            }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                            <span style={{
+                                whiteSpace: 'pre-wrap',
+                                background: '#bbbbbb',
+                                lineHeight: '27px',
+                                borderRadius: '3px',
+                                padding: '7px 10px'
+                            }}>
                     <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                     </span>
-                    </div>
+                        </div>
                 }
                 {msg.direction == 1 &&
-                    <div style={{textAlign: 'right'}}>
-                        <div style={{
-                            fontSize: '10px',
-                            lineHeight: '16px',
-                            marginBottom: '10px'
-                        }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                        <span style={{
-                            whiteSpace: 'pre-wrap',
-                            background: '#bbbbbb',
-                            lineHeight: '27px',
-                            borderRadius: '3px',
-                            padding: '7px 10px'
-                        }}>
+                        <div style={{textAlign: 'right'}}>
+                            <div style={{
+                                fontSize: '10px',
+                                lineHeight: '16px',
+                                marginBottom: '10px'
+                            }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                            <span style={{
+                                whiteSpace: 'pre-wrap',
+                                background: '#bbbbbb',
+                                lineHeight: '27px',
+                                borderRadius: '3px',
+                                padding: '7px 10px'
+                            }}>
                             <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
                         </span>
-                    </div>
+                        </div>
                 }
 
             </div>);
@@ -206,7 +203,6 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
 
     //when the user types, we hide the buttons
     useEffect(() => {
-        setAttachmentButtonHidden(currentText !== '')
         setSendButtonDisabled(currentText === '')
     }, [currentText]);
 
@@ -247,10 +243,10 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
             username: currentCustomer.lastMailAddress,
             message: currentText
         })
-            .then(res => {
-                setMessageList((messageList: any) => [...messageList, res.data]);
-                setCurrentText('');
-            });
+                .then(res => {
+                    setMessageList((messageList: any) => [...messageList, res.data]);
+                    setCurrentText('');
+                });
     };
 
     const handleWebsocketMessage = function (msg: any) {
@@ -267,22 +263,22 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
     }
 
     return (
-        <>
+            <div className='w-full h-full'>
                 <div style={{
                     width: '100%',
                     height: 'calc(100% - 100px)',
                     overflowX: 'hidden',
                     overflowY: 'auto'
                 }}>
-                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL  &&
-                        <WebRTC
-                            ref={webrtc}
-                            websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                            from={"sip:" + currentUser.username + "@agent.openline.ai"}
-                            updateCallState={(state: boolean) => setInCall(state)}
-                            autoStart={false}
+                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                            <WebRTC
+                                    ref={webrtc}
+                                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                                    from={"sip:" + currentUser.username + "@agent.openline.ai"}
+                                    updateCallState={(state: boolean) => setInCall(state)}
+                                    autoStart={false}
 
-                        />}
+                            />}
                     {messages}
                     <div ref={messageWrapper}></div>
                 </div>
@@ -321,19 +317,19 @@ export const Chat = ({id}: {id: string|string[]|undefined}) => {
                     <span hidden={inCall}>
                     <Button onClick={() => handleCall()} className='p-button-text' hidden={inCall}>
                                          {callingAllowed() &&
-                                             <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
+                                                 <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
                                          }
                     </Button>
                     </span>
                     <span hidden={!inCall}>
                             <Button onClick={() => hangupCall()} className='p-button-text' hidden={!inCall}>
-                            {callingAllowed()  &&
-                                <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
+                            {callingAllowed() &&
+                                    <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
                             }
                             </Button>
                     </span>
                 </div>
-        </>
+            </div>
     );
 
 }

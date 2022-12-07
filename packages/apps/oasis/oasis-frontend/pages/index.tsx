@@ -7,8 +7,6 @@ import FeedPage from "./feed";
 
 
 const Home: NextPage = () => {
-    const router = useRouter();
-
     return (
         <>
             <FeedPage/>
