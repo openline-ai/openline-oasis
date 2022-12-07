@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -15,11 +16,7 @@ import (
 )
 
 func main() {
-	conf := c.Config{}
-	if err := env.Parse(&conf); err != nil {
-		fmt.Printf("missing required config")
-		return
-	}
+	conf := loadConfiguration()
 
 	mh := chatHub.NewHub()
 	go mh.Run()
@@ -50,4 +47,17 @@ func main() {
 		log.Fatalf("server ended: %s", err)
 	}
 
+}
+
+func loadConfiguration() c.Config {
+	if err := godotenv.Load(); err != nil {
+		log.Println("[WARNING] Error loading .env file")
+	}
+
+	cfg := c.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		log.Printf("%+v\n", err)
+	}
+
+	return cfg
 }

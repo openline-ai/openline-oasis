@@ -8,6 +8,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/gorilla/websocket v1.5.0
+	github.com/joho/godotenv v1.4.0
 	github.com/mocktools/go-smtp-mock/v2 v2.0.1
 	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221201163033-fa6acc0faf17
 	github.com/stretchr/testify v1.8.1

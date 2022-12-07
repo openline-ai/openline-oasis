@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -18,12 +19,8 @@ import (
 
 func main() {
 	flag.Parse()
-	conf := c.Config{}
+	conf := loadConfiguration()
 
-	if err := env.Parse(&conf); err != nil {
-		fmt.Printf("missing required config")
-		return
-	}
 	fh := FeedHub.NewFeedHub()
 	go fh.Run()
 
@@ -56,4 +53,17 @@ func main() {
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("server ended: %s", err)
 	}
+}
+
+func loadConfiguration() c.Config {
+	if err := godotenv.Load(); err != nil {
+		log.Println("[WARNING] Error loading .env file")
+	}
+
+	cfg := c.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		log.Printf("%+v\n", err)
+	}
+
+	return cfg
 }

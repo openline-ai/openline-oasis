@@ -12,7 +12,7 @@ make
 
 ## Development
 
-To run this service to run on your laptop you need the following environemnt vars to be set
+This service uses the environment variables described below. The env files have a default value if not provided ( check .env file )
 
 | Variable                    | Meaning                                                                                |
 |-----------------------------|----------------------------------------------------------------------------------------|
