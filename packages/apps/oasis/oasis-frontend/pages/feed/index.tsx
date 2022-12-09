@@ -108,7 +108,12 @@ const FeedPage: NextPage = () => {
                                 feeds.map((f: any) => {
                                     return <div key={f.email}
                                                 className='flex w-full align-content-center align-items-center p-3 contact-hover'
-                                                onClick={() => setSelectedFeed(f.id)}>
+                                                onClick={() => {
+                                                    setSelectedFeed(f.id);
+                                                    //change the URL to allow a bookmark
+                                                    router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
+                                                }
+                                                }>
                                         {/*<div style={{height: "10px", width: "18px", borderRadius: "100px", background: "#7626FA"}}></div>*/}
 
                                         <div className='flex flex-column' style={{minWidth: '0'}}>

@@ -7,9 +7,14 @@ import FeedPage from "./feed";
 
 
 const Home: NextPage = () => {
+    const router = useRouter();
+
+    useEffect(() => {
+        router.push('/feed');
+    });
+
     return (
         <>
-            <FeedPage/>
         </>
     )
 }
