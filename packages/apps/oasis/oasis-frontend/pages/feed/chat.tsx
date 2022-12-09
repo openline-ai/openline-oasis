@@ -256,6 +256,7 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
             channel: 1,
             time: msg.time,
             id: msg.id,
+	    direction: msg.direction == "OUTBOUND"?1:0,
             contact: {},
         };
 
