@@ -3,6 +3,8 @@ import * as JsSIP from 'jssip';
 import {Button} from "primereact/button";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPhone, faPhoneSlash} from "@fortawesome/free-solid-svg-icons";
+import {InputText} from "primereact/inputtext";
+
 import {
     EndEvent,
     IncomingAckEvent,
@@ -23,6 +25,8 @@ interface WebRTCState {
     autoStart: boolean
     username?: string
     password?: string
+    transferDestination: string
+    refer: boolean
 
 }
 
@@ -51,7 +55,9 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 updateCallState: props.updateCallState,
                 callerId: "",
                 ringing: false,
-                autoStart: false
+                autoStart: false,
+                transferDestination: "",
+                refer: false
             };
 
         if (props.autoStart) {
@@ -69,6 +75,25 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this.setState({inCall: true, ringing: false});
         this.state.updateCallState(true);
         this._session.answer();
+
+
+    }
+
+    showTransfer() {
+        this.setState({refer: !this.state.refer});
+
+    }
+
+    transferCall() {
+        let transferDest = this.state.transferDestination;
+        this.setState({refer: false});
+        if (transferDest.indexOf('@') === -1) {
+            transferDest = transferDest + "@agent.openline.ai";
+        }
+        if (!transferDest.startsWith("sip:")) {
+
+        }
+        this._session.refer(transferDest);
 
 
     }
@@ -235,6 +260,25 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                         <Button onClick={() => this.hangupCall()} className='p-button-text'>
                             <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
                         </Button>
+                    </div>
+                    <div style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        width: "50%",
+                        textAlign: "center",
+                        transform: "translate(-50%, -50%)",
+                        background: "lightgrey",
+                        borderRadius: '3px',
+                        border: "1px solid black"
+                    }} hidden={!this.state.refer}>
+                        Specify desitnation for Call Transfer<br/>
+                        <InputText style={{width: 'calc(100% - 150px)'}} value={this.state.transferDestination}
+                               onChange={(e) => this.setState({transferDestination:e.target.value})}/>
+                        <Button onClick={() => this.transferCall()} className='p-button-text'>
+                            <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
+                        </Button>
+
                     </div>
                 </div>
             </>
