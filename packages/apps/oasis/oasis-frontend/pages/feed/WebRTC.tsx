@@ -1,15 +1,20 @@
 import * as React from 'react'
 import * as JsSIP from 'jssip';
+
 import {Button} from "primereact/button";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPhone, faPhoneSlash} from "@fortawesome/free-solid-svg-icons";
+import {InputText} from "primereact/inputtext";
+
 import {
     EndEvent,
     IncomingAckEvent,
     IncomingEvent,
     OutgoingAckEvent,
     OutgoingEvent,
-    RTCSessionEventMap
+    RTCSessionEventMap,
+    RTCSession,
+    ReferOptions,
 } from "jssip/lib/RTCSession";
 import {IncomingRTCSessionEvent, OutgoingRTCSessionEvent, UAConfiguration} from "jssip/lib/UA";
 
@@ -23,6 +28,9 @@ interface WebRTCState {
     autoStart: boolean
     username?: string
     password?: string
+    transferDestination: string
+    refer: boolean
+    referStatus: string
 
 }
 
@@ -36,7 +44,7 @@ interface WebRTCProps {
 export default class WebRTC extends React.Component<WebRTCProps> {
     state: WebRTCState
     _ua: JsSIP.UA | null
-    _session: any
+    _session:  RTCSession | null | undefined
     remoteVideo: React.RefObject<HTMLVideoElement>
 
     //setState:Function
@@ -51,7 +59,10 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 updateCallState: props.updateCallState,
                 callerId: "",
                 ringing: false,
-                autoStart: false
+                autoStart: false,
+                transferDestination: "",
+                refer: false,
+                referStatus: ""
             };
 
         if (props.autoStart) {
@@ -68,7 +79,54 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     answerCall() {
         this.setState({inCall: true, ringing: false});
         this.state.updateCallState(true);
-        this._session.answer();
+        this._session?.answer();
+
+
+    }
+
+    showTransfer() {
+        this.setState({refer: !this.state.refer});
+
+    }
+
+    transferCall() {
+        let transferDest = this.state.transferDestination;
+        var localScope = this;
+        localScope.setState({referStatus: ''})
+
+        let eventHandlers = {
+            'requestSucceeded': function (e: any) {
+                console.log('xfer is accepted');
+                localScope.setState({referStatus: 'Transferring Call....'})
+
+            },
+            'requestFailed': function (e: any) {
+                console.log('Faled to contact remote party cause: ' + JSON.stringify(e.cause));
+                localScope.setState({referStatus: 'Faled to contact remote party cause: ' + JSON.stringify(e.cause)})
+
+            },
+            'failed': function (e: any) {
+                console.log('Transfer Request rejected with cause: ' + JSON.stringify(e.cause));
+                localScope.setState({referStatus: 'Faled to contact remote party cause: ' + JSON.stringify(e.cause)})
+
+            },
+            'accepted': function (e: IncomingAckEvent | OutgoingAckEvent) {
+                console.log('call confirmed');
+                localScope.setState({referStatus: ''})
+                localScope.setState({refer: false});
+
+            }
+        };
+        let options : ReferOptions  = {
+            'eventHandlers': eventHandlers,
+        }
+        if (transferDest.indexOf('@') === -1) {
+            transferDest = transferDest + "@agent.openline.ai";
+        }
+        if (!transferDest.startsWith("sip:")) {
+            transferDest = "sip:" + transferDest;
+        }
+        this._session?.refer(transferDest, options);
 
 
     }
@@ -132,8 +190,8 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
         this.setState({inCall: true});
         this._session = this._ua?.call(destination, options);
-        var peerconnection = this._session.connection;
-        peerconnection.addEventListener('addstream', (event: any) => {
+        var peerconnection = this._session?.connection;
+        peerconnection?.addEventListener('addstream', (event: any) => {
                 if (this.remoteVideo.current) {
                     this.remoteVideo.current.srcObject = event.stream;
                 }
@@ -194,7 +252,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
             console.error("Got a call for " + rtcSession.remote_identity.uri.toString());
             rtcSession.on('accepted', () => {
                     if (this.remoteVideo.current) {
-                        this.remoteVideo.current.srcObject = this._session.connection.getRemoteStreams()[0];
+                        this.remoteVideo.current.srcObject = (this._session?.connection.getRemoteStreams()[0]?this._session?.connection.getRemoteStreams()[0]: null);
                         this.remoteVideo.current.play();
                     }
                 }
@@ -235,6 +293,26 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                         <Button onClick={() => this.hangupCall()} className='p-button-text'>
                             <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
                         </Button>
+                    </div>
+                    <div style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        width: "50%",
+                        textAlign: "center",
+                        transform: "translate(-50%, -50%)",
+                        background: "lightgrey",
+                        borderRadius: '3px',
+                        border: "1px solid black"
+                    }} hidden={!this.state.refer}>
+                        Specify desitnation for Call Transfer<br/>
+                        <div>{this.state.referStatus}</div>
+                        <InputText style={{width: 'calc(100% - 150px)'}} value={this.state.transferDestination}
+                               onChange={(e) => this.setState({transferDestination:e.target.value})}/>
+                        <Button onClick={() => this.transferCall()} className='p-button-text'>
+                            <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
+                        </Button>
+
                     </div>
                 </div>
             </>

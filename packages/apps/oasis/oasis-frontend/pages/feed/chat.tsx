@@ -1,7 +1,7 @@
 import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
-import {faPhone, faPhoneSlash, faPlay} from "@fortawesome/free-solid-svg-icons";
+import {faPhone, faPhoneSlash, faPlay, faRightLeft} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputText} from "primereact/inputtext";
 import {useRouter} from "next/router";
@@ -11,7 +11,7 @@ import Layout from "../../components/layout/layout";
 import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession} from "next-auth/react";
+import {useSession, getSession} from "next-auth/react";
 
 
 export const Chat = ({id}: { id: string | string[] | undefined }) => {
@@ -77,6 +77,8 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     const [inCall, setInCall] = useState(false);
     const [messageList, setMessageList] = useState([] as any);
     const [messages, setMessages] = useState([] as any);
+    const {data: session, status} = useSession();
+
 
     useEffect(() => {
         if (id) {
@@ -101,7 +103,7 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     useEffect(() => {
 
         const refreshCredentials = () => {
-            axios.get(`/server/call_credentials?service=sip&username=` + currentUser.username + "@agent.openline.ai")
+            axios.get(`/server/call_credentials?service=sip&username=` + session?.user?.email)
                     .then(res => {
                         console.error("Got a key: " + JSON.stringify(res.data));
                         if (webrtc.current?._ua) {
@@ -116,8 +118,10 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                         }, (res.data.ttl * 3000) / 4);
                     });
         }
-        refreshCredentials();
-    }, [currentUser]);
+        if (session?.user?.email) {
+            refreshCredentials();
+        }
+    }, [session]);
 
 
     useEffect(() => {
@@ -235,6 +239,11 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
     }
 
+    const showTransfer = () => {
+        webrtc.current?.showTransfer();
+
+    }
+
     const handleSendMessage = () => {
         axios.post(`/server/feed/${id}/item`, {
             source: 'WEB',
@@ -275,7 +284,7 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                             <WebRTC
                                     ref={webrtc}
                                     websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                                    from={"sip:" + currentUser.username + "@agent.openline.ai"}
+                                    from={"sip:" + session?.user?.email}
                                     updateCallState={(state: boolean) => setInCall(state)}
                                     autoStart={false}
 
@@ -326,6 +335,11 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                             <Button onClick={() => hangupCall()} className='p-button-text' hidden={!inCall}>
                             {callingAllowed() &&
                                     <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
+                            }
+                            </Button>
+                            <Button onClick={() => showTransfer()} className='p-button-text' hidden={!inCall}>
+                            {callingAllowed() &&
+                                    <FontAwesomeIcon icon={faRightLeft} style={{color: 'black'}}/>
                             }
                             </Button>
                     </span>
