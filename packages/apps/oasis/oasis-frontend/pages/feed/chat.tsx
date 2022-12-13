@@ -11,7 +11,7 @@ import Layout from "../../components/layout/layout";
 import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {useSession} from "next-auth/react";
+import {useSession, getSession} from "next-auth/react";
 
 
 export const Chat = ({id}: { id: string | string[] | undefined }) => {
