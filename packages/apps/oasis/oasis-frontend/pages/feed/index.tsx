@@ -12,6 +12,7 @@ import {OverlayPanel} from "primereact/overlaypanel";
 import {Menu} from "primereact/menu";
 import {InputText} from "primereact/inputtext";
 import Chat from "./chat";
+import Moment from "react-moment";
 
 
 const FeedPage: NextPage = () => {
@@ -30,9 +31,13 @@ const FeedPage: NextPage = () => {
     useEffect(() => {
         axios.get(`/server/feed`)
                 .then(res => {
-                    setFeeds(res.data?.contact)
+                    res.data?.feedItems.forEach((f: any) => {
+                        f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
+                    });
+                    setFeeds(res.data?.feedItems)
                     if (!selectedFeed) {
-                        setSelectedFeed(res.data.contact);
+                        setSelectedFeed(res.data.feedItems[0].id);
+                        router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
                     }
                 })
     }, []);
@@ -48,9 +53,13 @@ const FeedPage: NextPage = () => {
         console.log("Got a new feed!");
         axios.get(`/server/feed`)
                 .then(res => {
-                    setFeeds(res.data?.contact);
+                    res.data?.feedItems.forEach((f: any) => {
+                        f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
+                    });
+                    setFeeds(res.data?.feedItems);
                     if (!selectedFeed) {
-                        setSelectedFeed(res.data.contact);
+                        setSelectedFeed(res.data.feedItems[0].id);
+                        router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
                     }
                 });
     }
@@ -75,6 +84,11 @@ const FeedPage: NextPage = () => {
         }
     ];
 
+    const toDateTime = function (secs: any) {
+        var t = new Date(1970, 0, 1);
+        t.setSeconds(secs);
+        return t;
+    }
 
     return (
             <>
@@ -96,36 +110,52 @@ const FeedPage: NextPage = () => {
                                 <Menu model={userItems} style={{border: 'none'}}/>
                             </OverlayPanel>
 
-
                         </div>
 
                         <div className='flex p-3'>
                             <InputText placeholder={'Search'} className='w-full'/>
                         </div>
 
-                        <div className='flex flex-column pl-3 pr-3'>
+                        <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
                             {
                                 feeds.map((f: any) => {
-                                    return <div key={f.email}
-                                                className='flex w-full align-content-center align-items-center p-3 contact-hover'
-                                                onClick={() => {
-                                                    setSelectedFeed(f.id);
-                                                    //change the URL to allow a bookmark
-                                                    router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
-                                                }
-                                                }>
+                                    let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
+                                    if ( selectedFeed === f.id ) {
+                                        className += ' selected'
+                                    }
+                                    return <div key={f.email} className={className} onClick={() => {
+                                        setSelectedFeed(f.id);
+                                        //change the URL to allow a bookmark
+                                        router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
+                                    }
+                                    }>
                                         {/*<div style={{height: "10px", width: "18px", borderRadius: "100px", background: "#7626FA"}}></div>*/}
 
-                                        <div className='flex flex-column' style={{minWidth: '0'}}>
-                                            <div className='mb-2'>{f.firstName} {f.lastName}</div>
+                                        <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
+                                            <div className='mb-2'>
+                                                {
+                                                        f.contactFirstName &&
+                                                        f.contactFirstName + ' ' + f.contactLastName}
+                                                {
+                                                        !f.contactFirstName &&
+                                                        f.contactEmail
+                                                }
+                                            </div>
                                             <div className='text-500' style={{
                                                 fontSize: '12px',
                                                 textOverflow: 'ellipsis',
                                                 whiteSpace: "nowrap",
                                                 overflow: "hidden"
-                                            }}>I need a preview of this long message that is going to to text overflow
-                                                on different screen sizes
+                                            }}>
+                                                {f.message}
                                             </div>
+                                        </div>
+
+                                        <div className='flex flex-column'>
+                                            <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
+                                                    format={'d.MM.yy'}></Moment>
+                                            <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
+                                                    format={'HH:mm'}></Moment>
                                         </div>
                                     </div>
                                 })

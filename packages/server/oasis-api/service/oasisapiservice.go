@@ -19,7 +19,7 @@ type OasisApiService struct {
 	fh *FeedHub.FeedHub
 }
 
-func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMessageId) (*op.OasisEmpty, error) {
+func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMessage) (*op.OasisEmpty, error) {
 	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
@@ -29,41 +29,42 @@ func (s OasisApiService) NewMessageEvent(c context.Context, oasisId *op.OasisMes
 	client := msProto.NewMessageStoreServiceClient(conn)
 
 	ctx := context.Background()
-	message, err := client.GetMessage(ctx, &msProto.Message{Id: &oasisId.MessageId})
+	conversation, err := client.GetFeed(ctx, &msProto.Id{Id: newMessage.GetConversationId()})
 	if err != nil {
-		log.Printf("Unable to connect to retrieve message!")
+		log.Printf("Unable to connect to retrieve the conversation!")
 		return nil, err
 	}
-	feed, err := client.GetFeed(ctx, message.Contact)
+
+	conversationItem, err := client.GetMessage(ctx, &msProto.Id{Id: newMessage.GetConversationItemId()})
 	if err != nil {
-		log.Printf("Unable to connect to retrieve message feed!")
+		log.Printf("Unable to connect to retrieve conversation item!")
 		return nil, err
 	}
 
 	time := MessageHub.Time{
-		Seconds: strconv.FormatInt(message.Time.Seconds, 10),
-		Nanos:   fmt.Sprint(message.Time.Nanos),
+		Seconds: strconv.FormatInt(conversationItem.Time.Seconds, 10),
+		Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
 	}
 
-	log.Printf("Got a feed of %v", feed)
+	log.Printf("Sending a feed of %v", conversationItem)
 	// Send a feed to hub
-	messageFeed := FeedHub.MessageFeed{FirstName: feed.FirstName, LastName: feed.LastName, ContactId: feed.ContactId}
+	messageFeed := FeedHub.MessageFeed{FirstName: conversation.ContactFirstName, LastName: conversation.ContactLastName, ContactId: conversation.ContactId}
 	s.fh.Broadcast <- messageFeed
 	log.Printf("successfully sent new feed for %v", messageFeed)
 
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{
-		Username:  message.Username,
-		Id:        strconv.FormatInt(*message.Id, 10),
-		FeedId:    strconv.FormatInt(*feed.Id, 10),
-		Direction: message.Direction.String(),
-		Message:   message.Message,
+		Username:  *conversationItem.Username,
+		Id:        strconv.FormatInt(*conversationItem.Id, 10),
+		FeedId:    strconv.FormatInt(conversation.Id, 10),
+		Direction: conversationItem.Direction.String(),
+		Message:   conversationItem.Message,
 		Time:      time,
-		Channel:   message.Channel.String(),
+		Channel:   conversationItem.Channel.String(),
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", message.Username)
+	log.Printf("successfully sent new message for %s", *conversationItem.Username)
 	return &op.OasisEmpty{}, nil
 }
 

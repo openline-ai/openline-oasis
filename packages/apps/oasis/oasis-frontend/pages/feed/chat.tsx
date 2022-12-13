@@ -1,20 +1,20 @@
 import * as React from "react";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {faPhone, faPhoneSlash, faPlay, faRightLeft} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputText} from "primereact/inputtext";
-import {useRouter} from "next/router";
 import axios from "axios";
 import {Dropdown} from "primereact/dropdown";
-import Layout from "../../components/layout/layout";
 import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {useSession, getSession} from "next-auth/react";
+import {getSession, useSession} from "next-auth/react";
+import {gql, GraphQLClient} from "graphql-request";
 
 
 export const Chat = ({id}: { id: string | string[] | undefined }) => {
+    const client = new GraphQLClient(`${process.env.NEXT_PUBLIC_CUSTOMER_OS_API_PATH}/query`);
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${id}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -30,12 +30,11 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         lastName: 'Smith'
     });
 
-    const [currentCustomer, setCurrentCustomer] = useState({
-        contactId: 'customer1',
-        firstName: 'John',
-        lastName: 'Doe',
-        lastMailAddress: '',
-        telephoneNumber: '',
+    const [contact, setContact] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
     });
 
     function zeroPad(number: number) {
@@ -68,7 +67,7 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
     function callingAllowed() {
         return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                (currentCustomer.telephoneNumber || currentCustomer.lastMailAddress == "echo@oasis.openline.ai");
+                (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
     }
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
@@ -79,27 +78,58 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     const [messages, setMessages] = useState([] as any);
     const {data: session, status} = useSession();
 
+    const [loadingMessages, setLoadingMessages] = useState(false)
 
     useEffect(() => {
         if (id) {
-
+            setLoadingMessages(true);
+            console.log('load feed data');
             axios.get(`/server/feed/${id}`)
-                    .then(res => {
-                        setCurrentCustomer({
-                            contactId: res.data.contactId,
-                            firstName: res.data.firstName,
-                            lastName: res.data.lastName,
-                            lastMailAddress: res.data.email,
-                            telephoneNumber: res.data.phone,
-                        });
-                        axios.get(`/server/feed/${id}/item`)
-                                .then(res => {
-                                    setMessageList(res.data);
-                                });
+            .then(res => {
+                console.log('load feed data completed');
+                const query = gql`query GetContactDetails($id: ID!) {
+                    contact(id: $id) {
+                        id
+                        firstName
+                        lastName
+                        emails {
+                            email
+                        }
+                        phoneNumbers {
+                            e164
+                        }
+                    }
+                }`
 
-                    });
+                client.request(query, {id: res.data.contactId}).then((response: any) => {
+                    if (response.contact) {
+                        console.log('current contact loaded');
+                        setContact({
+                            firstName: response.contact.firstName,
+                            lastName: response.contact.lastName,
+                            email: response.contact.emails[0]?.email ?? undefined,
+                            phoneNumber: response.contact.phoneNumbers[0]?.e164 ?? undefined
+                        });
+                    } else {
+                        //TODO error
+                    }
+                }).catch(reason => {
+                    //TODO error
+                });
+
+            }).catch((reason: any) => {
+                //TODO error
+            });
+
+            axios.get(`/server/feed/${id}/item`)
+                    .then(res => {
+                        setMessageList(res.data ?? []);
+                    }).catch((reason: any) => {
+                //TODO error
+            });
         }
     }, [id]);
+
     useEffect(() => {
 
         const refreshCredentials = () => {
@@ -123,7 +153,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         }
     }, [session]);
 
-
     useEffect(() => {
         setMessages(messageList?.map((msg: any) => {
             console.log("Have a message:\n" + JSON.stringify(msg));
@@ -141,16 +170,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
             let hour = zeroPad(t.getHours());
             let minute = zeroPad(t.getMinutes());
 
-            if (msg.channel == 0 || msg.channel == 1) {
-                setCurrentCustomer({
-                    contactId: currentCustomer.contactId,
-                    firstName: currentCustomer.firstName,
-                    lastName: currentCustomer.lastName,
-                    lastMailAddress: msg.username,
-                    telephoneNumber: currentCustomer.telephoneNumber,
-                });
-            }
-
             return (<div key={msg.id} style={{
                 display: 'block',
                 width: 'auto',
@@ -164,7 +183,13 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                             <div style={{
                                 fontSize: '10px',
                                 marginBottom: '10px'
-                            }}>{msg.username}&nbsp;-&nbsp;{decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
+                            }}>
+
+                                {/*{contact.firstName && contact.firstName + ' ' + contact.lastName}*/}
+                                {/*{!contact.firstName && contact.email && contact.email}*/}
+                                {/*{!contact.firstName && !contact.email && contact.phoneNumber}*/}
+
+                                {decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
                             <span style={{
                                 whiteSpace: 'pre-wrap',
                                 background: '#bbbbbb',
@@ -197,12 +222,15 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
             </div>);
         }));
+        console.log('messages list loaded')
     }, [messageList]);
 
     //when a new message appears, scroll to the end of container
     useEffect(() => {
         // @ts-ignore
         messageWrapper?.current?.scrollIntoView({behavior: "smooth"});
+        setLoadingMessages(false);
+        console.log('messages loaded')
     }, [messages]);
 
     //when the user types, we hide the buttons
@@ -221,10 +249,10 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     const handleCall = () => {
         //setInCall(true);
         let user = '';
-        if (currentCustomer.telephoneNumber) {
-            user = currentCustomer.telephoneNumber + "@oasis.openline.ai";
+        if (contact.phoneNumber) {
+            user = contact.phoneNumber + "@oasis.openline.ai";
         } else {
-            user = currentCustomer.lastMailAddress;
+            user = contact.email;
             const regex = /.*<(.*)>/;
             const matches = user.match(regex);
             if (matches) {
@@ -249,7 +277,7 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
-            username: currentCustomer.lastMailAddress,
+            username: contact.email,
             message: currentText
         })
                 .then(res => {
@@ -289,7 +317,16 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                                     autoStart={false}
 
                             />}
-                    {messages}
+                    {
+                            loadingMessages &&
+                            <div>Loading</div>
+                    }
+
+                    {
+                            !loadingMessages &&
+                            messages
+                    }
+
                     <div ref={messageWrapper}></div>
                 </div>
                 <div style={{width: '100%', height: '100px'}}>
