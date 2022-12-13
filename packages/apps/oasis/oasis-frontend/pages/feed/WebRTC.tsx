@@ -100,6 +100,16 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 localScope.setState({referStatus: 'Transferring Call....'})
 
             },
+            'trying': function (e: any) {
+                console.log('xfer is trying');
+                localScope.setState({referStatus: 'Trying'})
+
+            },
+            'progress': function (e: any) {
+                console.log('xfer is ringing');
+                localScope.setState({referStatus: 'Ringing'})
+
+            },
             'requestFailed': function (e: any) {
                 console.log('Faled to contact remote party cause: ' + JSON.stringify(e.cause));
                 localScope.setState({referStatus: 'Faled to contact remote party cause: ' + JSON.stringify(e.cause)})
@@ -114,6 +124,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 console.log('call confirmed');
                 localScope.setState({referStatus: ''})
                 localScope.setState({refer: false});
+                localScope.hangupCall();
 
             }
         };
@@ -225,7 +236,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         let socket: JsSIP.Socket = new JsSIP.WebSocketInterface(this.state.websocket);
         let configuration: UAConfiguration = {
             sockets: [socket],
-            uri: this.state.from
+            uri: this.state.from,
         };
 
         if (this.state.username) {
