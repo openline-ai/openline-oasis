@@ -29,7 +29,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	client := msProto.NewMessageStoreServiceClient(conn)
 
 	ctx := context.Background()
-	msg, err := client.GetMessage(ctx, &msProto.Message{Id: &msgId.MessageId})
+	msg, err := client.GetMessage(ctx, &msProto.Id{Id: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")
 		return nil, err
@@ -56,12 +56,12 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the hub
 	messageItem := chatHub.MessageItem{
-		Username: msg.Username,
+		Username: *msg.Username,
 		Message:  msg.Message,
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", msg.Username)
+	log.Printf("successfully sent new message for %s", *msg.Username)
 	return nil
 }
 
@@ -77,7 +77,7 @@ func (s sendMessageService) sendMail(msg *msProto.Message) error {
 	email := mail.NewMSG()
 	email.SetFrom(s.conf.Mail.SMTPFromUser)
 	email.AddTo(msg.GetUsername())
-	email.SetSubject("Hello")
+	email.SetSubject("Hello") //TODO
 
 	email.SetBody(mail.TextPlain, msg.GetMessage())
 

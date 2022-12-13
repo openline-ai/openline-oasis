@@ -60,7 +60,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			Message:   strings.Trim(email.TextBody, "\r\n"),
 			Direction: pb.MessageDirection_INBOUND,
 			Channel:   pb.MessageChannel_MAIL,
-			Username:  req.Sender,
+			Username:  &req.Sender,
 		}
 
 		//Set up a connection to the oasis-api server.
@@ -98,7 +98,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			})
 			return
 		} else {
-			_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.OasisMessageId{MessageId: *message.Id})
+			_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.NewMessage{ConversationId: *message.FeedId, ConversationItemId: *message.Id})
 			if mEventErr != nil {
 				se, _ := status.FromError(mEventErr)
 				log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
@@ -108,7 +108,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		log.Printf("message item created with id: %d", *message.Id)
 
 		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("New email arrived from: %s\n%s", message.Username, message.Message)}
+			values := map[string]string{"text": fmt.Sprintf("New email arrived from: %s\n%s", *message.Username, message.Message)}
 			json_data, _ := json.Marshal(values)
 
 			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))

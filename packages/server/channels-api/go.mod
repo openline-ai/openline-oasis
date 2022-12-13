@@ -46,3 +46,4 @@ require (
 )
 
 replace openline-ai/oasis-api => ./../oasis-api
+replace github.com/openline-ai/openline-customer-os/packages/server/message-store => /Users/efirut/work/openline/openline-customer-os/packages/server/message-store

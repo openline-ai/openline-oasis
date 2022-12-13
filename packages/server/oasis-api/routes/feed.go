@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
@@ -29,7 +30,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 	rg.GET("/feed", func(c *gin.Context) {
 		// Contact the server and print out its response.
-		empty := &msProto.Empty{}
+		pagedRequest := &msProto.GetFeedsPagedRequest{StateIn: []msProto.FeedItemState{msProto.FeedItemState_NEW, msProto.FeedItemState_IN_PROGRESS}}
 		//Set up a connection to the server.
 		conn, err := df.GetMessageStoreCon()
 		if err != nil {
@@ -44,7 +45,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		ctx := context.Background()
 
-		contacts, err := client.GetFeeds(ctx, empty)
+		feedList, err := client.GetFeeds(ctx, pagedRequest)
 		if err != nil {
 			log.Printf("did not get list of feeds: %v", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -52,8 +53,38 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			})
 			return
 		}
-		log.Printf("Got the list of contacts!")
-		c.JSON(http.StatusOK, contacts)
+
+		marshal, _ := json.Marshal(feedList)
+		log.Printf("Got a feed item of %s", marshal)
+		c.JSON(http.StatusOK, feedList)
+	})
+	rg.GET("/feed/:id", func(c *gin.Context) {
+		var feedId FeedID
+		if err := c.ShouldBindUri(&feedId); err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+
+		//Set up a connection to the server.
+		conn, err := df.GetMessageStoreCon()
+		if err != nil {
+			log.Printf("did not connect: %v", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("did not connect: %v", err.Error()),
+			})
+			return
+		}
+		defer conn.Close()
+		client := msProto.NewMessageStoreServiceClient(conn)
+
+		request := msProto.Id{Id: feedId.ID}
+		feed, err := client.GetFeed(context.Background(), &request)
+		log.Printf("Got the feed!")
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, feed)
 	})
 	rg.GET("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
@@ -74,47 +105,14 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer conn.Close()
 		client := msProto.NewMessageStoreServiceClient(conn)
 
-		contact := &msProto.Contact{Id: &feedId.ID}
-		pageInfo := &msProto.PageInfo{PageSize: 100}
-		pageContact := &msProto.PagedContact{Page: pageInfo, Contact: contact}
-		ctx := context.Background()
-
-		messages, err := client.GetMessages(ctx, pageContact)
+		request := msProto.GetMessagesRequest{ConversationId: feedId.ID}
+		messages, err := client.GetMessages(context.Background(), &request)
 		log.Printf("Got the list of messages!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, messages.GetMessage())
-	})
-	rg.GET("/feed/:id", func(c *gin.Context) {
-		var feedId FeedID
-		if err := c.ShouldBindUri(&feedId); err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-
-		//Set up a connection to the server.
-		conn, err := df.GetMessageStoreCon()
-		if err != nil {
-			log.Printf("did not connect: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err.Error()),
-			})
-			return
-		}
-		defer conn.Close()
-		client := msProto.NewMessageStoreServiceClient(conn)
-
-		feed := &msProto.Contact{Id: &feedId.ID}
-		ctx := context.Background()
-
-		fullFeed, err := client.GetFeed(ctx, feed)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-		c.JSON(200, fullFeed)
 	})
 	rg.POST("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
@@ -130,23 +128,6 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			return
 		}
 
-		contact := &msProto.Contact{
-			Id: &feedId.ID,
-		}
-		log.Printf("After json bind %v", req)
-		message := &msProto.Message{
-			Username:  req.Username,
-			Message:   req.Message,
-			Direction: msProto.MessageDirection_OUTBOUND,
-			Type:      msProto.MessageType_MESSAGE,
-			Contact:   contact,
-		}
-		if req.Channel == "CHAT" {
-			message.Channel = msProto.MessageChannel_WIDGET
-		} else {
-			message.Channel = msProto.MessageChannel_MAIL
-		}
-
 		//Set up a connection to the server.
 		conn, err := df.GetMessageStoreCon()
 		if err != nil {
@@ -159,8 +140,31 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer conn.Close()
 		client := msProto.NewMessageStoreServiceClient(conn)
 
-		ctx := context.Background()
+		request := msProto.Id{Id: feedId.ID}
+		feed, err := client.GetFeed(context.Background(), &request)
+		log.Printf("Got the feed!")
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
 
+		userId := "AgentSmith"
+
+		message := &msProto.Message{
+			UserId:    &userId,
+			Username:  &feed.ContactEmail,
+			Message:   req.Message,
+			Direction: msProto.MessageDirection_OUTBOUND,
+			Type:      msProto.MessageType_MESSAGE,
+			ContactId: &feed.ContactId,
+		}
+		if req.Channel == "CHAT" {
+			message.Channel = msProto.MessageChannel_WIDGET
+		} else {
+			message.Channel = msProto.MessageChannel_MAIL
+		}
+
+		ctx := context.Background()
 		newMsg, err := client.SaveMessage(ctx, message)
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -188,6 +192,5 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 
 		c.JSON(http.StatusOK, newMsg)
-
 	})
 }
