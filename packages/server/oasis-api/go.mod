@@ -41,5 +41,5 @@ require (
 )
 
 replace openline-ai/channels-api => ./../channels-api
-replace github.com/openline-ai/openline-customer-os/packages/server/message-store => /Users/efirut/work/openline/openline-customer-os/packages/server/message-store
+//replace github.com/openline-ai/openline-customer-os/packages/server/message-store => /Users/efirut/work/openline/openline-customer-os/packages/server/message-store
 
