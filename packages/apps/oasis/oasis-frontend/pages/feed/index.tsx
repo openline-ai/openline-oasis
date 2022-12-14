@@ -13,6 +13,8 @@ import {Menu} from "primereact/menu";
 import {InputText} from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
+import * as React from "react";
+import WebRTC from "../../components/WebRTC";
 
 
 const FeedPage: NextPage = () => {
@@ -20,7 +22,7 @@ const FeedPage: NextPage = () => {
     const {id} = router.query;
 
     const [feeds, setFeeds] = useState([] as any)
-    const [selectedFeed, setSelectedFeed] = useState(id);
+    const [selectedFeed, setSelectedFeed] = useState(id as string);
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -90,8 +92,70 @@ const FeedPage: NextPage = () => {
         return t;
     }
 
+    // region WebRTC
+    const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
+    useEffect(() => {
+
+        const refreshCredentials = () => {
+            axios.get(`/server/call_credentials?service=sip&username=` + session?.user?.email)
+                    .then(res => {
+                        console.error("Got a key: " + JSON.stringify(res.data));
+                        if (webrtc.current?._ua) {
+                            webrtc.current?.stopUA();
+                        }
+                        webrtc.current?.setCredentials(res.data.username, res.data.password,
+                                () => {
+                                    webrtc.current?.startUA()
+                                });
+                        setTimeout(() => {
+                            refreshCredentials()
+                        }, (res.data.ttl * 3000) / 4);
+                    });
+        }
+        if (session?.user?.email) {
+            refreshCredentials();
+        }
+    }, [session]);
+
+    const [inCall, setInCall] = useState(false);
+
+    const handleCall = (contact: any) => {
+        let user = '';
+        if (contact.phoneNumber) {
+            user = contact.phoneNumber + "@oasis.openline.ai";
+        } else {
+            user = contact.email;
+            const regex = /.*<(.*)>/;
+            const matches = user.match(regex);
+            if (matches) {
+                user = matches[1];
+            }
+        }
+        webrtc.current?.makeCall("sip:" + user);
+    }
+    const hangupCall = () => {
+        setInCall(false);
+        webrtc.current?.hangupCall();
+    }
+
+    const showTransfer = () => {
+        webrtc.current?.showTransfer();
+    }
+    //endregion
+
     return (
             <>
+                {
+                        process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                        <WebRTC
+                                ref={webrtc}
+                                websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                                from={"sip:" + session?.user?.email}
+                                updateCallState={(state: boolean) => setInCall(state)}
+                                autoStart={false}
+                        />
+                }
+
                 <div className="flex w-full h-full">
 
                     <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
@@ -129,8 +193,6 @@ const FeedPage: NextPage = () => {
                                         router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
                                     }
                                     }>
-                                        {/*<div style={{height: "10px", width: "18px", borderRadius: "100px", background: "#7626FA"}}></div>*/}
-
                                         <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
                                             <div className='mb-2'>
                                                 {
@@ -168,7 +230,13 @@ const FeedPage: NextPage = () => {
 
                         {
                                 selectedFeed &&
-                                <Chat id={selectedFeed}/>
+                                <Chat
+                                        feedId={selectedFeed}
+                                        inCall={inCall}
+                                        handleCall={(contact: any) => handleCall(contact)}
+                                        hangupCall={() => hangupCall()}
+                                        showTransfer={() => showTransfer()}
+                                />
                         }
 
                     </div>

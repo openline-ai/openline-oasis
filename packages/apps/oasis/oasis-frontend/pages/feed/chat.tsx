@@ -13,7 +13,6 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputText} from "primereact/inputtext";
 import axios from "axios";
 import {Dropdown} from "primereact/dropdown";
-import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession, useSession} from "next-auth/react";
@@ -22,11 +21,21 @@ import {ProgressSpinner} from "primereact/progressspinner";
 import {Tooltip} from "primereact/tooltip";
 import Moment from "react-moment";
 
+interface ChatProps {
+    feedId: string;
+    inCall: boolean;
 
-export const Chat = ({id}: { id: string | string[] | undefined }) => {
+    handleCall(contact: any): void;
+
+    hangupCall(): void;
+
+    showTransfer(): void;
+}
+
+export const Chat = (props: ChatProps) => {
     const client = new GraphQLClient(`${process.env.NEXT_PUBLIC_CUSTOMER_OS_API_PATH}/query`);
 
-    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${id}`, {
+    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
@@ -44,16 +53,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         email: '',
         phoneNumber: '',
     });
-
-    function zeroPad(number: number) {
-        if (number < 10) return '0' + number;
-        return '' + number;
-    }
-
-    function monthConvert(number: number) {
-        let months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
-        return months[number - 1];
-    }
 
     function decodeChannel(channel: number) {
         switch (channel) {
@@ -74,25 +73,23 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     }
 
     function callingAllowed() {
-        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
+        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
     }
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
-    const [inCall, setInCall] = useState(false);
     const [messages, setMessages] = useState([] as any);
     const {data: session, status} = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
     useEffect(() => {
-        if (id) {
+        if (props.feedId) {
             setLoadingMessages(true);
             setCurrentText('');
 
-            axios.get(`/server/feed/${id}`)
+            axios.get(`/server/feed/${props.feedId}`)
             .then(res => {
                 const query = gql`query GetContactDetails($id: ID!) {
                     contact(id: $id) {
@@ -127,37 +124,14 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                 //TODO error
             });
 
-            axios.get(`/server/feed/${id}/item`)
+            axios.get(`/server/feed/${props.feedId}/item`)
                     .then(res => {
                         setMessages(res.data ?? []);
                     }).catch((reason: any) => {
                 //TODO error
             });
         }
-    }, [id]);
-
-    useEffect(() => {
-
-        const refreshCredentials = () => {
-            axios.get(`/server/call_credentials?service=sip&username=` + session?.user?.email)
-                    .then(res => {
-                        console.error("Got a key: " + JSON.stringify(res.data));
-                        if (webrtc.current?._ua) {
-                            webrtc.current?.stopUA();
-                        }
-                        webrtc.current?.setCredentials(res.data.username, res.data.password,
-                                () => {
-                                    webrtc.current?.startUA()
-                                });
-                        setTimeout(() => {
-                            refreshCredentials()
-                        }, (res.data.ttl * 3000) / 4);
-                    });
-        }
-        if (session?.user?.email) {
-            refreshCredentials();
-        }
-    }, [session]);
+    }, [props.feedId]);
 
     //when a new message appears, scroll to the end of container
     useEffect(() => {
@@ -173,7 +147,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         }
     }, [loadingMessages, messages])
 
-    //when the user types, we hide the buttons
     useEffect(() => {
         setSendButtonDisabled(currentText === '')
     }, [currentText]);
@@ -184,35 +157,8 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         }
     }, [lastMessage]);
 
-    const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
-
-    const handleCall = () => {
-        //setInCall(true);
-        let user = '';
-        if (contact.phoneNumber) {
-            user = contact.phoneNumber + "@oasis.openline.ai";
-        } else {
-            user = contact.email;
-            const regex = /.*<(.*)>/;
-            const matches = user.match(regex);
-            if (matches) {
-                user = matches[1];
-            }
-        }
-        webrtc.current?.makeCall("sip:" + user);
-    }
-    const hangupCall = () => {
-        setInCall(false);
-        webrtc.current?.hangupCall();
-
-    }
-
-    const showTransfer = () => {
-        webrtc.current?.showTransfer();
-    }
-
     const handleSendMessage = () => {
-        axios.post(`/server/feed/${id}/item`, {
+        axios.post(`/server/feed/${props.feedId}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
@@ -243,15 +189,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
     return (
             <div className='flex flex-column w-full h-full'>
                 <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
-                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                            <WebRTC
-                                    ref={webrtc}
-                                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                                    from={"sip:" + session?.user?.email}
-                                    updateCallState={(state: boolean) => setInCall(state)}
-                                    autoStart={false}
-
-                            />}
                     {
                             loadingMessages &&
                             <div className="flex w-full h-full align-content-center align-items-center">
@@ -329,7 +266,8 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
                                                     <div className="w-full flex">
                                                         <div className="flex-grow-1"></div>
-                                                        <div className="flex-grow-0 flex-column p-3" style={{background: '#C5EDCE', borderRadius: '5px'}}>
+                                                        <div className="flex-grow-0 flex-column p-3"
+                                                             style={{background: '#C5EDCE', borderRadius: '5px'}}>
                                                             <div className="flex">{msg.message}</div>
                                                             <div className="flex align-content-end" style={{
                                                                 width: '100%',
@@ -397,6 +335,27 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
                             <div className="flex flex-grow-1">
 
+                                {
+                                        callingAllowed() && !props.inCall &&
+                                        <div>
+                                            <Button onClick={() => props.handleCall(contact)} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                        </div>
+                                }
+
+                                {
+                                        callingAllowed() && props.inCall &&
+                                        <div>
+                                            <Button onClick={() => props.hangupCall()} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faPhoneSlash} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                            <Button onClick={() => props.showTransfer()} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faRightLeft} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                        </div>
+                                }
+
                                 <Tooltip target=".disabled-button"/>
                                 <Tooltip target=".disabled-button2"/>
                                 <div className="disabled-button" data-pr-tooltip="Work in progress">
@@ -421,27 +380,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                             </div>
 
                         </div>
-
-                        {
-                                callingAllowed() && !inCall &&
-                                <div>
-                                    <Button onClick={() => handleCall()} className='p-button-text'>
-                                        <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
-                                    </Button>
-                                </div>
-                        }
-
-                        {
-                                callingAllowed() && inCall &&
-                                <div>
-                                    <Button onClick={() => hangupCall()} className='p-button-text'>
-                                        <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
-                                    </Button>
-                                    <Button onClick={() => showTransfer()} className='p-button-text'>
-                                        <FontAwesomeIcon icon={faRightLeft} style={{color: 'black'}}/>
-                                    </Button>
-                                </div>
-                        }
 
                     </div>
                 </div>
