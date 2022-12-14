@@ -25,7 +25,7 @@ spec:
             - name: NEXT_PUBLIC_BE_PATH
               value: "http://oasis-api-service.openline.svc.cluster.local:8006"
             - name: NEXT_PUBLIC_CUSTOMER_OS_API_PATH
-              value: "http://customer-os-api-servic.eopenline.svc.cluster.local:10000"
+              value: "http://localhost:10000"
             - name: NEXT_PUBLIC_WEBSOCKET_PATH
               value: "ws://localhost:8006/ws"
             - name: NEXT_PUBLIC_TURN_SERVER
