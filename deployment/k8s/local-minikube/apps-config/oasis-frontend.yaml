@@ -24,6 +24,8 @@ spec:
               value: "ws://localhost:8080"
             - name: NEXT_PUBLIC_BE_PATH
               value: "http://oasis-api-service.openline.svc.cluster.local:8006"
+            - name: NEXT_PUBLIC_CUSTOMER_OS_API_PATH
+              value: "http://localhost:10000"
             - name: NEXT_PUBLIC_WEBSOCKET_PATH
               value: "ws://localhost:8006/ws"
             - name: NEXT_PUBLIC_TURN_SERVER
@@ -43,6 +45,6 @@ spec:
             - name: NEXTAUTH_OAUTH_TENANT_ID
               value: "7c7b794e-6fcd-11ed-a1eb-0242ac120002"
             - name: NEXTAUTH_OAUTH_SERVER_URL
-              value: "http://fusionauth-customer-os.openline.svc.cluster.local:9011/"
+              value: "http://auth-fusionauth.openline.svc.cluster.local:9011/"
             - name: NEXTAUTH_SECRET
               value: "4691821d-ba37-4870-9626-f0cd6ad15e99"
