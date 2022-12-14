@@ -1,28 +1,45 @@
 import * as React from "react";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
-import {faPhone, faPhoneSlash, faPlay, faRightLeft} from "@fortawesome/free-solid-svg-icons";
+import {
+    faPaperclip,
+    faPaperPlane,
+    faPhone,
+    faPhoneSlash,
+    faRightLeft,
+    faSmile
+} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputText} from "primereact/inputtext";
 import axios from "axios";
 import {Dropdown} from "primereact/dropdown";
-import WebRTC from "./WebRTC";
 import useWebSocket from "react-use-websocket";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession, useSession} from "next-auth/react";
 import {gql, GraphQLClient} from "graphql-request";
+import {ProgressSpinner} from "primereact/progressspinner";
+import {Tooltip} from "primereact/tooltip";
+import Moment from "react-moment";
 
+interface ChatProps {
+    feedId: string;
+    inCall: boolean;
 
-export const Chat = ({id}: { id: string | string[] | undefined }) => {
+    handleCall(contact: any): void;
+
+    hangupCall(): void;
+
+    showTransfer(): void;
+}
+
+export const Chat = (props: ChatProps) => {
     const client = new GraphQLClient(`${process.env.NEXT_PUBLIC_CUSTOMER_OS_API_PATH}/query`);
 
-    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${id}`, {
+    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
     })
-
-    const messageWrapper: React.RefObject<HTMLDivElement> = useRef(null);
 
     const [currentUser, setCurrentUser] = useState({
         username: 'AgentSmith',
@@ -37,56 +54,43 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         phoneNumber: '',
     });
 
-    function zeroPad(number: number) {
-        if (number < 10) return '0' + number;
-        return '' + number;
-    }
-
-    function monthConvert(number: number) {
-        let months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
-        return months[number - 1];
-    }
-
     function decodeChannel(channel: number) {
         switch (channel) {
             case 0:
-                return "CHAT";
+                return "Web chat";
             case 1:
-                return "MAIL";
+                return "Email";
             case 2:
-                return "WHATSAPP";
+                return "WhatsApp";
             case 3:
-                return "FACEBOOK";
+                return "Facebook";
             case 4:
-                return "TWITTER";
+                return "Twitter";
             case 5:
-                return "VOICE";
+                return "Phone call";
         }
-        return "CHAT";
+        return "";
     }
 
     function callingAllowed() {
-        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
+        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
     }
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
-    const [inCall, setInCall] = useState(false);
-    const [messageList, setMessageList] = useState([] as any);
     const [messages, setMessages] = useState([] as any);
     const {data: session, status} = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
     useEffect(() => {
-        if (id) {
+        if (props.feedId) {
             setLoadingMessages(true);
-            console.log('load feed data');
-            axios.get(`/server/feed/${id}`)
+            setCurrentText('');
+
+            axios.get(`/server/feed/${props.feedId}`)
             .then(res => {
-                console.log('load feed data completed');
                 const query = gql`query GetContactDetails($id: ID!) {
                     contact(id: $id) {
                         id
@@ -103,7 +107,6 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
 
                 client.request(query, {id: res.data.contactId}).then((response: any) => {
                     if (response.contact) {
-                        console.log('current contact loaded');
                         setContact({
                             firstName: response.contact.firstName,
                             lastName: response.contact.lastName,
@@ -121,119 +124,29 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
                 //TODO error
             });
 
-            axios.get(`/server/feed/${id}/item`)
+            axios.get(`/server/feed/${props.feedId}/item`)
                     .then(res => {
-                        setMessageList(res.data ?? []);
+                        setMessages(res.data ?? []);
                     }).catch((reason: any) => {
                 //TODO error
             });
         }
-    }, [id]);
-
-    useEffect(() => {
-
-        const refreshCredentials = () => {
-            axios.get(`/server/call_credentials?service=sip&username=` + session?.user?.email)
-                    .then(res => {
-                        console.error("Got a key: " + JSON.stringify(res.data));
-                        if (webrtc.current?._ua) {
-                            webrtc.current?.stopUA();
-                        }
-                        webrtc.current?.setCredentials(res.data.username, res.data.password,
-                                () => {
-                                    webrtc.current?.startUA()
-                                });
-                        setTimeout(() => {
-                            refreshCredentials()
-                        }, (res.data.ttl * 3000) / 4);
-                    });
-        }
-        if (session?.user?.email) {
-            refreshCredentials();
-        }
-    }, [session]);
-
-    useEffect(() => {
-        setMessages(messageList?.map((msg: any) => {
-            console.log("Have a message:\n" + JSON.stringify(msg));
-            let lines = msg.message.split('\n');
-
-            let filtered: string[] = lines.filter(function (line: string) {
-                return line.indexOf('>') != 0;
-            });
-            msg.message = filtered.join('\n').trim();
-            let t = new Date(Date.UTC(1970, 0, 1));
-            t.setUTCSeconds(msg.time.seconds);
-            let year = t.getFullYear();
-            let month = monthConvert(t.getMonth() + 1);
-            let day = t.getDate();
-            let hour = zeroPad(t.getHours());
-            let minute = zeroPad(t.getMinutes());
-
-            return (<div key={msg.id} style={{
-                display: 'block',
-                width: 'auto',
-                maxWidth: '100%',
-                wordBreak: 'break-all',
-                padding: '10px',
-                margin: '0px 5px'
-            }}>
-                {!msg.direction &&
-                        <div style={{textAlign: 'left'}}>
-                            <div style={{
-                                fontSize: '10px',
-                                marginBottom: '10px'
-                            }}>
-
-                                {/*{contact.firstName && contact.firstName + ' ' + contact.lastName}*/}
-                                {/*{!contact.firstName && contact.email && contact.email}*/}
-                                {/*{!contact.firstName && !contact.email && contact.phoneNumber}*/}
-
-                                {decodeChannel(msg.channel)}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                            <span style={{
-                                whiteSpace: 'pre-wrap',
-                                background: '#bbbbbb',
-                                lineHeight: '27px',
-                                borderRadius: '3px',
-                                padding: '7px 10px'
-                            }}>
-                    <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
-                    </span>
-                        </div>
-                }
-                {msg.direction == 1 &&
-                        <div style={{textAlign: 'right'}}>
-                            <div style={{
-                                fontSize: '10px',
-                                lineHeight: '16px',
-                                marginBottom: '10px'
-                            }}>{currentUser.firstName}&nbsp;{currentUser.lastName}&nbsp;-&nbsp;{day},&nbsp;{month}&nbsp;{year}&nbsp;{hour}:{minute}</div>
-                            <span style={{
-                                whiteSpace: 'pre-wrap',
-                                background: '#bbbbbb',
-                                lineHeight: '27px',
-                                borderRadius: '3px',
-                                padding: '7px 10px'
-                            }}>
-                            <span style={{}}>{msg.message}</span><span style={{marginLeft: '10px'}}></span>
-                        </span>
-                        </div>
-                }
-
-            </div>);
-        }));
-        console.log('messages list loaded')
-    }, [messageList]);
+    }, [props.feedId]);
 
     //when a new message appears, scroll to the end of container
     useEffect(() => {
-        // @ts-ignore
-        messageWrapper?.current?.scrollIntoView({behavior: "smooth"});
         setLoadingMessages(false);
-        console.log('messages loaded')
     }, [messages]);
 
-    //when the user types, we hide the buttons
+    useEffect(() => {
+        if (!loadingMessages) {
+            const element = document.getElementById('chatWindowToScroll')
+            if (element) {
+                element.scrollIntoView({behavior: 'smooth'})
+            }
+        }
+    }, [loadingMessages, messages])
+
     useEffect(() => {
         setSendButtonDisabled(currentText === '')
     }, [currentText]);
@@ -244,46 +157,19 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
         }
     }, [lastMessage]);
 
-    const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
-
-    const handleCall = () => {
-        //setInCall(true);
-        let user = '';
-        if (contact.phoneNumber) {
-            user = contact.phoneNumber + "@oasis.openline.ai";
-        } else {
-            user = contact.email;
-            const regex = /.*<(.*)>/;
-            const matches = user.match(regex);
-            if (matches) {
-                user = matches[1];
-            }
-        }
-        webrtc.current?.makeCall("sip:" + user);
-    }
-    const hangupCall = () => {
-        setInCall(false);
-        webrtc.current?.hangupCall();
-
-    }
-
-    const showTransfer = () => {
-        webrtc.current?.showTransfer();
-
-    }
-
     const handleSendMessage = () => {
-        axios.post(`/server/feed/${id}/item`, {
+        axios.post(`/server/feed/${props.feedId}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
             username: contact.email,
             message: currentText
-        })
-                .then(res => {
-                    setMessageList((messageList: any) => [...messageList, res.data]);
-                    setCurrentText('');
-                });
+        }).then(res => {
+            setMessages((messageList: any) => [...messageList, res.data]);
+            setCurrentText('');
+        }).catch(reason => {
+            //TODO error
+        });
     };
 
     const handleWebsocketMessage = function (msg: any) {
@@ -293,93 +179,209 @@ export const Chat = ({id}: { id: string | string[] | undefined }) => {
             channel: 1,
             time: msg.time,
             id: msg.id,
-	    direction: msg.direction == "OUTBOUND"?1:0,
+            direction: msg.direction == "OUTBOUND" ? 1 : 0,
             contact: {},
         };
 
-        setMessageList((messageList: any) => [...messageList, newMsg]);
+        setMessages((messageList: any) => [...messageList, newMsg]);
     }
 
     return (
-            <div className='w-full h-full'>
-                <div style={{
-                    width: '100%',
-                    height: 'calc(100% - 100px)',
-                    overflowX: 'hidden',
-                    overflowY: 'auto'
-                }}>
-                    {process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                            <WebRTC
-                                    ref={webrtc}
-                                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                                    from={"sip:" + session?.user?.email}
-                                    updateCallState={(state: boolean) => setInCall(state)}
-                                    autoStart={false}
-
-                            />}
+            <div className='flex flex-column w-full h-full'>
+                <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
                     {
                             loadingMessages &&
-                            <div>Loading</div>
+                            <div className="flex w-full h-full align-content-center align-items-center">
+                                <ProgressSpinner/>
+                            </div>
                     }
 
-                    {
-                            !loadingMessages &&
-                            messages
-                    }
+                    <div className="flex flex-column">
+                        {
+                                !loadingMessages &&
+                                messages.map((msg: any, index: any) => {
+                                    let lines = msg.message.split('\n');
 
-                    <div ref={messageWrapper}></div>
+                                    let filtered: string[] = lines.filter(function (line: string) {
+                                        return line.indexOf('>') != 0;
+                                    });
+                                    msg.message = filtered.join('\n').trim();
+
+                                    var t = new Date(1970, 0, 1);
+                                    t.setSeconds(msg.time.seconds);
+
+                                    return <div key={msg.id} className='flex flex-column mb-3'>
+                                        {
+                                                msg.direction == 0 &&
+                                                <>
+                                                    {
+                                                            (index == 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
+                                                            <div className="mb-1 pl-3">
+                                                                {
+                                                                        contact.firstName && contact.lastName &&
+                                                                        <>{contact.firstName} {contact.lastName}</>
+                                                                }
+                                                                {
+                                                                        !contact.firstName && !contact.lastName &&
+                                                                        <>{contact.email}</>
+                                                                }
+                                                            </div>
+                                                    }
+
+                                                    <div className="flex">
+                                                        <div className="flex flex-column flex-grow-0 p-3" style={{
+                                                            background: 'white',
+                                                            borderRadius: '5px',
+                                                            boxShadow: '0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0 1px 3px 0 rgb(0 0 0 / 12%)'
+                                                        }}>
+                                                            <div className="flex">{msg.message}</div>
+                                                            <div className="flex align-content-end" style={{
+                                                                width: '100%',
+                                                                textAlign: 'right',
+                                                                fontSize: '12px',
+                                                                paddingTop: '15px',
+                                                                color: '#C1C1C1'
+                                                            }}>
+                                                                <span className="flex-grow-1"></span>
+                                                                <span className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
+                                                                <Moment className="text-sm text-gray-600" date={t}
+                                                                        format={'HH:mm'}></Moment>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-grow-1"></div>
+                                                    </div>
+                                                </>
+                                        }
+                                        {
+                                                msg.direction == 1 &&
+                                                <>
+
+                                                    {
+                                                            (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
+                                                            <div className="w-full flex">
+                                                                <div className="flex-grow-1"></div>
+                                                                <div className="flex-grow-0 mb-1 pr-3">Dummy user</div>
+                                                            </div>
+                                                    }
+
+                                                    <div className="w-full flex">
+                                                        <div className="flex-grow-1"></div>
+                                                        <div className="flex-grow-0 flex-column p-3"
+                                                             style={{background: '#C5EDCE', borderRadius: '5px'}}>
+                                                            <div className="flex">{msg.message}</div>
+                                                            <div className="flex align-content-end" style={{
+                                                                width: '100%',
+                                                                textAlign: 'right',
+                                                                fontSize: '12px',
+                                                                paddingTop: '15px',
+                                                                color: '#C1C1C1'
+                                                            }}>
+                                                                <span className="flex-grow-1"></span>
+                                                                <span className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
+                                                                <Moment className="text-sm text-gray-600" date={t}
+                                                                        format={'HH:mm'}></Moment>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </>
+                                        }
+
+                                    </div>
+                                })
+                        }
+                    </div>
+                    <div id="chatWindowToScroll"></div>
                 </div>
-                <div style={{width: '100%', height: '100px'}}>
+                <div className="flex-grow-0 w-full p-5">
 
-                    <InputText style={{width: 'calc(100% - 150px)'}} value={currentText}
-                               onChange={(e) => setCurrentText(e.target.value)}/>
+                    <div className="w-full h-full bg-white p-5" style={{
+                        border: 'solid 1px #E8E8E8',
+                        borderRadius: '7px',
+                        boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
+                    }}>
 
-                    <Dropdown optionLabel="label" value={currentChannel} options={[
-                        {
-                            label: 'Web chat',
-                            value: 'CHAT'
-                        },
-                        {
-                            label: 'Email',
-                            value: 'EMAIL'
-                        },
+                        <Dropdown
+                                className="border-none mb-3"
+                                style={{width: '120px'}}
+                                optionLabel="label"
+                                value={currentChannel}
+                                onChange={(e) => setCurrentChannel(e.value)}
+                                options={[
+                                    {
+                                        label: 'Web chat',
+                                        value: 'CHAT'
+                                    },
+                                    {
+                                        label: 'Email',
+                                        value: 'EMAIL'
+                                    },
+                                ]}/>
 
-                    ]} onChange={(e) => setCurrentChannel(e.value)}/>
+                        <div className="flex flex-grow-1">
+                            <InputText className="w-full" value={currentText}
+                                       onChange={(e) => setCurrentText(e.target.value)}
+                                       onKeyPress={(e) => {
+                                           if (e.shiftKey && e.key === "Enter") {
+                                               return true
+                                           }
+                                           if (e.key === "Enter") {
+                                               handleSendMessage()
+                                           }
+                                       }}/>
+                        </div>
 
-                    <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
-                            className='p-button-text'>
-                        <FontAwesomeIcon icon={faPlay} style={{color: 'black'}}/>
-                    </Button>
+                        <div className="flex w-full mt-3">
 
-                    {/*{*/}
-                    {/*    !attachmentButtonHidden &&*/}
-                    {/*    <>*/}
-                    {/*        <Button onClick={() => fileUploadInput?.current.click()} className='p-button-text'>*/}
-                    {/*            <FontAwesomeIcon icon={faPaperclip} style={{color: 'black'}}/>*/}
-                    {/*        </Button>*/}
-                    {/*        <input ref={fileUploadInput} type="file" name="file" style={{display: 'none'}}/>*/}
-                    {/*    </>*/}
-                    {/*}*/}
+                            <div className="flex flex-grow-1">
 
-                    <span hidden={inCall}>
-                    <Button onClick={() => handleCall()} className='p-button-text' hidden={inCall}>
-                                         {callingAllowed() &&
-                                                 <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
-                                         }
-                    </Button>
-                    </span>
-                    <span hidden={!inCall}>
-                            <Button onClick={() => hangupCall()} className='p-button-text' hidden={!inCall}>
-                            {callingAllowed() &&
-                                    <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
-                            }
-                            </Button>
-                            <Button onClick={() => showTransfer()} className='p-button-text' hidden={!inCall}>
-                            {callingAllowed() &&
-                                    <FontAwesomeIcon icon={faRightLeft} style={{color: 'black'}}/>
-                            }
-                            </Button>
-                    </span>
+                                {
+                                        callingAllowed() && !props.inCall &&
+                                        <div>
+                                            <Button onClick={() => props.handleCall(contact)} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                        </div>
+                                }
+
+                                {
+                                        callingAllowed() && props.inCall &&
+                                        <div>
+                                            <Button onClick={() => props.hangupCall()} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faPhoneSlash} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                            <Button onClick={() => props.showTransfer()} className='p-button-text'>
+                                                <FontAwesomeIcon icon={faRightLeft} style={{fontSize: '20px'}}/>
+                                            </Button>
+                                        </div>
+                                }
+
+                                <Tooltip target=".disabled-button"/>
+                                <Tooltip target=".disabled-button2"/>
+                                <div className="disabled-button" data-pr-tooltip="Work in progress">
+                                    <Button disabled={true} className='p-button-text'>
+                                        <FontAwesomeIcon icon={faSmile} style={{fontSize: '20px'}}/>
+                                    </Button>
+                                </div>
+
+                                <div className="disabled-button2" data-pr-tooltip="Work in progress">
+                                    <Button disabled={true} className='p-button-text'>
+                                        <FontAwesomeIcon icon={faPaperclip} style={{fontSize: '20px'}}/>
+                                    </Button>
+                                </div>
+
+                            </div>
+
+                            <div className="flex flex-grow-0">
+                                <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
+                                        className='p-button-text'>
+                                    <FontAwesomeIcon icon={faPaperPlane} className="mr-3"/>Reply
+                                </Button>
+                            </div>
+
+                        </div>
+
+                    </div>
                 </div>
             </div>
     );

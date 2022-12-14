@@ -17,6 +17,7 @@ import {
     ReferOptions,
 } from "jssip/lib/RTCSession";
 import {IncomingRTCSessionEvent, OutgoingRTCSessionEvent, UAConfiguration} from "jssip/lib/UA";
+import {Dialog} from "primereact/dialog";
 
 interface WebRTCState {
     inCall: boolean
@@ -44,26 +45,24 @@ interface WebRTCProps {
 export default class WebRTC extends React.Component<WebRTCProps> {
     state: WebRTCState
     _ua: JsSIP.UA | null
-    _session:  RTCSession | null | undefined
+    _session: RTCSession | null | undefined
     remoteVideo: React.RefObject<HTMLVideoElement>
-
-    //setState:Function
 
     constructor(props: WebRTCProps) {
         super(props);
         this.state =
-            {
-                inCall: false,
-                websocket: props.websocket,
-                from: props.from,
-                updateCallState: props.updateCallState,
-                callerId: "",
-                ringing: false,
-                autoStart: false,
-                transferDestination: "",
-                refer: false,
-                referStatus: ""
-            };
+                {
+                    inCall: false,
+                    websocket: props.websocket,
+                    from: props.from,
+                    updateCallState: props.updateCallState,
+                    callerId: "",
+                    ringing: false,
+                    autoStart: false,
+                    transferDestination: "",
+                    refer: false,
+                    referStatus: ""
+                };
 
         if (props.autoStart) {
             this.state.autoStart = props.autoStart;
@@ -71,22 +70,17 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
         this._ua = null;
         this.remoteVideo = React.createRef();
-        //this.setState({inCall: this.state.inCall, callerId: this.state.callerId, ringing: this.state.ringing});
         this._session = null;
-
     }
 
     answerCall() {
         this.setState({inCall: true, ringing: false});
         this.state.updateCallState(true);
         this._session?.answer();
-
-
     }
 
     showTransfer() {
         this.setState({refer: !this.state.refer});
-
     }
 
     transferCall() {
@@ -128,7 +122,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
             }
         };
-        let options : ReferOptions  = {
+        let options: ReferOptions = {
             'eventHandlers': eventHandlers,
         }
         if (transferDest.indexOf('@') === -1) {
@@ -138,8 +132,6 @@ export default class WebRTC extends React.Component<WebRTCProps> {
             transferDest = "sip:" + transferDest;
         }
         this._session?.refer(transferDest, options);
-
-
     }
 
     hangupCall() {
@@ -188,7 +180,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
             'eventHandlers': eventHandlers,
             'mediaConstraints': {'audio': true, 'video': true},
         };
-        if (process.env.NEXT_PUBLIC_TURN_SERVER)
+        if (process.env.NEXT_PUBLIC_TURN_SERVER) {
             options['pcConfig'] = {
                 'iceServers': [
                     {
@@ -198,16 +190,17 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                     },
                 ]
             };
+        }
 
         this.setState({inCall: true});
         this._session = this._ua?.call(destination, options);
         var peerconnection = this._session?.connection;
         peerconnection?.addEventListener('addstream', (event: any) => {
-                if (this.remoteVideo.current) {
-                    this.remoteVideo.current.srcObject = event.stream;
+                    if (this.remoteVideo.current) {
+                        this.remoteVideo.current.srcObject = event.stream;
+                    }
+                    this.remoteVideo.current?.play();
                 }
-                this.remoteVideo.current?.play();
-            }
         )
     }
 
@@ -262,11 +255,11 @@ export default class WebRTC extends React.Component<WebRTCProps> {
             this.state.updateCallState(true);
             console.error("Got a call for " + rtcSession.remote_identity.uri.toString());
             rtcSession.on('accepted', () => {
-                    if (this.remoteVideo.current) {
-                        this.remoteVideo.current.srcObject = (this._session?.connection.getRemoteStreams()[0]?this._session?.connection.getRemoteStreams()[0]: null);
-                        this.remoteVideo.current.play();
+                        if (this.remoteVideo.current) {
+                            this.remoteVideo.current.srcObject = (this._session?.connection.getRemoteStreams()[0] ? this._session?.connection.getRemoteStreams()[0] : null);
+                            this.remoteVideo.current.play();
+                        }
                     }
-                }
             );
             rtcSession.on('ended', () => {
                 this.setState({inCall: false, ringing: false});
@@ -277,56 +270,57 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._ua.start();
     }
 
+
     render() {
-
         return (
-            <>
-                <div style={{position: "absolute", zIndex: 9, width: 'calc(100% - 150px)'}} hidden={!this.state.inCall}>
-                    <video controls={false} hidden={!this.state.inCall}
-                           ref={this.remoteVideo} autoPlay>
+                <>
+                    <Dialog visible={!this.state.inCall && this.state.ringing}
+                            modal={false}
+                            style={{background: 'red', position: 'absolute', top: '25px'}}
+                            closable={false}
+                            closeOnEscape={false}
+                            draggable={false}
+                            onHide={() => console.log()}
+                            footer={
+                                <div>
+                                    <Button label="Accept the call" icon="pi pi-check" onClick={() => this.answerCall()}
+                                            className="p-button-success"/>
+                                    <Button label="Reject the call" icon="pi pi-times" onClick={() => this.hangupCall()}
+                                            className="p-button-danger"/>
+                                </div>
+                            }>
+                        <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incomming call
+                            from {this.state.callerId}</div>
 
-                    </video>
-                    <div style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        width: "50%",
-                        textAlign: "center",
-                        transform: "translate(-50%, -50%)",
-                        background: "lightgrey",
-                        borderRadius: '3px',
-                        border: "1px solid black"
-                    }} hidden={!this.state.inCall || !this.state.ringing}>
-                        Incomming call from {this.state.callerId}<br/>
-                        <Button onClick={() => this.answerCall()} className='p-button-text'>
-                            <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
-                        </Button>
-                        <Button onClick={() => this.hangupCall()} className='p-button-text'>
-                            <FontAwesomeIcon icon={faPhoneSlash} style={{color: 'black'}}/>
-                        </Button>
-                    </div>
-                    <div style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        width: "50%",
-                        textAlign: "center",
-                        transform: "translate(-50%, -50%)",
-                        background: "lightgrey",
-                        borderRadius: '3px',
-                        border: "1px solid black"
-                    }} hidden={!this.state.refer}>
-                        Specify desitnation for Call Transfer<br/>
+                        <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
+                    </Dialog>
+
+                    <Dialog visible={this.state.refer}
+                            modal={false}
+                            style={{background: 'red', position: 'absolute', top: '25px'}}
+                            closable={false}
+                            closeOnEscape={false}
+                            draggable={false}
+                            onHide={() => console.log()}
+                            footer={
+                                <div>
+                                    <Button label="Transfer the call" icon="pi pi-check"
+                                            onClick={() => this.transferCall()} className="p-button-success"/>
+                                    <Button label="Close the call" icon="pi pi-times" onClick={() => this.hangupCall()}
+                                            className="p-button-danger"/>
+                                </div>
+                            }>
+
+                        <div className="w-full text-center font-bold mb-2" style={{fontSize: '15px'}}>
+                            Specify the destination for Call Transfer
+                        </div>
                         <div>{this.state.referStatus}</div>
-                        <InputText style={{width: 'calc(100% - 150px)'}} value={this.state.transferDestination}
-                               onChange={(e) => this.setState({transferDestination:e.target.value})}/>
-                        <Button onClick={() => this.transferCall()} className='p-button-text'>
-                            <FontAwesomeIcon icon={faPhone} style={{color: 'black'}}/>
-                        </Button>
+                        <InputText style={{width: '100%'}} value={this.state.transferDestination}
+                                   onChange={(e) => this.setState({transferDestination: e.target.value})}/>
 
-                    </div>
-                </div>
-            </>
+                        <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
+                    </Dialog>
+                </>
 
         )
     }
