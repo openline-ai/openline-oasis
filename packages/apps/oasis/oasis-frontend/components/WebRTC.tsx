@@ -181,7 +181,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
         var options: any = {
             'eventHandlers': eventHandlers,
-            'mediaConstraints': {'audio': true, 'video': true},
+            'mediaConstraints': {'audio': true, 'video': false},
         };
         if (process.env.NEXT_PUBLIC_TURN_SERVER) {
             options['pcConfig'] = {
