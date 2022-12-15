@@ -344,18 +344,6 @@ export const Chat = (props: ChatProps) => {
                                         </div>
                                 }
 
-                                {
-                                        callingAllowed() && props.inCall &&
-                                        <div>
-                                            <Button onClick={() => props.hangupCall()} className='p-button-text'>
-                                                <FontAwesomeIcon icon={faPhoneSlash} style={{fontSize: '20px'}}/>
-                                            </Button>
-                                            <Button onClick={() => props.showTransfer()} className='p-button-text'>
-                                                <FontAwesomeIcon icon={faRightLeft} style={{fontSize: '20px'}}/>
-                                            </Button>
-                                        </div>
-                                }
-
                                 <Tooltip target=".disabled-button"/>
                                 <Tooltip target=".disabled-button2"/>
                                 <div className="disabled-button" data-pr-tooltip="Work in progress">

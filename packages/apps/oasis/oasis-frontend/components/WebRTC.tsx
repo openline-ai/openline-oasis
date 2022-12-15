@@ -23,6 +23,7 @@ interface WebRTCState {
     inCall: boolean
     websocket: string
     from: string
+    notifyCallFrom: Function
     updateCallState: Function
     callerId: string
     ringing: boolean
@@ -38,6 +39,7 @@ interface WebRTCState {
 interface WebRTCProps {
     websocket: string
     from: string
+    notifyCallFrom: Function
     updateCallState: Function
     autoStart?: boolean
 }
@@ -55,6 +57,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                     inCall: false,
                     websocket: props.websocket,
                     from: props.from,
+                    notifyCallFrom: props.notifyCallFrom,
                     updateCallState: props.updateCallState,
                     callerId: "",
                     ringing: false,
@@ -249,10 +252,15 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 return;
 
             this._session = rtcSession;
-            this.setState({ringing: true});
-            this.setState({inCall: true});
-            this.setState({callerId: rtcSession.remote_identity.uri.toString()});
+            this.setState({
+                ringing: true,
+                inCall: true,
+                callerId: rtcSession.remote_identity.uri.toString()
+            });
+
+            this.state.notifyCallFrom(rtcSession.remote_identity.uri.toString());
             this.state.updateCallState(true);
+
             console.error("Got a call for " + rtcSession.remote_identity.uri.toString());
             rtcSession.on('accepted', () => {
                         if (this.remoteVideo.current) {
@@ -270,11 +278,12 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._ua.start();
     }
 
-
     render() {
         return (
                 <>
-                    <Dialog visible={this.state.inCall}
+                    <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
+
+                    <Dialog visible={this.state.ringing && this.state.inCall}
                             modal={false}
                             style={{background: 'red', position: 'absolute', top: '25px'}}
                             closable={false}
@@ -290,35 +299,9 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                                 </div>
                             }>
 
-                        {
-                                !this.state.refer && this.state.inCall && this.state.ringing &&
-                                <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incomming call
-                                    from {this.state.callerId}</div>
-                        }
-
-                        {
-                                !this.state.refer && this.state.inCall && !this.state.ringing &&
-                                <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>In a call
-                                    with {this.state.callerId}</div>
-                        }
-
-                        {
-                                this.state.refer &&
-                                <>
-                                    <div className="w-full text-center font-bold mb-2" style={{fontSize: '15px'}}>
-                                        Specify the destination for Call Transfer
-                                    </div>
-                                    <div>{this.state.referStatus}</div>
-                                    <InputText style={{width: '100%'}} value={this.state.transferDestination}
-                                               onChange={(e) => this.setState({transferDestination: e.target.value})}/>
-                                </>
-                        }
-
-                        <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
+                        <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incoming call from {this.state.callerId}</div>
                     </Dialog>
-
                 </>
-
         )
     }
 }

@@ -7,7 +7,13 @@ import axios from "axios";
 import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
 import {getSession, signOut, useSession} from "next-auth/react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faArrowRightFromBracket, faCaretDown, faUserSecret} from "@fortawesome/free-solid-svg-icons";
+import {
+    faArrowRightFromBracket,
+    faCaretDown,
+    faPhone,
+    faPhoneSlash, faRightLeft,
+    faUserSecret
+} from "@fortawesome/free-solid-svg-icons";
 import {OverlayPanel} from "primereact/overlaypanel";
 import {Menu} from "primereact/menu";
 import {InputText} from "primereact/inputtext";
@@ -93,6 +99,7 @@ const FeedPage: NextPage = () => {
     }
 
     // region WebRTC
+    const phoneContainerRef = useRef<OverlayPanel>(null);
     const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
     useEffect(() => {
 
@@ -117,6 +124,7 @@ const FeedPage: NextPage = () => {
         }
     }, [session]);
 
+    const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
 
     const handleCall = (contact: any) => {
@@ -151,6 +159,7 @@ const FeedPage: NextPage = () => {
                                 ref={webrtc}
                                 websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
                                 from={"sip:" + session?.user?.email}
+                                notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
                                 updateCallState={(state: boolean) => setInCall(state)}
                                 autoStart={false}
                         />
@@ -163,7 +172,7 @@ const FeedPage: NextPage = () => {
 
                         <div className="flex flex-row align-items-center justify-content-between pt-3 pl-3 pr-3">
 
-                            <Button className="dark-button flex-grow-1"
+                            <Button className="flex-grow-1"
                                     onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
                                 <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
                                 <span className='flex-grow-1'>{session?.user?.email}</span>
@@ -173,6 +182,30 @@ const FeedPage: NextPage = () => {
                             <OverlayPanel ref={userSettingsContainerRef} dismissable>
                                 <Menu model={userItems} style={{border: 'none'}}/>
                             </OverlayPanel>
+
+                            {
+                                    inCall &&
+                                    <>
+                                        <Button className="ml-5"
+                                                onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
+                                            <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
+                                        </Button>
+
+                                        <OverlayPanel ref={phoneContainerRef} dismissable>
+
+                                            <div className='font-bold text-center'>In call with</div>
+                                            <div className='font-bold text-center mb-3'>{callFrom}</div>
+
+                                            <Button onClick={() => hangupCall()} className='p-button-danger mr-3'>
+                                                <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Close
+                                            </Button>
+                                            <Button onClick={() => showTransfer()} className='p-button-success'>
+                                                <FontAwesomeIcon icon={faRightLeft} className="mr-2"/> Transfer
+                                            </Button>
+
+                                        </OverlayPanel>
+                                    </>
+                            }
 
                         </div>
 
@@ -184,7 +217,7 @@ const FeedPage: NextPage = () => {
                             {
                                 feeds.map((f: any) => {
                                     let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
-                                    if ( selectedFeed === f.id ) {
+                                    if (selectedFeed === f.id) {
                                         className += ' selected'
                                     }
                                     return <div key={f.email} className={className} onClick={() => {
