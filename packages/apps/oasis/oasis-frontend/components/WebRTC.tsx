@@ -274,7 +274,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     render() {
         return (
                 <>
-                    <Dialog visible={this.state.inCall && this.state.ringing}
+                    <Dialog visible={this.state.inCall}
                             modal={false}
                             style={{background: 'red', position: 'absolute', top: '25px'}}
                             closable={false}
@@ -289,37 +289,34 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                                             className="p-button-danger"/>
                                 </div>
                             }>
-                        <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incomming call
-                            from {this.state.callerId}</div>
+
+                        {
+                                !this.state.refer && this.state.inCall && this.state.ringing &&
+                                <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incomming call
+                                    from {this.state.callerId}</div>
+                        }
+
+                        {
+                                !this.state.refer && this.state.inCall && !this.state.ringing &&
+                                <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>In a call
+                                    with {this.state.callerId}</div>
+                        }
+
+                        {
+                                this.state.refer &&
+                                <>
+                                    <div className="w-full text-center font-bold mb-2" style={{fontSize: '15px'}}>
+                                        Specify the destination for Call Transfer
+                                    </div>
+                                    <div>{this.state.referStatus}</div>
+                                    <InputText style={{width: '100%'}} value={this.state.transferDestination}
+                                               onChange={(e) => this.setState({transferDestination: e.target.value})}/>
+                                </>
+                        }
 
                         <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
                     </Dialog>
 
-                    <Dialog visible={this.state.refer}
-                            modal={false}
-                            style={{background: 'red', position: 'absolute', top: '25px'}}
-                            closable={false}
-                            closeOnEscape={false}
-                            draggable={false}
-                            onHide={() => console.log()}
-                            footer={
-                                <div>
-                                    <Button label="Transfer the call" icon="pi pi-check"
-                                            onClick={() => this.transferCall()} className="p-button-success"/>
-                                    <Button label="Close the call" icon="pi pi-times" onClick={() => this.hangupCall()}
-                                            className="p-button-danger"/>
-                                </div>
-                            }>
-
-                        <div className="w-full text-center font-bold mb-2" style={{fontSize: '15px'}}>
-                            Specify the destination for Call Transfer
-                        </div>
-                        <div>{this.state.referStatus}</div>
-                        <InputText style={{width: '100%'}} value={this.state.transferDestination}
-                                   onChange={(e) => this.setState({transferDestination: e.target.value})}/>
-
-                        <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay/>
-                    </Dialog>
                 </>
 
         )
