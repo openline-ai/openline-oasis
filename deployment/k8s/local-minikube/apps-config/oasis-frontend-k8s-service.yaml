@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service                    # Type of kubernetes resource
 metadata:
-  name: oasis-frontend-service   # Name of the resource
+  name: oasis-gui-service   # Name of the resource
   annotations:
     'consul.hashicorp.com/service-sync': 'true'
 spec:
@@ -11,4 +11,4 @@ spec:
       port: 3006
       targetPort: 3006
   selector:
-    app: oasis-frontend         # Map any pod with label `app=oasis-api` to this service
+    app: oasis-gui         # Map any pod with label `app=oasis-api` to this service
