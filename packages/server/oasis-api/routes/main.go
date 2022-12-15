@@ -8,6 +8,7 @@ import (
 	"openline-ai/oasis-api/routes/FeedHub"
 	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/util"
+	"strings"
 )
 
 // Run will start the server
@@ -22,7 +23,7 @@ func getRouter(config *c.Config, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub)
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
-	corsConfig.AllowOrigins = []string{config.Service.CorsUrl}
+	corsConfig.AllowOrigins = strings.Split(config.Service.CorsUrl, " ")
 	// To be able to send tokens to the server.
 	corsConfig.AllowCredentials = true
 
