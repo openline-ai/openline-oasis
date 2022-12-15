@@ -274,7 +274,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     render() {
         return (
                 <>
-                    <Dialog visible={!this.state.inCall && this.state.ringing}
+                    <Dialog visible={this.state.inCall && this.state.ringing}
                             modal={false}
                             style={{background: 'red', position: 'absolute', top: '25px'}}
                             closable={false}
