@@ -281,7 +281,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     render() {
         return (
                 <>
-                    <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay style={{width: '0px', height: '0px'}}/>
+                    <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay style={{width: '0px', height: '0px', position: 'absolute'}}/>
 
                     <Dialog visible={this.state.ringing && this.state.inCall}
                             modal={false}
