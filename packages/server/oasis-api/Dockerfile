@@ -2,14 +2,20 @@
 
 FROM golang:1.19-alpine as builder
 
+RUN apk add --update make protobuf
+
 WORKDIR /app
 
-COPY channels-api/ent ./channels-api/ent
-COPY channels-api/go.mod ./channels-api/go.mod
+COPY channels-api ./channels-api
 COPY oasis-api ./oasis-api
 
-WORKDIR /app/oasis-api
+WORKDIR /app/channels-api
+RUN make install
+RUN make generate
 
+WORKDIR /app/oasis-api
+RUN make install
+RUN make generate
 RUN go build -o /go/bin/app openline-ai/oasis-api
 
 FROM alpine:3.14
