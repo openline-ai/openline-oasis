@@ -37,29 +37,19 @@ const FeedPage: NextPage = () => {
     });
 
     useEffect(() => {
-        axios.get(`/server/feed`)
-                .then(res => {
-                    res.data?.feedItems.forEach((f: any) => {
-                        f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
-                    });
-                    setFeeds(res.data?.feedItems)
-                    if (!selectedFeed) {
-                        setSelectedFeed(res.data.feedItems[0].id);
-                        router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
-                    }
-                })
-    }, []);
+        loadFeed();
+    },[id]);
 
     useEffect(() => {
         if (lastMessage && Object.keys(lastMessage).length !== 0) {
-            handleWebsocketMessage(lastMessage);
+            loadFeed();
         }
 
-    }, [lastMessage, setFeeds]);
+    }, [lastMessage]);
 
-    const handleWebsocketMessage = function (msg: any) {
-        console.log("Got a new feed!");
-        axios.get(`/server/feed`)
+    const loadFeed = function () {
+        console.log("Reloading feed!");
+        axios.get(`/oasis-api/feed`)
                 .then(res => {
                     res.data?.feedItems.forEach((f: any) => {
                         f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
@@ -104,7 +94,7 @@ const FeedPage: NextPage = () => {
     useEffect(() => {
 
         const refreshCredentials = () => {
-            axios.get(`/server/call_credentials?service=sip&username=` + session?.user?.email)
+            axios.get(`/oasis-api/call_credentials?service=sip&username=` + session?.user?.email)
                     .then(res => {
                         console.error("Got a key: " + JSON.stringify(res.data));
                         if (webrtc.current?._ua) {

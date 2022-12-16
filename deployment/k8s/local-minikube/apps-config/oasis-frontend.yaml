@@ -20,22 +20,23 @@ spec:
             - containerPort: 3006  # Should match the port number that the Go application listens on
               name: http-port
           env:
-            - name: NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL
-              value: "ws://localhost:8080"
-            - name: NEXT_PUBLIC_BE_PATH
+            - name: NEXT_PUBLIC_OASIS_API_PATH
               value: "http://oasis-api-service.openline.svc.cluster.local:8006"
             - name: NEXT_PUBLIC_CUSTOMER_OS_API_PATH
               value: "http://localhost:10000"
+
+            - name: NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL
+              value: "ws://localhost:8080"
             - name: NEXT_PUBLIC_WEBSOCKET_PATH
               value: "ws://localhost:8006/ws"
+
             - name: NEXT_PUBLIC_TURN_SERVER
               value: "turn:127.0.0.1:3478?transport=tcp"
             - name: NEXT_PUBLIC_TURN_USER
               value: "foo"
             - name: NEXT_PUBLIC_TURN_CREDENTIAL
               value: "1234"
-            - name: OASIS_API_KEY
-              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"
+
             - name: NEXTAUTH_URL
               value: "http://localhost:3006"
             - name: NEXTAUTH_OAUTH_CLIENT_ID
@@ -48,3 +49,8 @@ spec:
               value: "http://auth-fusionauth.openline.svc.cluster.local:9011/"
             - name: NEXTAUTH_SECRET
               value: "4691821d-ba37-4870-9626-f0cd6ad15e99"
+
+            - name: CUSTOMER_OS_API_KEY
+              value: "dd9d2474-b4a9-4799-b96f-73cd0a2917e4"
+            - name: OASIS_API_KEY
+              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"
