@@ -251,6 +251,11 @@ export default class WebRTC extends React.Component<WebRTCProps> {
             if (originator === 'local')
                 return;
 
+            if (this.state.inCall) {
+                this._session?.terminate({status_code: 486});
+                return;
+            }
+    
             this._session = rtcSession;
             this.setState({
                 ringing: true,
