@@ -256,10 +256,10 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 return;
 
             if (this.state.inCall) {
-                this._session?.terminate({status_code: 486});
+                rtcSession.terminate({status_code: 486});
                 return;
             }
-            
+
             this._session = rtcSession;
             this.setState({ringing: true});
             this.setState({inCall: true});
