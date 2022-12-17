@@ -33,7 +33,7 @@ interface ChatProps {
 }
 
 export const Chat = (props: ChatProps) => {
-    const client = new GraphQLClient(`${process.env.NEXT_PUBLIC_CUSTOMER_OS_API_PATH}/query`);
+    const client = new GraphQLClient(`/customer-os-api/query`);
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -89,7 +89,7 @@ export const Chat = (props: ChatProps) => {
             setLoadingMessages(true);
             setCurrentText('');
 
-            axios.get(`/server/feed/${props.feedId}`)
+            axios.get(`/oasis-api/feed/${props.feedId}`)
             .then(res => {
                 const query = gql`query GetContactDetails($id: ID!) {
                     contact(id: $id) {
@@ -124,7 +124,7 @@ export const Chat = (props: ChatProps) => {
                 //TODO error
             });
 
-            axios.get(`/server/feed/${props.feedId}/item`)
+            axios.get(`/oasis-api/feed/${props.feedId}/item`)
                     .then(res => {
                         setMessages(res.data ?? []);
                     }).catch((reason: any) => {
@@ -158,7 +158,7 @@ export const Chat = (props: ChatProps) => {
     }, [lastMessage]);
 
     const handleSendMessage = () => {
-        axios.post(`/server/feed/${props.feedId}/item`, {
+        axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
             channel: currentChannel,
