@@ -11,12 +11,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
-ENV NODE_ENV=cluster
-RUN npm run-script "build:$NODE_ENV" # TODO set the environment as external
+COPY .env.cluster .env.production
+
+ARG ENV
+
+RUN npm run-script "build:$ENV"
 
 FROM node:16.16-alpine AS runner
-WORKDIR /app
 
+WORKDIR /app
 
 RUN addgroup --system --gid 1001 openlinegroup
 RUN adduser --system --uid 1001 openlineuser
