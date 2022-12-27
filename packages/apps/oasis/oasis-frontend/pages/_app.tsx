@@ -8,7 +8,6 @@ import '../styles/theme-override.css'
 import '../styles/layout.css'
 import axios from "axios";
 import {SessionProvider} from "next-auth/react"
-import Layout from "../components/layout/layout";
 
 
 axios.defaults.withCredentials = true
@@ -19,9 +18,9 @@ export default function App({
                             }: any) {
 
     return (
-            <SessionProvider session={session}>
-                <Component {...pageProps} />
-            </SessionProvider>
+        <SessionProvider session={session}>
+            <Component {...pageProps} />
+        </SessionProvider>
     );
 
 }

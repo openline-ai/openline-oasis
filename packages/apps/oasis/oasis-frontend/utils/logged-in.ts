@@ -11,6 +11,6 @@ export async function loggedInOrRedirectToLogin(session: Session | null) {
     }
 
     return {
-        props: { session }
+        props: {session}
     }
 }

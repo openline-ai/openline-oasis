@@ -1,4 +1,5 @@
 import type {NextPage} from 'next'
+import * as React from "react";
 import {useEffect, useRef, useState} from "react";
 import {Button} from "primereact/button";
 import {useRouter} from "next/router";
@@ -11,7 +12,8 @@ import {
     faArrowRightFromBracket,
     faCaretDown,
     faPhone,
-    faPhoneSlash, faRightLeft,
+    faPhoneSlash,
+    faRightLeft,
     faUserSecret
 } from "@fortawesome/free-solid-svg-icons";
 import {OverlayPanel} from "primereact/overlaypanel";
@@ -19,7 +21,6 @@ import {Menu} from "primereact/menu";
 import {InputText} from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
-import * as React from "react";
 import WebRTC from "../../components/WebRTC";
 
 
@@ -38,7 +39,7 @@ const FeedPage: NextPage = () => {
 
     useEffect(() => {
         loadFeed();
-    },[id]);
+    }, [id]);
 
     useEffect(() => {
         if (lastMessage && Object.keys(lastMessage).length !== 0) {
@@ -50,16 +51,16 @@ const FeedPage: NextPage = () => {
     const loadFeed = function () {
         console.log("Reloading feed!");
         axios.get(`/oasis-api/feed`)
-                .then(res => {
-                    res.data?.feedItems.forEach((f: any) => {
-                        f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
-                    });
-                    setFeeds(res.data?.feedItems);
-                    if (!selectedFeed) {
-                        setSelectedFeed(res.data.feedItems[0].id);
-                        router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
-                    }
+            .then(res => {
+                res.data?.feedItems.forEach((f: any) => {
+                    f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
                 });
+                setFeeds(res.data?.feedItems);
+                if (!selectedFeed) {
+                    setSelectedFeed(res.data.feedItems[0].id);
+                    router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
+                }
+            });
     }
 
     const {data: session, status} = useSession();
@@ -95,19 +96,19 @@ const FeedPage: NextPage = () => {
 
         const refreshCredentials = () => {
             axios.get(`/oasis-api/call_credentials?service=sip&username=` + session?.user?.email)
-                    .then(res => {
-                        console.error("Got a key: " + JSON.stringify(res.data));
-                        if (webrtc.current?._ua) {
-                            webrtc.current?.stopUA();
-                        }
-                        webrtc.current?.setCredentials(res.data.username, res.data.password,
-                                () => {
-                                    webrtc.current?.startUA()
-                                });
-                        setTimeout(() => {
-                            refreshCredentials()
-                        }, (res.data.ttl * 3000) / 4);
-                    });
+                .then(res => {
+                    console.error("Got a key: " + JSON.stringify(res.data));
+                    if (webrtc.current?._ua) {
+                        webrtc.current?.stopUA();
+                    }
+                    webrtc.current?.setCredentials(res.data.username, res.data.password,
+                        () => {
+                            webrtc.current?.startUA()
+                        });
+                    setTimeout(() => {
+                        refreshCredentials()
+                    }, (res.data.ttl * 3000) / 4);
+                });
         }
         if (session?.user?.email) {
             refreshCredentials();
@@ -142,132 +143,132 @@ const FeedPage: NextPage = () => {
     //endregion
 
     return (
-            <>
-                {
-                        process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                        <WebRTC
-                                ref={webrtc}
-                                websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                                from={"sip:" + session?.user?.email}
-                                notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
-                                updateCallState={(state: boolean) => setInCall(state)}
-                                autoStart={false}
-                        />
-                }
+        <>
+            {
+                process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                <WebRTC
+                    ref={webrtc}
+                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                    from={"sip:" + session?.user?.email}
+                    notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
+                    updateCallState={(state: boolean) => setInCall(state)}
+                    autoStart={false}
+                />
+            }
 
-                <div className="flex w-full h-full">
+            <div className="flex w-full h-full">
 
-                    <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
-                         style={{width: '30%', background: 'white'}}>
+                <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
+                     style={{width: '30%', background: 'white'}}>
 
-                        <div className="flex flex-row align-items-center justify-content-between pt-3 pl-3 pr-3">
+                    <div className="flex flex-row align-items-center justify-content-between pt-3 pl-3 pr-3">
 
-                            <Button className="flex-grow-1"
-                                    onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                                <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
-                                <span className='flex-grow-1'>{session?.user?.email}</span>
-                                <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
-                            </Button>
+                        <Button className="flex-grow-1"
+                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                            <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
+                            <span className='flex-grow-1'>{session?.user?.email}</span>
+                            <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
+                        </Button>
 
-                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                                <Menu model={userItems} style={{border: 'none'}}/>
-                            </OverlayPanel>
-
-                            {
-                                    inCall &&
-                                    <>
-                                        <Button className="ml-5"
-                                                onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                            <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
-                                        </Button>
-
-                                        <OverlayPanel ref={phoneContainerRef} dismissable>
-
-                                            <div className='font-bold text-center'>In call with</div>
-                                            <div className='font-bold text-center mb-3'>{callFrom}</div>
-
-                                            <Button onClick={() => hangupCall()} className='p-button-danger mr-3'>
-                                                <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Close
-                                            </Button>
-                                            <Button onClick={() => showTransfer()} className='p-button-success'>
-                                                <FontAwesomeIcon icon={faRightLeft} className="mr-2"/> Transfer
-                                            </Button>
-
-                                        </OverlayPanel>
-                                    </>
-                            }
-
-                        </div>
-
-                        <div className='flex p-3'>
-                            <InputText placeholder={'Search'} className='w-full'/>
-                        </div>
-
-                        <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
-                            {
-                                feeds.map((f: any) => {
-                                    let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
-                                    if (selectedFeed === f.id) {
-                                        className += ' selected'
-                                    }
-                                    return <div key={f.email} className={className} onClick={() => {
-                                        setSelectedFeed(f.id);
-                                        //change the URL to allow a bookmark
-                                        router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
-                                    }
-                                    }>
-                                        <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
-                                            <div className='mb-2'>
-                                                {
-                                                        f.contactFirstName &&
-                                                        f.contactFirstName + ' ' + f.contactLastName}
-                                                {
-                                                        !f.contactFirstName &&
-                                                        f.contactEmail
-                                                }
-                                            </div>
-                                            <div className='text-500' style={{
-                                                fontSize: '12px',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: "nowrap",
-                                                overflow: "hidden"
-                                            }}>
-                                                {f.message}
-                                            </div>
-                                        </div>
-
-                                        <div className='flex flex-column'>
-                                            <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                                    format={'d.MM.yy'}></Moment>
-                                            <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                                    format={'HH:mm'}></Moment>
-                                        </div>
-                                    </div>
-                                })
-                            }
-                        </div>
-
-                    </div>
-
-                    <div className='flex flex-grow-1 w-full'>
+                        <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                            <Menu model={userItems} style={{border: 'none'}}/>
+                        </OverlayPanel>
 
                         {
-                                selectedFeed &&
-                                <Chat
-                                        feedId={selectedFeed}
-                                        inCall={inCall}
-                                        handleCall={(contact: any) => handleCall(contact)}
-                                        hangupCall={() => hangupCall()}
-                                        showTransfer={() => showTransfer()}
-                                />
+                            inCall &&
+                            <>
+                                <Button className="ml-5"
+                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
+                                    <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
+                                </Button>
+
+                                <OverlayPanel ref={phoneContainerRef} dismissable>
+
+                                    <div className='font-bold text-center'>In call with</div>
+                                    <div className='font-bold text-center mb-3'>{callFrom}</div>
+
+                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-3'>
+                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Close
+                                    </Button>
+                                    <Button onClick={() => showTransfer()} className='p-button-success'>
+                                        <FontAwesomeIcon icon={faRightLeft} className="mr-2"/> Transfer
+                                    </Button>
+
+                                </OverlayPanel>
+                            </>
                         }
 
                     </div>
 
+                    <div className='flex p-3'>
+                        <InputText placeholder={'Search'} className='w-full'/>
+                    </div>
+
+                    <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
+                        {
+                            feeds.map((f: any) => {
+                                let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
+                                if (selectedFeed === f.id) {
+                                    className += ' selected'
+                                }
+                                return <div key={f.email} className={className} onClick={() => {
+                                    setSelectedFeed(f.id);
+                                    //change the URL to allow a bookmark
+                                    router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
+                                }
+                                }>
+                                    <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
+                                        <div className='mb-2'>
+                                            {
+                                                f.contactFirstName &&
+                                                f.contactFirstName + ' ' + f.contactLastName}
+                                            {
+                                                !f.contactFirstName &&
+                                                f.contactEmail
+                                            }
+                                        </div>
+                                        <div className='text-500' style={{
+                                            fontSize: '12px',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden"
+                                        }}>
+                                            {f.message}
+                                        </div>
+                                    </div>
+
+                                    <div className='flex flex-column'>
+                                        <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
+                                                format={'d.MM.yy'}></Moment>
+                                        <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
+                                                format={'HH:mm'}></Moment>
+                                    </div>
+                                </div>
+                            })
+                        }
+                    </div>
 
                 </div>
 
-            </>
+                <div className='flex flex-grow-1 w-full'>
+
+                    {
+                        selectedFeed &&
+                        <Chat
+                            feedId={selectedFeed}
+                            inCall={inCall}
+                            handleCall={(contact: any) => handleCall(contact)}
+                            hangupCall={() => hangupCall()}
+                            showTransfer={() => showTransfer()}
+                        />
+                    }
+
+                </div>
+
+
+            </div>
+
+        </>
     );
 }
 

@@ -2,9 +2,6 @@ import * as React from 'react'
 import * as JsSIP from 'jssip';
 
 import {Button} from "primereact/button";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPhone, faPhoneSlash} from "@fortawesome/free-solid-svg-icons";
-import {InputText} from "primereact/inputtext";
 
 import {
     EndEvent,
@@ -12,9 +9,9 @@ import {
     IncomingEvent,
     OutgoingAckEvent,
     OutgoingEvent,
-    RTCSessionEventMap,
-    RTCSession,
     ReferOptions,
+    RTCSession,
+    RTCSessionEventMap,
 } from "jssip/lib/RTCSession";
 import {IncomingRTCSessionEvent, OutgoingRTCSessionEvent, UAConfiguration} from "jssip/lib/UA";
 import {Dialog} from "primereact/dialog";
@@ -53,19 +50,19 @@ export default class WebRTC extends React.Component<WebRTCProps> {
     constructor(props: WebRTCProps) {
         super(props);
         this.state =
-                {
-                    inCall: false,
-                    websocket: props.websocket,
-                    from: props.from,
-                    notifyCallFrom: props.notifyCallFrom,
-                    updateCallState: props.updateCallState,
-                    callerId: "",
-                    ringing: false,
-                    autoStart: false,
-                    transferDestination: "",
-                    refer: false,
-                    referStatus: ""
-                };
+            {
+                inCall: false,
+                websocket: props.websocket,
+                from: props.from,
+                notifyCallFrom: props.notifyCallFrom,
+                updateCallState: props.updateCallState,
+                callerId: "",
+                ringing: false,
+                autoStart: false,
+                transferDestination: "",
+                refer: false,
+                referStatus: ""
+            };
 
         if (props.autoStart) {
             this.state.autoStart = props.autoStart;
@@ -199,11 +196,11 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._session = this._ua?.call(destination, options);
         var peerconnection = this._session?.connection;
         peerconnection?.addEventListener('addstream', (event: any) => {
-                    if (this.remoteVideo.current) {
-                        this.remoteVideo.current.srcObject = event.stream;
-                    }
-                    this.remoteVideo.current?.play();
+                if (this.remoteVideo.current) {
+                    this.remoteVideo.current.srcObject = event.stream;
                 }
+                this.remoteVideo.current?.play();
+            }
         )
     }
 
@@ -255,7 +252,7 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 rtcSession.terminate({status_code: 486});
                 return;
             }
-    
+
             this._session = rtcSession;
             this.setState({
                 ringing: true,
@@ -268,11 +265,11 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
             console.error("Got a call for " + rtcSession.remote_identity.uri.toString());
             rtcSession.on('accepted', () => {
-                        if (this.remoteVideo.current) {
-                            this.remoteVideo.current.srcObject = (this._session?.connection.getRemoteStreams()[0] ? this._session?.connection.getRemoteStreams()[0] : null);
-                            this.remoteVideo.current.play();
-                        }
+                    if (this.remoteVideo.current) {
+                        this.remoteVideo.current.srcObject = (this._session?.connection.getRemoteStreams()[0] ? this._session?.connection.getRemoteStreams()[0] : null);
+                        this.remoteVideo.current.play();
                     }
+                }
             );
             rtcSession.on('ended', (e: EndEvent) => {
                 console.log('call ended with cause: ' + JSON.stringify(e.cause));
@@ -291,28 +288,30 @@ export default class WebRTC extends React.Component<WebRTCProps> {
 
     render() {
         return (
-                <>
-                    <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay style={{width: '0px', height: '0px', position: 'absolute'}}/>
+            <>
+                <video controls={false} hidden={!this.state.inCall} ref={this.remoteVideo} autoPlay
+                       style={{width: '0px', height: '0px', position: 'absolute'}}/>
 
-                    <Dialog visible={this.state.ringing && this.state.inCall}
-                            modal={false}
-                            style={{background: 'red', position: 'absolute', top: '25px'}}
-                            closable={false}
-                            closeOnEscape={false}
-                            draggable={false}
-                            onHide={() => console.log()}
-                            footer={
-                                <div>
-                                    <Button label="Accept the call" icon="pi pi-check" onClick={() => this.answerCall()}
-                                            className="p-button-success"/>
-                                    <Button label="Reject the call" icon="pi pi-times" onClick={() => this.hangupCall()}
-                                            className="p-button-danger"/>
-                                </div>
-                            }>
+                <Dialog visible={this.state.ringing && this.state.inCall}
+                        modal={false}
+                        style={{background: 'red', position: 'absolute', top: '25px'}}
+                        closable={false}
+                        closeOnEscape={false}
+                        draggable={false}
+                        onHide={() => console.log()}
+                        footer={
+                            <div>
+                                <Button label="Accept the call" icon="pi pi-check" onClick={() => this.answerCall()}
+                                        className="p-button-success"/>
+                                <Button label="Reject the call" icon="pi pi-times" onClick={() => this.hangupCall()}
+                                        className="p-button-danger"/>
+                            </div>
+                        }>
 
-                        <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incoming call from {this.state.callerId}</div>
-                    </Dialog>
-                </>
+                    <div className="w-full text-center font-bold" style={{fontSize: '25px'}}>Incoming call
+                        from {this.state.callerId}</div>
+                </Dialog>
+            </>
         )
     }
 }
