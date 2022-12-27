@@ -274,11 +274,17 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                         }
                     }
             );
-            rtcSession.on('ended', () => {
+            rtcSession.on('ended', (e: EndEvent) => {
+                console.log('call ended with cause: ' + JSON.stringify(e.cause));
                 this.setState({inCall: false, ringing: false});
                 this.state.updateCallState(false);
             });
 
+            rtcSession.on('failed', (e: EndEvent) => {
+                console.log('call failed with cause: ' + JSON.stringify(e.cause));
+                this.setState({inCall: false, ringing: false});
+                this.state.updateCallState(false);
+            });
         });
         this._ua.start();
     }
