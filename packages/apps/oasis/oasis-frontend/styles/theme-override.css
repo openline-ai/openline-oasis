@@ -72,17 +72,18 @@ body {
 .p-checkbox .p-checkbox-box.p-highlight {
     background: var(--dark-color-1);
     color: white;
-    border:none;
+    border: none;
 }
 
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-highlight:hover {
     border-color: var(--gray-color-5);
-    background:  var(--dark-color-1);
+    background: var(--dark-color-1);
     box-shadow: none;
 }
+
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:hover,
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus,
-.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible{
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible {
     border-color: var(--gray-color-5);
     outline-color: var(--dark-color-1);
     box-shadow: none;

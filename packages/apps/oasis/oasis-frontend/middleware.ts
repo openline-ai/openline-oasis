@@ -1,5 +1,5 @@
-import {withAuth, NextRequestWithAuth} from "next-auth/middleware"
-import {NextRequest, NextResponse} from "next/server";
+import {NextRequestWithAuth, withAuth} from "next-auth/middleware"
+import {NextResponse} from "next/server";
 
 // More on how NextAuth.js middleware works: https://next-auth.js.org/configuration/nextjs#middleware
 
@@ -8,7 +8,7 @@ export default withAuth(function middleware(request: NextRequestWithAuth) {
 
         if (request.nextUrl.pathname.startsWith('/oasis-api/')) {
             newURL = process.env.NEXT_PUBLIC_OASIS_API_PATH + "/" + request.nextUrl.pathname.substring(("/oasis-api/").length);
-        } else if(request.nextUrl.pathname.startsWith('/customer-os-api/')){
+        } else if (request.nextUrl.pathname.startsWith('/customer-os-api/')) {
             newURL = process.env.NEXT_PUBLIC_CUSTOMER_OS_API_PATH + "/" + request.nextUrl.pathname.substring(("/customer-os-api/").length);
         }
 
@@ -22,7 +22,7 @@ export default withAuth(function middleware(request: NextRequestWithAuth) {
 
         if (request.nextUrl.pathname.startsWith('/oasis-api')) {
             requestHeaders.set('X-Openline-API-KEY', process.env.OASIS_API_KEY as string)
-        } else if(request.nextUrl.pathname.startsWith('/customer-os-api')){
+        } else if (request.nextUrl.pathname.startsWith('/customer-os-api')) {
             requestHeaders.set('X-Openline-API-KEY', process.env.CUSTOMER_OS_API_KEY as string)
         }
 

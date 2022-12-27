@@ -4,23 +4,26 @@ with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/
 ## Getting Started
 
 ### Setting up SSO
+
 In fusion auth create an app for "oasis" then the following keys need to be updated in .env.local
 
 * NEXTAUTH_OAUTH_CLIENT_ID
 * NEXTAUTH_OAUTH_CLIENT_SECRET
 * NEXTAUTH_OAUTH_TENANT_ID
+
 ### Setting up SSO (local k8s)
 
 modify the env vars in the following file
+
 ```
 deployment/k8s/local-minikube/apps-config/oasis-frontend.yaml
 ```
 
 then modify your /etc/hosts as follows to resolve fusionauth-customer-os.openline.svc.cluster.local
+
 ```
 127.0.0.1	localhost fusionauth-customer-os.openline.svc.cluster.local
 ```
-
 
 ###Install dependencies:
 

@@ -64,9 +64,11 @@ ul li {
 .contact-hover {
     border-radius: 10px;
 }
+
 .contact-hover.selected {
     background: var(--background-color);
 }
+
 .contact-hover:hover {
     cursor: pointer;
     background: var(--background-color);
