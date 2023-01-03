@@ -286,48 +286,41 @@ export const Chat = (props: ChatProps) => {
                 </div>
                 <div id="chatWindowToScroll"></div>
             </div>
-            <div className="flex-grow-0 w-full p-5">
+            <div className="flex-grow-0 w-full px-5">
 
-                <div className="w-full h-full bg-white p-5" style={{
+                <div className="w-full h-full bg-white py-2" style={{
                     border: 'solid 1px #E8E8E8',
-                    borderRadius: '7px',
+                    borderRadius: '7px 7px 0px 0px',
                     boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
                 }}>
 
-                    <Dropdown
-                        className="border-none mb-3"
-                        style={{width: '120px'}}
-                        optionLabel="label"
-                        value={currentChannel}
-                        onChange={(e) => setCurrentChannel(e.value)}
-                        options={[
-                            {
-                                label: 'Web chat',
-                                value: 'CHAT'
-                            },
-                            {
-                                label: 'Email',
-                                value: 'EMAIL'
-                            },
-                        ]}/>
-
                     <div className="flex flex-grow-1">
-                        <InputText className="w-full" value={currentText}
-                                   onChange={(e) => setCurrentText(e.target.value)}
-                                   onKeyPress={(e) => {
-                                       if (e.shiftKey && e.key === "Enter") {
-                                           return true
-                                       }
-                                       if (e.key === "Enter") {
-                                           handleSendMessage()
-                                       }
-                                   }}/>
+                        <InputText className="w-full px-3 outline-none" value={currentText}
+                                    onChange={(e) => setCurrentText(e.target.value)}
+                                    placeholder={
+                                        contact.firstName &&
+                                        `Message ${contact.firstName}...`
+                                    }
+                                    onKeyPress={(e) => {
+                                        if (e.shiftKey && e.key === "Enter") {
+                                            return true
+                                        }
+                                        if (e.key === "Enter") {
+                                            handleSendMessage()
+                                        }
+                                    }}
+                                    style= {{
+                                        border: "none",
+                                        boxShadow: "none"
+                                    }}
+                                    />
                     </div>
 
                     <div className="flex w-full mt-3">
 
                         <div className="flex flex-grow-1">
-
+                            <div className="pl-1">
+                            </div>
                             {
                                 callingAllowed() && !props.inCall &&
                                 <div>
@@ -352,10 +345,33 @@ export const Chat = (props: ChatProps) => {
                             </div>
 
                         </div>
+                        
+                        <Dropdown
+                            className="border-100 px-1 outline-none mr-2"
+                            optionLabel="label"
+                            value={currentChannel}
+                            onChange={(e) => setCurrentChannel(e.value)}
+                            options={[
+                                {
+                                    label: 'Web chat',
+                                    value: 'CHAT'
+                                },
+                                {
+                                    label: 'Email',
+                                    value: 'EMAIL'
+                                },
+                        ]}/>
 
-                        <div className="flex flex-grow-0">
-                            <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
-                                    className='p-button-text'>
+                        <div className="flex flex-grow-0 mr-2">
+                            <Button disabled={sendButtonDisabled}
+                                    onClick={() => handleSendMessage()}
+                                    className='p-button-text p-button-rounded'
+                                    style={{
+                                        background: 'var(--gray-color-1)',
+                                        border: 'solid 1px #E8E8E8',
+                                        borderRadius: '8px'
+                                    }}
+                                    >
                                 <FontAwesomeIcon icon={faPaperPlane} className="mr-3"/>Reply
                             </Button>
                         </div>
