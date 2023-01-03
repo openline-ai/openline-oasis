@@ -342,7 +342,7 @@ export const Chat = (props: ChatProps) => {
                         {
                             callingAllowed() && !props.inCall &&
                             <div>
-                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2' style={{
+                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2 py-2' style={{
                                     border: 'solid 1px #E8E8E8',
                                     borderRadius: '6px'
                                 }}>
@@ -356,7 +356,7 @@ export const Chat = (props: ChatProps) => {
                             optionLabel="label"
                             value={currentChannel}
                             onChange={(e) => setCurrentChannel(e.value)}
-                            style={{border: 'solid 1px #E8E8E8', boxShadow: 'none'}}
+                            style={{ border: 'solid 1px #E8E8E8', boxShadow: 'none' }}
                             options={[
                                 {
                                     label: 'Web chat',
