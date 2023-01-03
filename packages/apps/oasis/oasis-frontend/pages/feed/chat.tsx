@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Button } from "primereact/button";
+import { SplitButton } from 'primereact/splitbutton';
 import { faPaperclip, faPaperPlane, faPhone, faSmile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { InputText } from "primereact/inputtext";
@@ -179,6 +180,23 @@ export const Chat = (props: ChatProps) => {
         setMessages((messageList: any) => [...messageList, newMsg]);
     }
 
+    const sendButtonOptions  = [
+        {
+            label: 'Web chat',
+            value: 'CHAT',
+            command: (e) => {
+                setCurrentChannel(e.value)
+            }
+        },
+        {
+            label: 'Email',
+            value: 'EMAIL',
+            command: (e) => {
+                setCurrentChannel(e.value)
+            }
+        },
+    ]
+
     return (
         <div className='flex flex-column w-full h-full'>
             <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
@@ -342,7 +360,7 @@ export const Chat = (props: ChatProps) => {
                         {
                             callingAllowed() && !props.inCall &&
                             <div>
-                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2 py-2' style={{
+                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2 p-2' style={{
                                     border: 'solid 1px #E8E8E8',
                                     borderRadius: '6px'
                                 }}>
@@ -351,35 +369,22 @@ export const Chat = (props: ChatProps) => {
                             </div>
                         }
 
-                        <Dropdown
-                            className="px-1 outline-none mr-2"
-                            optionLabel="label"
-                            value={currentChannel}
-                            onChange={(e) => setCurrentChannel(e.value)}
-                            style={{ border: 'solid 1px #E8E8E8', boxShadow: 'none' }}
-                            options={[
-                                {
-                                    label: 'Web chat',
-                                    value: 'CHAT'
-                                },
-                                {
-                                    label: 'Email',
-                                    value: 'EMAIL'
-                                },
-                            ]} />
-
                         <div className="flex flex-grow-0 mr-2">
-                            <Button disabled={sendButtonDisabled}
+                            {/* TODO: Add Icon to left of reply button */}
+                            <SplitButton
+                                model={sendButtonOptions}
+                                disabled={sendButtonDisabled}
                                 onClick={() => handleSendMessage()}
-                                className='p-button-text p-button-rounded'
+                                label="Reply"
+                                className='p-button-text'
                                 style={{
                                     background: 'var(--gray-color-1)',
                                     border: 'solid 1px #E8E8E8',
                                     borderRadius: '6px'
                                 }}
                             >
-                                <FontAwesomeIcon icon={faPaperPlane} className="mr-3" />Reply
-                            </Button>
+                                {/* <FontAwesomeIcon icon={faPaperPlane} className="mr-3" /> */}
+                            </SplitButton>
                         </div>
 
                     </div>

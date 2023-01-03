@@ -43,8 +43,25 @@ body {
     background: var(--gray-color-2) !important;
 }
 
+.p-button:enabled:active {
+    background: var(--gray-color-2) !important;
+}
+
 .p-button-label {
     font-weight: normal;
+}
+
+.p-splitbutton.p-button-text > .p-button:enabled:hover, .p-splitbutton.p-button-text > .p-button:not(button):not(a):not(.p-disabled):hover {
+    background: inherit;
+    color: inherit;
+}
+
+.p-splitbutton.p-button-text > .p-button {
+    color: inherit;
+}
+
+.p-button.p-button-icon-only {
+    padding: inherit;
 }
 
 /*Inputs*/
