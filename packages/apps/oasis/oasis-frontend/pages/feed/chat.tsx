@@ -1,17 +1,17 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {Button} from "primereact/button";
-import {faPaperclip, faPaperPlane, faPhone, faSmile} from "@fortawesome/free-solid-svg-icons";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {InputText} from "primereact/inputtext";
+import { useEffect, useState } from "react";
+import { Button } from "primereact/button";
+import { faPaperclip, faPaperPlane, faPhone, faSmile } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { InputText } from "primereact/inputtext";
 import axios from "axios";
-import {Dropdown} from "primereact/dropdown";
+import { Dropdown } from "primereact/dropdown";
 import useWebSocket from "react-use-websocket";
-import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession, useSession} from "next-auth/react";
-import {gql, GraphQLClient} from "graphql-request";
-import {ProgressSpinner} from "primereact/progressspinner";
-import {Tooltip} from "primereact/tooltip";
+import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
+import { getSession, useSession } from "next-auth/react";
+import { gql, GraphQLClient } from "graphql-request";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { Tooltip } from "primereact/tooltip";
 import Moment from "react-moment";
 
 interface ChatProps {
@@ -28,7 +28,7 @@ interface ChatProps {
 export const Chat = (props: ChatProps) => {
     const client = new GraphQLClient(`/customer-os-api/query`);
 
-    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
+    const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
@@ -73,7 +73,7 @@ export const Chat = (props: ChatProps) => {
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as any);
-    const {data: session, status} = useSession();
+    const { data: session, status } = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -98,7 +98,7 @@ export const Chat = (props: ChatProps) => {
                     }
                 }`
 
-                    client.request(query, {id: res.data.contactId}).then((response: any) => {
+                    client.request(query, { id: res.data.contactId }).then((response: any) => {
                         if (response.contact) {
                             setContact({
                                 firstName: response.contact.firstName,
@@ -114,15 +114,15 @@ export const Chat = (props: ChatProps) => {
                     });
 
                 }).catch((reason: any) => {
-                //TODO error
-            });
+                    //TODO error
+                });
 
             axios.get(`/oasis-api/feed/${props.feedId}/item`)
                 .then(res => {
                     setMessages(res.data ?? []);
                 }).catch((reason: any) => {
-                //TODO error
-            });
+                    //TODO error
+                });
         }
     }, [props.feedId]);
 
@@ -135,7 +135,7 @@ export const Chat = (props: ChatProps) => {
         if (!loadingMessages) {
             const element = document.getElementById('chatWindowToScroll')
             if (element) {
-                element.scrollIntoView({behavior: 'smooth'})
+                element.scrollIntoView({ behavior: 'smooth' })
             }
         }
     }, [loadingMessages, messages])
@@ -185,7 +185,7 @@ export const Chat = (props: ChatProps) => {
                 {
                     loadingMessages &&
                     <div className="flex w-full h-full align-content-center align-items-center">
-                        <ProgressSpinner/>
+                        <ProgressSpinner />
                     </div>
                 }
 
@@ -239,7 +239,7 @@ export const Chat = (props: ChatProps) => {
                                                     <span
                                                         className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
-                                                            format={'HH:mm'}></Moment>
+                                                        format={'HH:mm'}></Moment>
                                                 </div>
                                             </div>
                                             <div className="flex flex-grow-1"></div>
@@ -261,7 +261,7 @@ export const Chat = (props: ChatProps) => {
                                         <div className="w-full flex">
                                             <div className="flex-grow-1"></div>
                                             <div className="flex-grow-0 flex-column p-3"
-                                                 style={{background: '#C5EDCE', borderRadius: '5px'}}>
+                                                style={{ background: '#C5EDCE', borderRadius: '5px' }}>
                                                 <div className="flex">{msg.message}</div>
                                                 <div className="flex align-content-end" style={{
                                                     width: '100%',
@@ -274,7 +274,7 @@ export const Chat = (props: ChatProps) => {
                                                     <span
                                                         className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
-                                                            format={'HH:mm'}></Moment>
+                                                        format={'HH:mm'}></Moment>
                                                 </div>
                                             </div>
                                         </div>
@@ -295,25 +295,26 @@ export const Chat = (props: ChatProps) => {
                 }}>
 
                     <div className="flex flex-grow-1">
+                        {/* TODO: Change to InputTextarea and use autoResize param and a refresh when message is sent to resize textbox when longer messages are entered */}
                         <InputText className="w-full px-3 outline-none" value={currentText}
-                                    onChange={(e) => setCurrentText(e.target.value)}
-                                    placeholder={
-                                        contact.firstName &&
-                                        `Message ${contact.firstName}...`
-                                    }
-                                    onKeyPress={(e) => {
-                                        if (e.shiftKey && e.key === "Enter") {
-                                            return true
-                                        }
-                                        if (e.key === "Enter") {
-                                            handleSendMessage()
-                                        }
-                                    }}
-                                    style= {{
-                                        border: "none",
-                                        boxShadow: "none"
-                                    }}
-                                    />
+                            onChange={(e) => setCurrentText(e.target.value)}
+                            placeholder={
+                                contact.firstName &&
+                                `Message ${contact.firstName}...`
+                            }
+                            onKeyPress={(e) => {
+                                if (e.shiftKey && e.key === "Enter") {
+                                    return true
+                                }
+                                if (e.key === "Enter") {
+                                    handleSendMessage()
+                                }
+                            }}
+                            style={{
+                                border: "none",
+                                boxShadow: "none"
+                            }}
+                        />
                     </div>
 
                     <div className="flex w-full mt-3">
@@ -321,36 +322,41 @@ export const Chat = (props: ChatProps) => {
                         <div className="flex flex-grow-1">
                             <div className="pl-1">
                             </div>
-                            {
-                                callingAllowed() && !props.inCall &&
-                                <div>
-                                    <Button onClick={() => props.handleCall(contact)} className='p-button-text'>
-                                        <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
-                                    </Button>
-                                </div>
-                            }
 
-                            <Tooltip target=".disabled-button"/>
-                            <Tooltip target=".disabled-button2"/>
+                            <Tooltip target=".disabled-button" />
+                            <Tooltip target=".disabled-button2" />
                             <div className="disabled-button" data-pr-tooltip="Work in progress">
                                 <Button disabled={true} className='p-button-text'>
-                                    <FontAwesomeIcon icon={faSmile} style={{fontSize: '20px'}}/>
+                                    <FontAwesomeIcon icon={faSmile} style={{ fontSize: '20px' }} />
                                 </Button>
                             </div>
 
                             <div className="disabled-button2" data-pr-tooltip="Work in progress">
                                 <Button disabled={true} className='p-button-text'>
-                                    <FontAwesomeIcon icon={faPaperclip} style={{fontSize: '20px'}}/>
+                                    <FontAwesomeIcon icon={faPaperclip} style={{ fontSize: '20px' }} />
                                 </Button>
                             </div>
 
                         </div>
-                        
+
+                        {
+                            callingAllowed() && !props.inCall &&
+                            <div>
+                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2' style={{
+                                    border: 'solid 1px #E8E8E8',
+                                    borderRadius: '6px'
+                                }}>
+                                    <FontAwesomeIcon icon={faPhone} style={{ fontSize: '20px' }} />
+                                </Button>
+                            </div>
+                        }
+
                         <Dropdown
-                            className="border-100 px-1 outline-none mr-2"
+                            className="px-1 outline-none mr-2"
                             optionLabel="label"
                             value={currentChannel}
                             onChange={(e) => setCurrentChannel(e.value)}
+                            style={{border: 'solid 1px #E8E8E8', boxShadow: 'none'}}
                             options={[
                                 {
                                     label: 'Web chat',
@@ -360,19 +366,19 @@ export const Chat = (props: ChatProps) => {
                                     label: 'Email',
                                     value: 'EMAIL'
                                 },
-                        ]}/>
+                            ]} />
 
                         <div className="flex flex-grow-0 mr-2">
                             <Button disabled={sendButtonDisabled}
-                                    onClick={() => handleSendMessage()}
-                                    className='p-button-text p-button-rounded'
-                                    style={{
-                                        background: 'var(--gray-color-1)',
-                                        border: 'solid 1px #E8E8E8',
-                                        borderRadius: '8px'
-                                    }}
-                                    >
-                                <FontAwesomeIcon icon={faPaperPlane} className="mr-3"/>Reply
+                                onClick={() => handleSendMessage()}
+                                className='p-button-text p-button-rounded'
+                                style={{
+                                    background: 'var(--gray-color-1)',
+                                    border: 'solid 1px #E8E8E8',
+                                    borderRadius: '6px'
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faPaperPlane} className="mr-3" />Reply
                             </Button>
                         </div>
 
