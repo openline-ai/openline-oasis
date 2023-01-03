@@ -286,11 +286,11 @@ export const Chat = (props: ChatProps) => {
                 </div>
                 <div id="chatWindowToScroll"></div>
             </div>
-            <div className="flex-grow-0 w-full px-5">
+            <div className="flex-grow-0 w-full p-3">
 
                 <div className="w-full h-full bg-white py-2" style={{
                     border: 'solid 1px #E8E8E8',
-                    borderRadius: '7px 7px 0px 0px',
+                    borderRadius: '8px',
                     boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
                 }}>
 
