@@ -331,7 +331,7 @@ export const Chat = (props: ChatProps) => {
                                 }
                             }}
                             style={{
-                                border: "none",
+                                borderColor: "white", //Do not set as none!! It breaks InputTextarea autoResize
                                 boxShadow: "none"
                             }}
                         />
