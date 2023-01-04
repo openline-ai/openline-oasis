@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 import { SplitButton } from 'primereact/splitbutton';
 import { faPaperclip, faPaperPlane, faPhone, faSmile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
 import axios from "axios";
 import { Dropdown } from "primereact/dropdown";
 import useWebSocket from "react-use-websocket";
@@ -152,6 +152,7 @@ export const Chat = (props: ChatProps) => {
     }, [lastMessage]);
 
     const handleSendMessage = () => {
+        if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
@@ -180,19 +181,20 @@ export const Chat = (props: ChatProps) => {
         setMessages((messageList: any) => [...messageList, newMsg]);
     }
 
-    const sendButtonOptions  = [
+    const sendButtonOptions = [
         {
             label: 'Web chat',
             value: 'CHAT',
-            command: (e) => {
-                setCurrentChannel(e.value)
+            command: (e: any) => {
+                setCurrentChannel(e.item.value)
+                console.log(e)
             }
         },
         {
             label: 'Email',
             value: 'EMAIL',
-            command: (e) => {
-                setCurrentChannel(e.value)
+            command: (e: any) => {
+                setCurrentChannel(e.item.value)
             }
         },
     ]
@@ -314,8 +316,10 @@ export const Chat = (props: ChatProps) => {
 
                     <div className="flex flex-grow-1">
                         {/* TODO: Change to InputTextarea and use autoResize param and a refresh when message is sent to resize textbox when longer messages are entered */}
-                        <InputText className="w-full px-3 outline-none" value={currentText}
+                        <InputTextarea className="w-full px-3 outline-none" value={currentText}
                             onChange={(e) => setCurrentText(e.target.value)}
+                            autoResize
+                            rows={1}
                             placeholder={
                                 contact.firstName &&
                                 `Message ${contact.firstName}...`
@@ -370,12 +374,14 @@ export const Chat = (props: ChatProps) => {
                         }
 
                         <div className="flex flex-grow-0 mr-2">
-                            {/* TODO: Add Icon to left of reply button */}
+                            {/* TODO: Add Icon to left of reply button that changes based on chat type (dropdown??) */}
                             <SplitButton
                                 model={sendButtonOptions}
-                                disabled={sendButtonDisabled}
+                                // disabled={sendButtonDisabled}
                                 onClick={() => handleSendMessage()}
-                                label="Reply"
+                                label={
+                                    `Reply (${currentChannel})`
+                                }
                                 className='p-button-text'
                                 style={{
                                     background: 'var(--gray-color-1)',
