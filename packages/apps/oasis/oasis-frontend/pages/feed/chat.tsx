@@ -1,17 +1,17 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {Button} from "primereact/button";
-import {faPaperclip, faPaperPlane, faPhone, faSmile} from "@fortawesome/free-solid-svg-icons";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {InputText} from "primereact/inputtext";
+import { useEffect, useState } from "react";
+import { Button } from "primereact/button";
+import { SplitButton } from 'primereact/splitbutton';
+import { faPaperclip, faPaperPlane, faPhone, faSmile } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { InputTextarea } from "primereact/inputtextarea";
 import axios from "axios";
-import {Dropdown} from "primereact/dropdown";
 import useWebSocket from "react-use-websocket";
-import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession, useSession} from "next-auth/react";
-import {gql, GraphQLClient} from "graphql-request";
-import {ProgressSpinner} from "primereact/progressspinner";
-import {Tooltip} from "primereact/tooltip";
+import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
+import { getSession, useSession } from "next-auth/react";
+import { gql, GraphQLClient } from "graphql-request";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { Tooltip } from 'primereact/tooltip';
 import Moment from "react-moment";
 
 interface ChatProps {
@@ -28,7 +28,7 @@ interface ChatProps {
 export const Chat = (props: ChatProps) => {
     const client = new GraphQLClient(`/customer-os-api/query`);
 
-    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
+    const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
@@ -73,7 +73,7 @@ export const Chat = (props: ChatProps) => {
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as any);
-    const {data: session, status} = useSession();
+    const { data: session, status } = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -98,7 +98,7 @@ export const Chat = (props: ChatProps) => {
                     }
                 }`
 
-                    client.request(query, {id: res.data.contactId}).then((response: any) => {
+                    client.request(query, { id: res.data.contactId }).then((response: any) => {
                         if (response.contact) {
                             setContact({
                                 firstName: response.contact.firstName,
@@ -114,15 +114,15 @@ export const Chat = (props: ChatProps) => {
                     });
 
                 }).catch((reason: any) => {
-                //TODO error
-            });
+                    //TODO error
+                });
 
             axios.get(`/oasis-api/feed/${props.feedId}/item`)
                 .then(res => {
                     setMessages(res.data ?? []);
                 }).catch((reason: any) => {
-                //TODO error
-            });
+                    //TODO error
+                });
         }
     }, [props.feedId]);
 
@@ -135,7 +135,7 @@ export const Chat = (props: ChatProps) => {
         if (!loadingMessages) {
             const element = document.getElementById('chatWindowToScroll')
             if (element) {
-                element.scrollIntoView({behavior: 'smooth'})
+                element.scrollIntoView({ behavior: 'smooth' })
             }
         }
     }, [loadingMessages, messages])
@@ -151,6 +151,7 @@ export const Chat = (props: ChatProps) => {
     }, [lastMessage]);
 
     const handleSendMessage = () => {
+        if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             source: 'WEB',
             direction: 'OUTBOUND',
@@ -179,13 +180,30 @@ export const Chat = (props: ChatProps) => {
         setMessages((messageList: any) => [...messageList, newMsg]);
     }
 
+    const sendButtonOptions = [
+        {
+            label: 'Web chat',
+            value: 'CHAT',
+            command: (e: any) => {
+                setCurrentChannel(e.item.value)
+            }
+        },
+        {
+            label: 'Email',
+            value: 'EMAIL',
+            command: (e: any) => {
+                setCurrentChannel(e.item.value)
+            }
+        },
+    ]
+
     return (
         <div className='flex flex-column w-full h-full'>
             <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
                 {
                     loadingMessages &&
                     <div className="flex w-full h-full align-content-center align-items-center">
-                        <ProgressSpinner/>
+                        <ProgressSpinner />
                     </div>
                 }
 
@@ -239,7 +257,7 @@ export const Chat = (props: ChatProps) => {
                                                     <span
                                                         className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
-                                                            format={'HH:mm'}></Moment>
+                                                        format={'HH:mm'}></Moment>
                                                 </div>
                                             </div>
                                             <div className="flex flex-grow-1"></div>
@@ -261,7 +279,7 @@ export const Chat = (props: ChatProps) => {
                                         <div className="w-full flex">
                                             <div className="flex-grow-1"></div>
                                             <div className="flex-grow-0 flex-column p-3"
-                                                 style={{background: '#C5EDCE', borderRadius: '5px'}}>
+                                                style={{ background: '#C5EDCE', borderRadius: '5px' }}>
                                                 <div className="flex">{msg.message}</div>
                                                 <div className="flex align-content-end" style={{
                                                     width: '100%',
@@ -274,7 +292,7 @@ export const Chat = (props: ChatProps) => {
                                                     <span
                                                         className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
-                                                            format={'HH:mm'}></Moment>
+                                                        format={'HH:mm'}></Moment>
                                                 </div>
                                             </div>
                                         </div>
@@ -286,78 +304,98 @@ export const Chat = (props: ChatProps) => {
                 </div>
                 <div id="chatWindowToScroll"></div>
             </div>
-            <div className="flex-grow-0 w-full p-5">
+            <div className="flex-grow-0 w-full p-3">
 
-                <div className="w-full h-full bg-white p-5" style={{
+                <div className="w-full h-full bg-white py-2" style={{
                     border: 'solid 1px #E8E8E8',
-                    borderRadius: '7px',
+                    borderRadius: '8px',
                     boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
                 }}>
 
-                    <Dropdown
-                        className="border-none mb-3"
-                        style={{width: '120px'}}
-                        optionLabel="label"
-                        value={currentChannel}
-                        onChange={(e) => setCurrentChannel(e.value)}
-                        options={[
-                            {
-                                label: 'Web chat',
-                                value: 'CHAT'
-                            },
-                            {
-                                label: 'Email',
-                                value: 'EMAIL'
-                            },
-                        ]}/>
-
                     <div className="flex flex-grow-1">
-                        <InputText className="w-full" value={currentText}
-                                   onChange={(e) => setCurrentText(e.target.value)}
-                                   onKeyPress={(e) => {
-                                       if (e.shiftKey && e.key === "Enter") {
-                                           return true
-                                       }
-                                       if (e.key === "Enter") {
-                                           handleSendMessage()
-                                       }
-                                   }}/>
+                        <InputTextarea className="w-full px-3 outline-none"
+                            value={currentText}
+                            onChange={(e) => setCurrentText(e.target.value)}
+                            autoResize
+                            rows={1}
+                            placeholder={
+                                contact.firstName &&
+                                `Message ${contact.firstName}...`
+                            }
+                            onKeyPress={(e) => {
+                                if (e.shiftKey && e.key === "Enter") {
+                                    return true
+                                }
+                                if (e.key === "Enter") {
+                                    handleSendMessage()
+                                }
+                            }}
+                            style={{
+                                borderColor: "white", //Do not set as none!! It breaks InputTextarea autoResize
+                                boxShadow: "none"
+                            }}
+                        />
                     </div>
 
                     <div className="flex w-full mt-3">
 
                         <div className="flex flex-grow-1">
+                            <div className="pl-1">
+                            </div>
 
-                            {
-                                callingAllowed() && !props.inCall &&
-                                <div>
-                                    <Button onClick={() => props.handleCall(contact)} className='p-button-text'>
-                                        <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
-                                    </Button>
-                                </div>
-                            }
-
-                            <Tooltip target=".disabled-button"/>
-                            <Tooltip target=".disabled-button2"/>
+                            <Tooltip target=".disabled-button" />
+                            <Tooltip target=".disabled-button2" />
                             <div className="disabled-button" data-pr-tooltip="Work in progress">
                                 <Button disabled={true} className='p-button-text'>
-                                    <FontAwesomeIcon icon={faSmile} style={{fontSize: '20px'}}/>
+                                    <FontAwesomeIcon icon={faSmile} style={{ fontSize: '20px' }} />
                                 </Button>
                             </div>
 
                             <div className="disabled-button2" data-pr-tooltip="Work in progress">
                                 <Button disabled={true} className='p-button-text'>
-                                    <FontAwesomeIcon icon={faPaperclip} style={{fontSize: '20px'}}/>
+                                    <FontAwesomeIcon icon={faPaperclip} style={{ fontSize: '20px' }} />
                                 </Button>
                             </div>
 
                         </div>
 
-                        <div className="flex flex-grow-0">
-                            <Button disabled={sendButtonDisabled} onClick={() => handleSendMessage()}
-                                    className='p-button-text'>
-                                <FontAwesomeIcon icon={faPaperPlane} className="mr-3"/>Reply
-                            </Button>
+                        {
+                            callingAllowed() && !props.inCall &&
+                            <div>
+                                <Button 
+                                    onClick={() => props.handleCall(contact)}
+                                    tooltip= {
+                                        `Call (${contact.phoneNumber})`
+                                    }
+                                    tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
+                                    className='p-button-text mx-2 p-2' 
+                                    style={{
+                                        border: 'solid 1px #E8E8E8',
+                                        borderRadius: '6px'
+                                    }}>
+                                    <FontAwesomeIcon icon={faPhone} style={{ fontSize: '20px' }} />
+                                </Button>
+                            </div>
+                        }
+
+                        <div className="flex flex-grow-0 mr-2">
+                            {/* TODO: Add Icon to left of reply button that changes based on chat type (dropdown??) */}
+                            <SplitButton
+                                model={sendButtonOptions}
+                                // disabled={sendButtonDisabled}
+                                onClick={() => handleSendMessage()}
+                                label={
+                                    `Reply (${currentChannel})`
+                                }
+                                className='p-button-text'
+                                style={{
+                                    background: 'var(--gray-color-1)',
+                                    border: 'solid 1px #E8E8E8',
+                                    borderRadius: '6px'
+                                }}
+                            >
+                                {/* <FontAwesomeIcon icon={faPaperPlane} className="mr-3" /> */}
+                            </SplitButton>
                         </div>
 
                     </div>

@@ -9,7 +9,6 @@ import '../styles/layout.css'
 import axios from "axios";
 import {SessionProvider} from "next-auth/react"
 
-
 axios.defaults.withCredentials = true
 
 export default function App({
