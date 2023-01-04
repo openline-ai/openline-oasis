@@ -7,6 +7,7 @@ import (
 	c "openline-ai/channels-api/config"
 	"openline-ai/channels-api/routes/chatHub"
 	"openline-ai/channels-api/util"
+	"strings"
 )
 
 // Run will start the server
@@ -21,7 +22,7 @@ func getRouter(conf *c.Config, fh *chatHub.Hub) *gin.Engine {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
-	corsConfig.AllowOrigins = []string{"*"}
+	corsConfig.AllowOrigins = strings.Split(conf.Service.CorsUrl, " ")
 	// To be able to send tokens to the server.
 	corsConfig.AllowCredentials = true
 
