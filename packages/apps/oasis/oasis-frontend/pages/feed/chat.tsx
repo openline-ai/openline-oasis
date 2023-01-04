@@ -6,13 +6,12 @@ import { faPaperclip, faPaperPlane, faPhone, faSmile } from "@fortawesome/free-s
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { InputTextarea } from "primereact/inputtextarea";
 import axios from "axios";
-import { Dropdown } from "primereact/dropdown";
 import useWebSocket from "react-use-websocket";
 import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
 import { getSession, useSession } from "next-auth/react";
 import { gql, GraphQLClient } from "graphql-request";
 import { ProgressSpinner } from "primereact/progressspinner";
-import { Tooltip } from "primereact/tooltip";
+import { Tooltip } from 'primereact/tooltip';
 import Moment from "react-moment";
 
 interface ChatProps {
@@ -187,7 +186,6 @@ export const Chat = (props: ChatProps) => {
             value: 'CHAT',
             command: (e: any) => {
                 setCurrentChannel(e.item.value)
-                console.log(e)
             }
         },
         {
@@ -315,8 +313,8 @@ export const Chat = (props: ChatProps) => {
                 }}>
 
                     <div className="flex flex-grow-1">
-                        {/* TODO: Change to InputTextarea and use autoResize param and a refresh when message is sent to resize textbox when longer messages are entered */}
-                        <InputTextarea className="w-full px-3 outline-none" value={currentText}
+                        <InputTextarea className="w-full px-3 outline-none"
+                            value={currentText}
                             onChange={(e) => setCurrentText(e.target.value)}
                             autoResize
                             rows={1}
@@ -364,10 +362,17 @@ export const Chat = (props: ChatProps) => {
                         {
                             callingAllowed() && !props.inCall &&
                             <div>
-                                <Button onClick={() => props.handleCall(contact)} className='p-button-text mx-2 p-2' style={{
-                                    border: 'solid 1px #E8E8E8',
-                                    borderRadius: '6px'
-                                }}>
+                                <Button 
+                                    onClick={() => props.handleCall(contact)}
+                                    tooltip= {
+                                        `Call (${contact.phoneNumber})`
+                                    }
+                                    tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
+                                    className='p-button-text mx-2 p-2' 
+                                    style={{
+                                        border: 'solid 1px #E8E8E8',
+                                        borderRadius: '6px'
+                                    }}>
                                     <FontAwesomeIcon icon={faPhone} style={{ fontSize: '20px' }} />
                                 </Button>
                             </div>
