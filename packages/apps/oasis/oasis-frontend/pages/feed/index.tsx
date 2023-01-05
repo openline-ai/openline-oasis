@@ -52,11 +52,11 @@ const FeedPage: NextPage = () => {
         console.log("Reloading feed!");
         axios.get(`/oasis-api/feed`)
             .then(res => {
-                res.data?.feedItems.forEach((f: any) => {
+                res.data?.feedItems?.forEach((f: any) => {
                     f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
                 });
-                setFeeds(res.data?.feedItems);
-                if (!selectedFeed) {
+                setFeeds(res.data?.feedItems ?? []);
+                if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
                     setSelectedFeed(res.data.feedItems[0].id);
                     router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
                 }
