@@ -328,6 +328,7 @@ export const Chat = (props: ChatProps) => {
                                 }
                                 if (e.key === "Enter") {
                                     handleSendMessage()
+                                    e.preventDefault();
                                 }
                             }}
                             style={{
