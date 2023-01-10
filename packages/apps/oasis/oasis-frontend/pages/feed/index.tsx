@@ -98,12 +98,12 @@ const FeedPage: NextPage = () => {
             axios.get(`/oasis-api/call_credentials?service=sip&username=` + session?.user?.email)
                 .then(res => {
                     console.error("Got a key: " + JSON.stringify(res.data));
-                    if (webrtc.current?._ua) {
-                        webrtc.current?.stopUA();
-                    }
+
                     webrtc.current?.setCredentials(res.data.username, res.data.password,
                         () => {
-                            webrtc.current?.startUA()
+                            if (!webrtc.current?._ua) {
+                                webrtc.current?.startUA()
+                            }
                         });
                     setTimeout(() => {
                         refreshCredentials()
@@ -113,7 +113,7 @@ const FeedPage: NextPage = () => {
         if (session?.user?.email) {
             refreshCredentials();
         }
-    }, [session]);
+    }, [session?.user?.email]);
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
