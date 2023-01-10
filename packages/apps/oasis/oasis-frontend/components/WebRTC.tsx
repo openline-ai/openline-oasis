@@ -148,6 +148,8 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         } else {
             this.setState({username: user, password: pass}, callback);
         }
+        this._ua?.set("authorization_user", user);
+        this._ua?.set("password", pass);
     }
 
     makeCall(destination: string) {
