@@ -1,7 +1,7 @@
 /* Topbar */
 
 .openline-top-bar {
-    background: white;
+    background: var(--topbar-background);
     color: inherit;
 }
 

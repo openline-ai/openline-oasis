@@ -140,10 +140,13 @@ const FeedPage: NextPage = () => {
             }
         }
         webrtc.current?.makeCall("sip:" + user);
+        setTopbarColor('#FFCCCB');
     }
     const hangupCall = () => {
         setInCall(false);
+        setTopbarColor('#FFFFFF')
         webrtc.current?.hangupCall();
+
     }
 
     const showTransfer = () => {
@@ -192,6 +195,11 @@ const FeedPage: NextPage = () => {
     for (let i = 0; i < 4; i++) {
         dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
     }
+
+    function setTopbarColor(newColor: any) {
+        document.documentElement.style.setProperty('--topbar-background', newColor);
+    }
+
     return (
         <>
             {
@@ -265,21 +273,10 @@ const FeedPage: NextPage = () => {
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                            <Button className="flex-none px-3 m-3"
-                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
-                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
-                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-                            </Button>
-
-                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                                <Menu model={userItems} style={{ border: 'none' }} />
-                            </OverlayPanel>
-
                             {
                                 inCall &&
                                 <>
-                                    <Button className="ml-5"
+                                    <Button className="p-button-rounded p-button-success p-2"
                                         onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
                                         <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
                                     </Button>
@@ -307,6 +304,17 @@ const FeedPage: NextPage = () => {
                                     </OverlayPanel>
                                 </>
                             }
+
+                            <Button className="flex-none px-3 m-3"
+                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                            </Button>
+
+                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                                <Menu model={userItems} style={{ border: 'none' }} />
+                            </OverlayPanel>
 
                         </div>
                     </div>
