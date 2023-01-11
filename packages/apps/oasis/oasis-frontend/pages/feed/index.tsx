@@ -231,10 +231,6 @@ const FeedPage: NextPage = () => {
                                         onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
                                     <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
                                 </Button>
-                                {
-                                    
-
-                                }
 
                                 <OverlayPanel ref={phoneContainerRef} dismissable>
 
