@@ -1,13 +1,13 @@
-import type {NextPage} from 'next'
+import type { NextPage } from 'next'
 import * as React from "react";
-import {useEffect, useRef, useState} from "react";
-import {Button} from "primereact/button";
-import {useRouter} from "next/router";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "primereact/button";
+import { useRouter } from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
-import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession, signOut, useSession} from "next-auth/react";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
+import { getSession, signOut, useSession } from "next-auth/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowRightFromBracket,
     faCaretDown,
@@ -21,9 +21,9 @@ import {
     faPlay
 } from "@fortawesome/free-solid-svg-icons";
 
-import {OverlayPanel} from "primereact/overlaypanel";
-import {Menu} from "primereact/menu";
-import {InputText} from "primereact/inputtext";
+import { OverlayPanel } from "primereact/overlaypanel";
+import { Menu } from "primereact/menu";
+import { InputText } from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/WebRTC";
@@ -31,12 +31,12 @@ import WebRTC from "../../components/WebRTC";
 
 const FeedPage: NextPage = () => {
     const router = useRouter()
-    const {id} = router.query;
+    const { id } = router.query;
 
     const [feeds, setFeeds] = useState([] as any)
     const [selectedFeed, setSelectedFeed] = useState(id as string);
 
-    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
+    const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
@@ -63,25 +63,25 @@ const FeedPage: NextPage = () => {
                 setFeeds(res.data?.feedItems ?? []);
                 if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
                     setSelectedFeed(res.data.feedItems[0].id);
-                    router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
+                    router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, { shallow: true });
                 }
             });
     }
 
-    const {data: session, status} = useSession();
+    const { data: session, status } = useSession();
     const userSettingsContainerRef = useRef<OverlayPanel>(null);
 
     let userItems = [
         {
             label: 'My profile',
-            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
+            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2" />,
             command: () => {
                 router.push('/');
             }
         },
         {
             label: 'Logout',
-            icon: <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-2"/>,
+            icon: <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-2" />,
             command: () => {
                 signOut();
             }
@@ -154,7 +154,7 @@ const FeedPage: NextPage = () => {
         if (onMute) {
             webrtc.current?.unMuteCall();
             setOnMute(false);
-        } else { 
+        } else {
             webrtc.current?.muteCall();
             setOnMute(true);
         }
@@ -164,23 +164,23 @@ const FeedPage: NextPage = () => {
         if (onHold) {
             webrtc.current?.unHoldCall();
             setOnHold(false);
-        } else { 
+        } else {
             webrtc.current?.holdCall();
             setOnHold(true);
         }
     }
-    
+
     //endregion
     const makeButton = (number: string) => {
-    return <button className="btn btn-primary btn-lg m-1" key={number}
-    onClick={() => {webrtc.current?.sendDtmf(number)}}>{number}</button>
+        return <button className="btn btn-primary btn-lg m-1" key={number}
+            onClick={() => { webrtc.current?.sendDtmf(number) }}>{number}</button>
     }
 
     let dialpad_matrix = new Array(4)
     for (let i = 0, digit = 1; i < 3; i++) {
         dialpad_matrix[i] = new Array(3);
         for (let j = 0; j < 3; j++, digit++) {
-            dialpad_matrix[i][j] =makeButton(digit.toString())
+            dialpad_matrix[i][j] = makeButton(digit.toString())
         }
     }
     dialpad_matrix[3] = new Array(3);
@@ -189,7 +189,7 @@ const FeedPage: NextPage = () => {
     dialpad_matrix[3][2] = makeButton("#")
 
     let dialpad_rows = []
-    for(let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
         dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
     }
     return (
@@ -209,57 +209,10 @@ const FeedPage: NextPage = () => {
             <div className="flex w-full h-full">
 
                 <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
-                     style={{width: '30%', background: 'white'}}>
-
-                    <div className="flex flex-row align-items-center justify-content-between pt-3 pl-3 pr-3">
-
-                        <Button className="flex-grow-1"
-                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                            <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
-                            <span className='flex-grow-1'>{session?.user?.email}</span>
-                            <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
-                        </Button>
-
-                        <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                            <Menu model={userItems} style={{border: 'none'}}/>
-                        </OverlayPanel>
-
-                        {
-                            inCall &&
-                            <>
-                                <Button className="ml-5"
-                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                    <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
-                                </Button>
-
-                                <OverlayPanel ref={phoneContainerRef} dismissable>
-
-                                    <div className='font-bold text-center'>In call with</div>
-                                    <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
-
-                                    <div className='font-bold text-center mb-3'>{callFrom}</div>
-
-                                    <Button onClick={() => toggleMute()} className="mr-2">
-                                        <FontAwesomeIcon icon={onMute?faMicrophone:faMicrophoneSlash}  className="mr-2"/> {onMute?"Unmute":"Mute"}
-                                    </Button>
-                                    <Button onClick={() => toggleHold()} className="mr-2">
-                                        <FontAwesomeIcon icon={onHold?faPlay:faPause}  className="mr-2"/> {onHold?"Release hold":"Hold"}
-                                    </Button>
-                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
-                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Hangup
-                                    </Button>
-                                    <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
-                                        <FontAwesomeIcon icon={faRightLeft} className="mr-2"/> Transfer
-                                    </Button>
-
-                                </OverlayPanel>
-                            </>
-                        }
-
-                    </div>
+                    style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
 
                     <div className='flex p-3'>
-                        <InputText placeholder={'Search'} className='w-full'/>
+                        <InputText placeholder={'Search'} className='w-full' />
                     </div>
 
                     <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
@@ -272,10 +225,10 @@ const FeedPage: NextPage = () => {
                                 return <div key={f.email} className={className} onClick={() => {
                                     setSelectedFeed(f.id);
                                     //change the URL to allow a bookmark
-                                    router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
+                                    router.push(`/feed?id=${f.id}`, undefined, { shallow: true });
                                 }
                                 }>
-                                    <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
+                                    <div className='flex flex-column flex-grow-1 mr-3' style={{ minWidth: '0' }}>
                                         <div className='mb-2'>
                                             {
                                                 f.contactFirstName &&
@@ -297,9 +250,9 @@ const FeedPage: NextPage = () => {
 
                                     <div className='flex flex-column'>
                                         <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                                format={'d.MM.yy'}></Moment>
+                                            format={'d.MM.yy'}></Moment>
                                         <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                                format={'HH:mm'}></Moment>
+                                            format={'HH:mm'}></Moment>
                                     </div>
                                 </div>
                             })
@@ -308,8 +261,55 @@ const FeedPage: NextPage = () => {
 
                 </div>
 
-                <div className='flex flex-grow-1 w-full'>
+                <div className='flex w-full flex-column'>
+                    <div className='openline-top-bar'>
+                        <div className="flex align-items-center justify-content-end">
 
+                            <Button className="flex-none px-3 m-3"
+                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                            </Button>
+
+                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                                <Menu model={userItems} style={{ border: 'none' }} />
+                            </OverlayPanel>
+
+                            {
+                                inCall &&
+                                <>
+                                    <Button className="ml-5"
+                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
+                                        <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
+                                    </Button>
+
+                                    <OverlayPanel ref={phoneContainerRef} dismissable>
+
+                                        <div className='font-bold text-center'>In call with</div>
+                                        <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
+
+                                        <div className='font-bold text-center mb-3'>{callFrom}</div>
+
+                                        <Button onClick={() => toggleMute()} className="mr-2">
+                                            <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
+                                        </Button>
+                                        <Button onClick={() => toggleHold()} className="mr-2">
+                                            <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
+                                        </Button>
+                                        <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
+                                            <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
+                                        </Button>
+                                        <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
+                                            <FontAwesomeIcon icon={faRightLeft} className="mr-2" /> Transfer
+                                        </Button>
+
+                                    </OverlayPanel>
+                                </>
+                            }
+
+                        </div>
+                    </div>
                     {
                         selectedFeed &&
                         <Chat
@@ -320,7 +320,6 @@ const FeedPage: NextPage = () => {
                             showTransfer={() => showTransfer()}
                         />
                     }
-
                 </div>
 
 

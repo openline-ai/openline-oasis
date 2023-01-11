@@ -1,3 +1,12 @@
+/* Topbar */
+
+.openline-top-bar {
+    background: white;
+    color: inherit;
+}
+
+/* Buttons */
+
 .light-button {
     color: white;
     background: none;

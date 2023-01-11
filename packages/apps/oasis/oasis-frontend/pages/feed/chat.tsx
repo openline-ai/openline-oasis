@@ -135,7 +135,7 @@ export const Chat = (props: ChatProps) => {
         if (!loadingMessages) {
             const element = document.getElementById('chatWindowToScroll')
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth' })
+                element.scrollIntoView({ block: 'end', inline: 'nearest' }) // TODO: add separate behaviour for new messages that has a smooth scroll (behavior: 'smooth')
             }
         }
     }, [loadingMessages, messages])
@@ -198,7 +198,7 @@ export const Chat = (props: ChatProps) => {
     ]
 
     return (
-        <div className='flex flex-column w-full h-full'>
+        <div className='flex flex-column w-full overflow-y-hidden'>
             <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
                 {
                     loadingMessages &&
@@ -272,7 +272,7 @@ export const Chat = (props: ChatProps) => {
                                             (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                                             <div className="w-full flex">
                                                 <div className="flex-grow-1"></div>
-                                                <div className="flex-grow-0 mb-1 pr-3">Dummy user</div>
+                                                <div className="flex-grow-0 mb-1 pr-3">To be added</div>
                                             </div>
                                         }
 
@@ -302,9 +302,10 @@ export const Chat = (props: ChatProps) => {
                         })
                     }
                 </div>
-                <div id="chatWindowToScroll"></div>
+                <div id="chatWindowToScroll"></div> {/* TODO: This is the div that will be scrolled to smoothly on message send*/}
+                <div id="chatWindowToScrollOnLoad"></div> {/* TODO: This is the div that will be scrolled to instantly on page load*/}
             </div>
-            <div className="flex-grow-0 w-full p-3">
+            <div className="flex-grow-0 w-full p-3 pt-1">
 
                 <div className="w-full h-full bg-white py-2" style={{
                     border: 'solid 1px #E8E8E8',
@@ -363,13 +364,13 @@ export const Chat = (props: ChatProps) => {
                         {
                             callingAllowed() && !props.inCall &&
                             <div>
-                                <Button 
+                                <Button
                                     onClick={() => props.handleCall(contact)}
-                                    tooltip= {
+                                    tooltip={
                                         `Call (${contact.phoneNumber})`
                                     }
-                                    tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
-                                    className='p-button-text mx-2 p-2' 
+                                    tooltipOptions={{ position: 'top', showDelay: 200, hideDelay: 200 }}
+                                    className='p-button-text mx-2 p-2'
                                     style={{
                                         border: 'solid 1px #E8E8E8',
                                         borderRadius: '6px'
