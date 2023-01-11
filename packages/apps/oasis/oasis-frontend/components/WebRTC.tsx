@@ -151,6 +151,25 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._ua?.set("authorization_user", user);
         this._ua?.set("password", pass);
     }
+    holdCall() {
+        this._session?.hold();
+    }
+
+    unHoldCall() {
+        this._session?.unhold();
+    }
+
+    muteCall() {
+        this._session?.mute();
+    }
+
+    unMuteCall() {
+        this._session?.unmute();
+    }
+
+    sendDtmf(digit: string) {
+        this._session?.sendDTMF(digit);
+    }
 
     makeCall(destination: string) {
         var localScope = this;

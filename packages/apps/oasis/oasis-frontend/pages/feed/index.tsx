@@ -14,8 +14,13 @@ import {
     faPhone,
     faPhoneSlash,
     faRightLeft,
-    faUserSecret
+    faUserSecret,
+    faMicrophone,
+    faMicrophoneSlash,
+    faPause,
+    faPlay
 } from "@fortawesome/free-solid-svg-icons";
+
 import {OverlayPanel} from "primereact/overlaypanel";
 import {Menu} from "primereact/menu";
 import {InputText} from "primereact/inputtext";
@@ -117,6 +122,10 @@ const FeedPage: NextPage = () => {
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
+    const [onHold, setOnHold] = useState(false);
+    const [onMute, setOnMute] = useState(false);
+
+
 
     const handleCall = (contact: any) => {
         let user = '';
@@ -140,8 +149,49 @@ const FeedPage: NextPage = () => {
     const showTransfer = () => {
         webrtc.current?.showTransfer();
     }
-    //endregion
 
+    const toggleMute = () => {
+        if (onMute) {
+            webrtc.current?.unMuteCall();
+            setOnMute(false);
+        } else { 
+            webrtc.current?.muteCall();
+            setOnMute(true);
+        }
+    }
+
+    const toggleHold = () => {
+        if (onHold) {
+            webrtc.current?.unHoldCall();
+            setOnHold(false);
+        } else { 
+            webrtc.current?.holdCall();
+            setOnHold(true);
+        }
+    }
+    
+    //endregion
+    const makeButton = (number: string) => {
+    return <button className="btn btn-primary btn-lg m-1" key={number}
+    onClick={() => {webrtc.current?.sendDtmf(number)}}>{number}</button>
+    }
+
+    let dialpad_matrix = new Array(4)
+    for (let i = 0, digit = 1; i < 3; i++) {
+        dialpad_matrix[i] = new Array(3);
+        for (let j = 0; j < 3; j++, digit++) {
+            dialpad_matrix[i][j] =makeButton(digit.toString())
+        }
+    }
+    dialpad_matrix[3] = new Array(3);
+    dialpad_matrix[3][0] = makeButton("*")
+    dialpad_matrix[3][1] = makeButton("0")
+    dialpad_matrix[3][2] = makeButton("#")
+
+    let dialpad_rows = []
+    for(let i = 0; i < 4; i++) {
+        dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
+    }
     return (
         <>
             {
@@ -181,16 +231,28 @@ const FeedPage: NextPage = () => {
                                         onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
                                     <FontAwesomeIcon icon={faPhone} fontSize={'16px'}/>
                                 </Button>
+                                {
+                                    
+
+                                }
 
                                 <OverlayPanel ref={phoneContainerRef} dismissable>
 
                                     <div className='font-bold text-center'>In call with</div>
+                                    <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
+
                                     <div className='font-bold text-center mb-3'>{callFrom}</div>
 
-                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-3'>
-                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Close
+                                    <Button onClick={() => toggleMute()} className="mr-2">
+                                        <FontAwesomeIcon icon={onMute?faMicrophone:faMicrophoneSlash}  className="mr-2"/> {onMute?"Unmute":"Mute"}
                                     </Button>
-                                    <Button onClick={() => showTransfer()} className='p-button-success'>
+                                    <Button onClick={() => toggleHold()} className="mr-2">
+                                        <FontAwesomeIcon icon={onHold?faPlay:faPause}  className="mr-2"/> {onHold?"Release hold":"Hold"}
+                                    </Button>
+                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
+                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2"/> Hangup
+                                    </Button>
+                                    <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
                                         <FontAwesomeIcon icon={faRightLeft} className="mr-2"/> Transfer
                                     </Button>
 
