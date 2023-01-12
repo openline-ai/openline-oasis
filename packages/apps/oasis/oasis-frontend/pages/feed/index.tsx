@@ -140,11 +140,9 @@ const FeedPage: NextPage = () => {
             }
         }
         webrtc.current?.makeCall("sip:" + user);
-        setTopbarColor('#FFCCCB');
     }
     const hangupCall = () => {
         setInCall(false);
-        setTopbarColor('#FFFFFF')
         webrtc.current?.hangupCall();
 
     }
@@ -199,6 +197,14 @@ const FeedPage: NextPage = () => {
     function setTopbarColor(newColor: any) {
         document.documentElement.style.setProperty('--topbar-background', newColor);
     }
+
+    useEffect(() => {
+        if (inCall) {
+            setTopbarColor('#FFCCCB');
+        } else {
+            setTopbarColor('#FFFFFF');
+        }
+    }, [inCall]);
 
     return (
         <>
