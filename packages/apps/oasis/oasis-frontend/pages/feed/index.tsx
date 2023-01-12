@@ -235,7 +235,7 @@ const FeedPage: NextPage = () => {
                                 if (selectedFeed === f.id) {
                                     className += ' selected'
                                 }
-                                return <div key={f.email} className={className} onClick={() => {
+                                return <div key={f.id} className={className} onClick={() => {
                                     setSelectedFeed(f.id);
                                     //change the URL to allow a bookmark
                                     router.push(`/feed?id=${f.id}`, undefined, { shallow: true });
