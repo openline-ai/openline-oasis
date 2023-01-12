@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
-	"fmt"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
+	//"fmt"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	"log"
-	op "openline-ai/oasis-api/proto"
+	op "openline-ai/oasis-api/proto/generated"
 	"openline-ai/oasis-api/routes/FeedHub"
 	"openline-ai/oasis-api/routes/MessageHub"
 	"openline-ai/oasis-api/util"
-	"strconv"
+	//"strconv"
 )
 
 type OasisApiService struct {
@@ -41,10 +41,10 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 		return nil, err
 	}
 
-	time := MessageHub.Time{
-		Seconds: strconv.FormatInt(conversationItem.Time.Seconds, 10),
-		Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
-	}
+	//time := MessageHub.Time{
+	//	Seconds: strconv.FormatInt(conversationItem.Time.Seconds, 10),
+	//	Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
+	//}
 
 	log.Printf("Sending a feed of %v", conversationItem)
 	// Send a feed to hub
@@ -52,19 +52,20 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	s.fh.Broadcast <- messageFeed
 	log.Printf("successfully sent new feed for %v", messageFeed)
 
-	// Send a message to hub
-	messageItem := MessageHub.MessageItem{
-		Username:  *conversationItem.Username,
-		Id:        strconv.FormatInt(*conversationItem.Id, 10),
-		FeedId:    strconv.FormatInt(conversation.Id, 10),
-		Direction: conversationItem.Direction.String(),
-		Message:   conversationItem.Message,
-		Time:      time,
-		Channel:   conversationItem.Channel.String(),
-	}
-
-	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", *conversationItem.Username)
+	//TODO
+	//// Send a message to hub
+	//messageItem := MessageHub.MessageItem{
+	//	Username:  *conversationItem.Username,
+	//	Id:        strconv.FormatInt(*conversationItem.Id, 10),
+	//	FeedId:    strconv.FormatInt(conversation.Id, 10),
+	//	Direction: conversationItem.Direction.String(),
+	//	Message:   conversationItem.Message,
+	//	Time:      time,
+	//	Channel:   conversationItem.Channel.String(),
+	//}
+	//
+	//s.mh.Broadcast <- messageItem
+	//log.Printf("successfully sent new message for %s", *conversationItem.Username)
 	return &op.OasisEmpty{}, nil
 }
 

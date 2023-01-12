@@ -9,7 +9,7 @@ import (
 	"log"
 	"net"
 	c "openline-ai/oasis-api/config"
-	"openline-ai/oasis-api/proto"
+	proto "openline-ai/oasis-api/proto/generated"
 	"openline-ai/oasis-api/routes"
 	"openline-ai/oasis-api/routes/FeedHub"
 	"openline-ai/oasis-api/routes/MessageHub"

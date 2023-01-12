@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store/generated/proto"
+	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"

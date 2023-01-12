@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
