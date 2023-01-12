@@ -142,7 +142,6 @@ const FeedPage: NextPage = () => {
         webrtc.current?.makeCall("sip:" + user);
     }
     const hangupCall = () => {
-        setInCall(false);
         webrtc.current?.hangupCall();
 
     }
