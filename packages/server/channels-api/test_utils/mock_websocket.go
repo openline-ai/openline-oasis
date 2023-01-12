@@ -3,9 +3,9 @@ package test_utils
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"net/http/httptest"
 	"net/url"
-	"openline-ai/channels-api/routes/chatHub"
 	"testing"
 )
 

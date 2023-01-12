@@ -1,10 +1,14 @@
 package service
 
 import (
-	c "openline-ai/channels-api/config"
-	proto "openline-ai/channels-api/proto/generated"
-	"openline-ai/channels-api/routes/chatHub"
-	"openline-ai/channels-api/util"
+	"context"
+	"fmt"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	"log"
 )
 
 type sendMessageService struct {
@@ -14,51 +18,52 @@ type sendMessageService struct {
 	df   util.DialFactory
 }
 
-//func (s sendMessageService) SendMessageEvent(c context.Context, msgId *msProto.MessageId) (*msProto.EventEmpty, error) {
-//conn, err := s.df.GetMessageStoreCon()
-//if err != nil {
-//	log.Printf("Unable to connect to message store!")
-//	return nil, err
-//}
-//defer conn.Close()
-//client := msProto.NewMessageStoreServiceClient(conn)
-//
-//ctx := context.Background()
-//msg, err := client.GetMessage(ctx, &msProto.Id{Id: msgId.MessageId})
-//if err != nil {
-//	log.Printf("Unable to connect to retrieve message!")
-//	return nil, err
-//}
-//switch msg.Channel {
-//case msProto.MessageChannel_MAIL:
-//	mailErr := s.sendMail(msg)
-//	if mailErr != nil {
-//		return nil, mailErr
-//	}
-//	return &proto.EventEmpty{}, nil
-//case msProto.MessageChannel_WIDGET:
-//	webChatErr := s.sendWebChat(msg)
-//	if webChatErr != nil {
-//		return nil, webChatErr
-//	}
-//	return &proto.EventEmpty{}, nil
-//default:
-//	err := fmt.Errorf("unknown channel: %s", msg.Channel)
-//	return nil, err
-//}
-//}
+func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
+	conn, err := s.df.GetMessageStoreCon()
+	if err != nil {
+		log.Printf("Unable to connect to message store!")
+		return nil, err
+	}
+	defer conn.Close()
+	client := msProto.NewMessageStoreServiceClient(conn)
 
-//func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
-//	// Send a message to the hub
-//	messageItem := chatHub.MessageItem{
-//		Username: *msg.Username,
-//		Message:  msg.Message,
-//	}
-//
-//	s.mh.Broadcast <- messageItem
-//	log.Printf("successfully sent new message for %s", *msg.Username)
-//	return nil
-//}
+	ctx := context.Background()
+	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
+	if err != nil {
+		log.Printf("Unable to connect to retrieve message!")
+		return nil, err
+	}
+	switch msg.Type {
+	case msProto.MessageType_EMAIL:
+		//TODO
+		//mailErr := s.sendMail(msg)
+		//if mailErr != nil {
+		//	return nil, mailErr
+		//}
+		return &proto.EventEmpty{}, nil
+	case msProto.MessageType_WEB_CHAT:
+		webChatErr := s.sendWebChat(msg)
+		if webChatErr != nil {
+			return nil, webChatErr
+		}
+		return &proto.EventEmpty{}, nil
+	default:
+		err := fmt.Errorf("unknown channel: %s", msg.Type)
+		return nil, err
+	}
+}
+
+func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
+	// Send a message to the hub
+	messageItem := chatHub.MessageItem{
+		Username: msg.ConversationInitiatorUsername,
+		Message:  msg.Content,
+	}
+
+	s.mh.Broadcast <- messageItem
+	log.Printf("successfully sent new message for %s", msg.ConversationInitiatorUsername)
+	return nil
+}
 
 //func (s sendMessageService) sendMail(msg *msProto.Message) error {
 //

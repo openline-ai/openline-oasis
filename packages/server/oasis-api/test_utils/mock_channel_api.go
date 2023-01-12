@@ -2,9 +2,9 @@ package test_utils
 
 import (
 	"context"
+	chanProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	chanProto "openline-ai/channels-api/ent/proto"
 )
 
 type MockSendMessageService struct {

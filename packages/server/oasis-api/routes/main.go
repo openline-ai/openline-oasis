@@ -3,11 +3,11 @@ package routes
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"log"
-	c "openline-ai/oasis-api/config"
-	"openline-ai/oasis-api/routes/FeedHub"
-	"openline-ai/oasis-api/routes/MessageHub"
-	"openline-ai/oasis-api/util"
 	"strings"
 )
 

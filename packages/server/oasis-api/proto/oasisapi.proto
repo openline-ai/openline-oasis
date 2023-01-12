@@ -1,9 +1,10 @@
 syntax = "proto3";
-option go_package = "openline-ai/oasis-api/proto";
+
+option go_package = "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated";
 
 message NewMessage {
-  int64 conversationId = 1;
-  int64 conversationItemId = 2;
+  string conversationId = 1;
+  string conversationItemId = 2;
 }
 
 message OasisEmpty{

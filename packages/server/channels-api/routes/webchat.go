@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	o "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
-	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/util"
 )
 
 type WebchatMessage struct {
@@ -66,24 +67,13 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 
 		//Contact the server and print out its response.
 		message := &ms.WebChatInputMessage{
-			Type:       ms.MessageType_MESSAGE,
+			Type:       ms.MessageType_WEB_CHAT,
+			Subtype:    ms.MessageSubtype_MESSAGE,
 			Message:    &req.Message,
 			Direction:  ms.MessageDirection_INBOUND,
 			Email:      &req.Username,
 			SenderType: ms.SenderType_CONTACT,
 		}
-
-		//Set up a connection to the oasis-api server.
-		//oasisConn, oasisErr := df.GetOasisAPICon()
-		//if oasisErr != nil {
-		//	log.Printf("did not connect: %v", oasisErr)
-		//	c.JSON(http.StatusInternalServerError, gin.H{
-		//		"result": fmt.Sprintf("did not connect: %v", oasisErr.Error()),
-		//	})
-		//	return
-		//}
-		//defer oasisConn.Close()
-		//oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
 
 		//Store the message in message store
 		msConn := GetMessageStoreWeChatClient(c, df)
@@ -101,15 +91,17 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			})
 			return
 		}
+		log.Printf("message item created with id: %d", savedMessage.Id)
 
-		//TODO send message to oasis to notify the agents
-		//_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.NewMessage{ConversationId: *message.FeedId, ConversationItemId: *message.Id})
-		//if mEventErr != nil {
-		//	se, _ := status.FromError(mEventErr)
-		//	log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
-		//}
-
-		//log.Printf("message item created with id: %d", *message.Id)
+		//Set up a connection to the oasis-api server.
+		oasisConn := GetOasisClient(c, df)
+		defer closeOasisConnection(oasisConn)
+		oasisClient := o.NewOasisApiServiceClient(oasisConn)
+		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.Id})
+		if mEventErr != nil {
+			se, _ := status.FromError(mEventErr)
+			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
+		}
 
 		if conf.WebChat.SlackWebhookUrl != "" {
 			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.Email, message.Message)}
@@ -125,18 +117,36 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 }
 
 func GetMessageStoreWeChatClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
-	msConn, msErr := df.GetMessageStoreCon()
+	conn, msErr := df.GetMessageStoreCon()
 	if msErr != nil {
 		log.Printf("did not connect: %v", msErr)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
 		})
 	}
-	return msConn
+	return conn
 }
 
-func closeMessageStoreConnection(msConn *grpc.ClientConn) {
-	err := msConn.Close()
+func closeMessageStoreConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
+	if err != nil {
+		log.Printf("Error closing connection: %v", err)
+	}
+}
+
+func GetOasisClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
+	conn, msErr := df.GetOasisAPICon()
+	if msErr != nil {
+		log.Printf("did not connect: %v", msErr)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
+		})
+	}
+	return conn
+}
+
+func closeOasisConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
 	if err != nil {
 		log.Printf("Error closing connection: %v", err)
 	}

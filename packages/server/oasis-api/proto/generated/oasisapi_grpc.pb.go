@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: oasisapi.proto
 
-package proto
+package generated
 
 import (
 	context "context"

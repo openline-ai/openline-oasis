@@ -41,35 +41,22 @@ ul li {
     color: var(--background-color);
 }
 
-.bg-dark-1 {
+.border-dark-1 {
     border: solid 1px var(--gray-color-1);
 }
 
-.bg-dark-2 {
+.border-dark-2 {
     border: solid 1px var(--gray-color-2);
 }
 
-.bg-dark-3 {
+.border-dark-3 {
     border: solid 1px var(--gray-color-3);
 }
 
-.bg-dark-4 {
+.border-dark-4 {
     border: solid 1px var(--gray-color-4);
 }
 
-.bg-dark-5 {
+.border-dark-5 {
     border: solid 1px var(--gray-color-5);
-}
-
-.contact-hover {
-    border-radius: 10px;
-}
-
-.contact-hover.selected {
-    background: var(--background-color);
-}
-
-.contact-hover:hover {
-    cursor: pointer;
-    background: var(--background-color);
 }

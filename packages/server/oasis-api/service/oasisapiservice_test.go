@@ -1,7 +1,7 @@
 package service
 
 import (
-	"openline-ai/oasis-api/util"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 )
 
 var dft util.DialFactory

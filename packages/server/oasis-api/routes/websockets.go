@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	FeedHub "openline-ai/oasis-api/routes/FeedHub"
-	MessageHub "openline-ai/oasis-api/routes/MessageHub"
+	FeedHub "github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
+	MessageHub "github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 )
 
 var msgUpgrader = websocket.Upgrader{

@@ -3,10 +3,10 @@ package test_utils
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"net/http/httptest"
 	"net/url"
-	"openline-ai/oasis-api/routes/FeedHub"
-	"openline-ai/oasis-api/routes/MessageHub"
 	"testing"
 )
 

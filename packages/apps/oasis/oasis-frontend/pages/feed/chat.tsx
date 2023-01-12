@@ -13,12 +13,15 @@ import { gql, GraphQLClient } from "graphql-request";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Tooltip } from 'primereact/tooltip';
 import Moment from "react-moment";
+import {FeedItem} from "../../model/feed-item";
+import { toast } from "react-toastify";
+import {ConversationItem} from "../../model/conversation-item";
 
 interface ChatProps {
     feedId: string;
     inCall: boolean;
 
-    handleCall(contact: any): void;
+    handleCall(feedInitiator: any): void;
 
     hangupCall(): void;
 
@@ -34,17 +37,11 @@ export const Chat = (props: ChatProps) => {
         shouldReconnect: (closeEvent) => true,
     })
 
-    const [currentUser, setCurrentUser] = useState({
-        username: 'AgentSmith',
-        firstName: 'Agent',
-        lastName: 'Smith'
-    });
-
-    const [contact, setContact] = useState({
+    const [feedInitiator, setFeedInitiator] = useState({
+        email: '',
         firstName: '',
         lastName: '',
-        email: '',
-        phoneNumber: '',
+        phoneNumber: ''
     });
 
     function decodeChannel(channel: number) {
@@ -66,13 +63,13 @@ export const Chat = (props: ChatProps) => {
     }
 
     function callingAllowed() {
-        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && (contact.phoneNumber || contact.email == "echo@oasis.openline.ai");
+        return process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL && (feedInitiator.phoneNumber || feedInitiator.email == "echo@oasis.openline.ai");
     }
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
-    const [messages, setMessages] = useState([] as any);
+    const [messages, setMessages] = useState([] as ConversationItem[]);
     const { data: session, status } = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
@@ -84,44 +81,81 @@ export const Chat = (props: ChatProps) => {
 
             axios.get(`/oasis-api/feed/${props.feedId}`)
                 .then(res => {
-                    const query = gql`query GetContactDetails($id: ID!) {
-                    contact(id: $id) {
-                        id
-                        firstName
-                        lastName
-                        emails {
-                            email
-                        }
-                        phoneNumbers {
-                            e164
-                        }
-                    }
-                }`
+                    const feedItem = res.data as FeedItem;
 
-                    client.request(query, { id: res.data.contactId }).then((response: any) => {
-                        if (response.contact) {
-                            setContact({
-                                firstName: response.contact.firstName,
-                                lastName: response.contact.lastName,
-                                email: response.contact.emails[0]?.email ?? undefined,
-                                phoneNumber: response.contact.phoneNumbers[0]?.e164 ?? undefined
-                            });
-                        } else {
-                            //TODO error
-                        }
-                    }).catch(reason => {
-                        //TODO error
-                    });
+                    if (feedItem.senderType === 'CONTACT') {
+
+                        const query = gql`query GetContactDetails($id: ID!) {
+                            contact(id: $id) {
+                                id
+                                firstName
+                                lastName
+                                emails {
+                                    email
+                                }
+                                phoneNumbers {
+                                    e164
+                                }
+                            }
+                        }`
+
+                        client.request(query, { id: res.data.contactId }).then((response: any) => {
+                            if (response.contact) {
+                                setFeedInitiator({
+                                    firstName: response.contact.firstName,
+                                    lastName: response.contact.lastName,
+                                    email: response.contact.emails[0]?.email ?? undefined,
+                                    phoneNumber: response.contact.phoneNumbers[0]?.e164 ?? undefined
+                                });
+                            } else {
+                                //todo log on backend
+                                toast.error("There was a problem on our side and we are doing our best to solve it!");
+                            }
+                        }).catch(reason => {
+                            //todo log on backend
+                            toast.error("There was a problem on our side and we are doing our best to solve it!");
+                        });
+
+                    } else if (feedItem.senderType === 'USER') {
+
+                        const query = gql`query GetUserById {
+                            user(id: "${feedItem.senderId}") {
+                                id
+                                firstName
+                                lastName
+                            }
+                        }`
+
+                        client.request(query).then((response: any) => {
+                            if (response.user) {
+                                setFeedInitiator({
+                                    firstName: response.user.firstName,
+                                    lastName: response.user.lastName,
+                                    email: response.user.emails[0]?.email ?? undefined,
+                                    phoneNumber: response.user.phoneNumbers[0]?.e164 ?? undefined //TODO user doesn't have phone in backend
+                                });
+                            } else {
+                                //TODO log on backend
+                                toast.error("There was a problem on our side and we are doing our best to solve it!");
+                            }
+                        }).catch(reason => {
+                            //TODO log on backend
+                            toast.error("There was a problem on our side and we are doing our best to solve it!");
+                        });
+
+                    }
 
                 }).catch((reason: any) => {
-                    //TODO error
+                    //todo log on backend
+                    toast.error("There was a problem on our side and we are doing our best to solve it!");
                 });
 
             axios.get(`/oasis-api/feed/${props.feedId}/item`)
                 .then(res => {
                     setMessages(res.data ?? []);
                 }).catch((reason: any) => {
-                    //TODO error
+                //todo log on backend
+                toast.error("There was a problem on our side and we are doing our best to solve it!");
                 });
         }
     }, [props.feedId]);
@@ -153,22 +187,24 @@ export const Chat = (props: ChatProps) => {
     const handleSendMessage = () => {
         if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
-            source: 'WEB',
-            direction: 'OUTBOUND',
             channel: currentChannel,
-            username: contact.email,
+            username: session?.user?.email,
             message: currentText
         }).then(res => {
-            setMessages((messageList: any) => [...messageList, res.data]);
-            setCurrentText('');
+            console.log(res)
+            if(res.data) {
+                setMessages((messageList: any) => [...messageList, res.data]);
+                setCurrentText('');
+            }
         }).catch(reason => {
-            //TODO error
+            //todo log on backend
+            toast.error("There was a problem on our side and we are doing our best to solve it!");
         });
     };
 
     const handleWebsocketMessage = function (msg: any) {
         let newMsg = {
-            message: msg.message,
+            content: msg.message,
             username: msg.username,
             channel: 1,
             time: msg.time,
@@ -210,13 +246,13 @@ export const Chat = (props: ChatProps) => {
                 <div className="flex flex-column">
                     {
                         !loadingMessages &&
-                        messages.map((msg: any, index: any) => {
-                            let lines = msg.message.split('\n');
+                        messages.map((msg: ConversationItem, index: any) => {
+                            let lines = msg.content.split('\n');
 
                             let filtered: string[] = lines.filter(function (line: string) {
                                 return line.indexOf('>') != 0;
                             });
-                            msg.message = filtered.join('\n').trim();
+                            msg.content = filtered.join('\n').trim();
 
                             var t = new Date(1970, 0, 1);
                             t.setSeconds(msg.time.seconds);
@@ -229,12 +265,12 @@ export const Chat = (props: ChatProps) => {
                                             (index == 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                                             <div className="mb-1 pl-3">
                                                 {
-                                                    contact.firstName && contact.lastName &&
-                                                    <>{contact.firstName} {contact.lastName}</>
+                                                    feedInitiator.firstName && feedInitiator.lastName &&
+                                                    <>{feedInitiator.firstName} {feedInitiator.lastName}</>
                                                 }
                                                 {
-                                                    !contact.firstName && !contact.lastName &&
-                                                    <>{contact.email}</>
+                                                    !feedInitiator.firstName && !feedInitiator.lastName &&
+                                                    <>{feedInitiator.email}</>
                                                 }
                                             </div>
                                         }
@@ -245,7 +281,7 @@ export const Chat = (props: ChatProps) => {
                                                 borderRadius: '5px',
                                                 boxShadow: '0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0 1px 3px 0 rgb(0 0 0 / 12%)'
                                             }}>
-                                                <div className="flex">{msg.message}</div>
+                                                <div className="flex">{msg.content}</div>
                                                 <div className="flex align-content-end" style={{
                                                     width: '100%',
                                                     textAlign: 'right',
@@ -255,7 +291,7 @@ export const Chat = (props: ChatProps) => {
                                                 }}>
                                                     <span className="flex-grow-1"></span>
                                                     <span
-                                                        className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
+                                                        className="text-gray-600 mr-2">{decodeChannel(msg.type)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
                                                         format={'HH:mm'}></Moment>
                                                 </div>
@@ -280,7 +316,7 @@ export const Chat = (props: ChatProps) => {
                                             <div className="flex-grow-1"></div>
                                             <div className="flex-grow-0 flex-column p-3"
                                                 style={{ background: '#C5EDCE', borderRadius: '5px' }}>
-                                                <div className="flex">{msg.message}</div>
+                                                <div className="flex">{msg.content}</div>
                                                 <div className="flex align-content-end" style={{
                                                     width: '100%',
                                                     textAlign: 'right',
@@ -290,7 +326,7 @@ export const Chat = (props: ChatProps) => {
                                                 }}>
                                                     <span className="flex-grow-1"></span>
                                                     <span
-                                                        className="text-gray-600 mr-2">{decodeChannel(msg.channel)}</span>
+                                                        className="text-gray-600 mr-2">{decodeChannel(msg.type)}</span>
                                                     <Moment className="text-sm text-gray-600" date={t}
                                                         format={'HH:mm'}></Moment>
                                                 </div>
@@ -320,8 +356,8 @@ export const Chat = (props: ChatProps) => {
                             autoResize
                             rows={1}
                             placeholder={
-                                contact.firstName &&
-                                `Message ${contact.firstName}...`
+                                    feedInitiator.firstName &&
+                                `Message ${feedInitiator.firstName}...`
                             }
                             onKeyPress={(e) => {
                                 if (e.shiftKey && e.key === "Enter") {
@@ -365,9 +401,9 @@ export const Chat = (props: ChatProps) => {
                             callingAllowed() && !props.inCall &&
                             <div>
                                 <Button
-                                    onClick={() => props.handleCall(contact)}
+                                    onClick={() => props.handleCall(feedInitiator)}
                                     tooltip={
-                                        `Call (${contact.phoneNumber})`
+                                        `Call (${feedInitiator.phoneNumber})`
                                     }
                                     tooltipOptions={{ position: 'top', showDelay: 200, hideDelay: 200 }}
                                     className='p-button-text mx-2 p-2'

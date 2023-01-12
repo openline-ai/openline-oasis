@@ -27,13 +27,15 @@ import { InputText } from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/WebRTC";
+import {FeedItem} from "../../model/feed-item";
+import {ToastContainer} from "react-toastify";
 
 
 const FeedPage: NextPage = () => {
     const router = useRouter()
     const { id } = router.query;
 
-    const [feeds, setFeeds] = useState([] as any)
+    const [feeds, setFeeds] = useState([] as FeedItem[]);
     const [selectedFeed, setSelectedFeed] = useState(id as string);
 
     const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
@@ -125,14 +127,12 @@ const FeedPage: NextPage = () => {
     const [onHold, setOnHold] = useState(false);
     const [onMute, setOnMute] = useState(false);
 
-
-
-    const handleCall = (contact: any) => {
+    const handleCall = (feedInitiator: any) => {
         let user = '';
-        if (contact.phoneNumber) {
-            user = contact.phoneNumber + "@oasis.openline.ai";
+        if (feedInitiator.phoneNumber) {
+            user = feedInitiator.phoneNumber + "@oasis.openline.ai";
         } else {
-            user = contact.email;
+            user = feedInitiator.email;
             const regex = /.*<(.*)>/;
             const matches = user.match(regex);
             if (matches) {
@@ -206,20 +206,23 @@ const FeedPage: NextPage = () => {
     }, [inCall]);
 
     return (
-        <>
-            {
-                process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                <WebRTC
-                    ref={webrtc}
-                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                    from={"sip:" + session?.user?.email}
-                    notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
-                    updateCallState={(state: boolean) => setInCall(state)}
-                    autoStart={false}
-                />
-            }
-
             <div className="flex w-full h-full">
+                <ToastContainer position="top-center"
+                                autoClose={3000}
+                                closeOnClick={true}
+                                hideProgressBar={true}
+                                theme="colored"/>
+                {
+                        process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                        <WebRTC
+                                ref={webrtc}
+                                websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                                from={"sip:" + session?.user?.email}
+                                notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
+                                updateCallState={(state: boolean) => setInCall(state)}
+                                autoStart={false}
+                        />
+                }
 
                 <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
                     style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
@@ -328,7 +331,7 @@ const FeedPage: NextPage = () => {
                         <Chat
                             feedId={selectedFeed}
                             inCall={inCall}
-                            handleCall={(contact: any) => handleCall(contact)}
+                            handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
                             hangupCall={() => hangupCall()}
                             showTransfer={() => showTransfer()}
                         />
@@ -337,8 +340,6 @@ const FeedPage: NextPage = () => {
 
 
             </div>
-
-        </>
     );
 }
 

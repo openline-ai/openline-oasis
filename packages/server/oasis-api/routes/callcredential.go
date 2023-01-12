@@ -3,9 +3,9 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"net/http"
-	c "openline-ai/oasis-api/config"
-	"openline-ai/oasis-api/util"
 	"time"
 )
 
