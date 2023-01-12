@@ -9,5 +9,5 @@ message EventEmpty {
 }
 
 service MessageEventService {
-  rpc sendMessageEvent(MessageId) returns (EventEmpty) {};
+//  rpc sendMessageEvent(MessageId) returns (EventEmpty) {};
 }

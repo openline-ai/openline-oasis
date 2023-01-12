@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
-	chanProto "openline-ai/channels-api/ent/proto"
+	//chanProto "openline-ai/channels-api/ent/proto"
 	"openline-ai/oasis-api/util"
 
 	c "openline-ai/oasis-api/config"
@@ -114,83 +114,83 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 		c.JSON(http.StatusOK, messages.GetMessage())
 	})
-	rg.POST("/feed/:id/item", func(c *gin.Context) {
-		var feedId FeedID
-		var req FeedPostRequest
-
-		if err := c.ShouldBindUri(&feedId); err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-
-		if err := c.BindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-
-		//Set up a connection to the server.
-		conn, err := df.GetMessageStoreCon()
-		if err != nil {
-			log.Printf("did not connect: %v", err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", err.Error()),
-			})
-			return
-		}
-		defer conn.Close()
-		client := msProto.NewMessageStoreServiceClient(conn)
-
-		request := msProto.Id{Id: feedId.ID}
-		feed, err := client.GetFeed(context.Background(), &request)
-		log.Printf("Got the feed!")
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-
-		userId := "AgentSmith"
-
-		message := &msProto.Message{
-			UserId:    &userId,
-			Username:  &feed.ContactEmail,
-			Message:   req.Message,
-			Direction: msProto.MessageDirection_OUTBOUND,
-			Type:      msProto.MessageType_MESSAGE,
-			ContactId: &feed.ContactId,
-		}
-		if req.Channel == "CHAT" {
-			message.Channel = msProto.MessageChannel_WIDGET
-		} else {
-			message.Channel = msProto.MessageChannel_MAIL
-		}
-
-		ctx := context.Background()
-		newMsg, err := client.SaveMessage(ctx, message)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			//return
-		}
-
-		// inform the channel api a new message
-		conn, err = df.GetChannelsAPICon()
-		if err != nil {
-			log.Printf("did not connect: %v", err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect to channel api: %v", err.Error()),
-			})
-			return
-		}
-		defer conn.Close()
-		channelClient := chanProto.NewMessageEventServiceClient(conn)
-
-		ctx = context.Background()
-
-		_, err = channelClient.SendMessageEvent(ctx, &chanProto.MessageId{MessageId: newMsg.GetId()})
-		if err != nil {
-			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
-			return
-		}
-
-		c.JSON(http.StatusOK, newMsg)
-	})
+	//rg.POST("/feed/:id/item", func(c *gin.Context) {
+	//	var feedId FeedID
+	//	var req FeedPostRequest
+	//
+	//	if err := c.ShouldBindUri(&feedId); err != nil {
+	//		c.JSON(400, gin.H{"msg": err.Error()})
+	//		return
+	//	}
+	//
+	//	if err := c.BindJSON(&req); err != nil {
+	//		c.JSON(400, gin.H{"msg": err.Error()})
+	//		return
+	//	}
+	//
+	//	//Set up a connection to the server.
+	//	conn, err := df.GetMessageStoreCon()
+	//	if err != nil {
+	//		log.Printf("did not connect: %v", err.Error())
+	//		c.JSON(http.StatusInternalServerError, gin.H{
+	//			"result": fmt.Sprintf("did not connect: %v", err.Error()),
+	//		})
+	//		return
+	//	}
+	//	defer conn.Close()
+	//	client := msProto.NewMessageStoreServiceClient(conn)
+	//
+	//	request := msProto.Id{Id: feedId.ID}
+	//	feed, err := client.GetFeed(context.Background(), &request)
+	//	log.Printf("Got the feed!")
+	//	if err != nil {
+	//		c.JSON(400, gin.H{"msg": err.Error()})
+	//		return
+	//	}
+	//
+	//	userId := "AgentSmith"
+	//
+	//	message := &msProto.Message{
+	//		UserId:    &userId,
+	//		Username:  &feed.ContactEmail,
+	//		Message:   req.Message,
+	//		Direction: msProto.MessageDirection_OUTBOUND,
+	//		Type:      msProto.MessageType_MESSAGE,
+	//		ContactId: &feed.ContactId,
+	//	}
+	//	if req.Channel == "CHAT" {
+	//		message.Channel = msProto.MessageChannel_WIDGET
+	//	} else {
+	//		message.Channel = msProto.MessageChannel_MAIL
+	//	}
+	//
+	//	ctx := context.Background()
+	//	newMsg, err := client.SaveMessage(ctx, message)
+	//	if err != nil {
+	//		c.JSON(400, gin.H{"msg": err.Error()})
+	//		//return
+	//	}
+	//
+	//	// inform the channel api a new message
+	//	conn, err = df.GetChannelsAPICon()
+	//	if err != nil {
+	//		log.Printf("did not connect: %v", err.Error())
+	//		c.JSON(http.StatusInternalServerError, gin.H{
+	//			"result": fmt.Sprintf("did not connect to channel api: %v", err.Error()),
+	//		})
+	//		return
+	//	}
+	//	defer conn.Close()
+	//	channelClient := chanProto.NewMessageEventServiceClient(conn)
+	//
+	//	ctx = context.Background()
+	//
+	//	_, err = channelClient.SendMessageEvent(ctx, &chanProto.MessageId{MessageId: newMsg.GetId()})
+	//	if err != nil {
+	//		c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
+	//		return
+	//	}
+	//
+	//	c.JSON(http.StatusOK, newMsg)
+	//})
 }

@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/ent/proto"
+	proto "openline-ai/channels-api/proto/generated"
 	"openline-ai/channels-api/routes"
 	"openline-ai/channels-api/routes/chatHub"
 	"openline-ai/channels-api/service"
