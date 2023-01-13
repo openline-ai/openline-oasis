@@ -1,11 +1,17 @@
-name: Build Oasis API
+name: Build and Publish Channels API
 
 on:
-  pull_request
+  push:
+    branches: [ "otter" ]
+    paths:
+      - 'packages/server/channels-api/**'
+      - '.github/workflows/build-channels-api.yml'
+  release:
+    types: [created, edited]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/oasis-api
+  IMAGE_NAME: ${{ github.repository }}/channels-api
 
 permissions:
   contents: read
@@ -24,11 +30,11 @@ jobs:
           go-version: 1.19
 
       - name: Build
-        working-directory: ./packages/server/oasis-api
-        run: make build
+        working-directory: ./packages/server/channels-api
+        run: make all
 
       - name: Test
-        working-directory: ./packages/server/oasis-api
+        working-directory: ./packages/server/channels-api
         run: |
               go install gotest.tools/gotestsum@latest
               gotestsum --junitfile unit-tests.xml -- -coverprofile=cover.out ./...
@@ -36,13 +42,13 @@ jobs:
         uses: mikepenz/action-junit-report@v3
         if: success() || failure()    # run this step even if previous step failed
         with:
-          report_paths: packages/server/oasis-api/unit-tests.xml    # Path to test results
+          report_paths: packages/server/channels-api/unit-tests.xml    # Path to test results
           include_passed: true
           annotate_only: true
           detailed_summary: true
 
       - name: Compute Code Coverage
-        working-directory: ./packages/server/oasis-api
+        working-directory: ./packages/server/channels-api
         run: | 
              echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
              echo "|Filename|Function|Coverage|" >> $GITHUB_STEP_SUMMARY
@@ -62,11 +68,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build docker image ( no push )
+      - name: Push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: ./packages/server/
-          file: ./packages/server/oasis-api/Dockerfile
-          push: ${{ github.event_name == 'DO_NOT_PUSH' }}
+          file: ./packages/server/channels-api/Dockerfile
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
