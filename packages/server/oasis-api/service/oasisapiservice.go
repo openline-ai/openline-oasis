@@ -48,11 +48,9 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 		Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
 	}
 
-	//TODO
-	//log.Printf("Sending a feed of %v", conversationItem)
-	//messageFeed := FeedHub.MessageFeed{FirstName: conversation.ContactFirstName, LastName: conversation.ContactLastName, ContactId: conversation.ContactId}
-	//s.fh.Broadcast <- messageFeed
-	//log.Printf("successfully sent new feed for %v", messageFeed)
+	reloadFeed := FeedHub.ReloadFeed{}
+	s.fh.Broadcast <- reloadFeed
+	log.Printf("successfully sent new feed for %v", reloadFeed)
 
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{

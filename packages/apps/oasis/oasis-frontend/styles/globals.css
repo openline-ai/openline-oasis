@@ -60,3 +60,16 @@ ul li {
 .border-dark-5 {
     border: solid 1px var(--gray-color-5);
 }
+
+.contact-hover {
+    border-radius: 10px;
+}
+
+.contact-hover.selected {
+    background: var(--background-color);
+}
+
+.contact-hover:hover {
+    cursor: pointer;
+    background: var(--background-color);
+}

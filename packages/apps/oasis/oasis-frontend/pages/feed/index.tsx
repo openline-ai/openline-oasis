@@ -59,9 +59,6 @@ const FeedPage: NextPage = () => {
         console.log("Reloading feed!");
         axios.get(`/oasis-api/feed`)
             .then(res => {
-                res.data?.feedItems?.forEach((f: any) => {
-                    f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
-                });
                 setFeeds(res.data?.feedItems ?? []);
                 if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
                     setSelectedFeed(res.data.feedItems[0].id);
@@ -89,12 +86,6 @@ const FeedPage: NextPage = () => {
             }
         }
     ];
-
-    const toDateTime = function (secs: any) {
-        var t = new Date(1970, 0, 1);
-        t.setSeconds(secs);
-        return t;
-    }
 
     // region WebRTC
     const phoneContainerRef = useRef<OverlayPanel>(null);
@@ -231,55 +222,59 @@ const FeedPage: NextPage = () => {
                     <InputText placeholder={'Search'} className='w-full' />
                 </div>
 
-                <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
-                    {
-                        feeds.map((f: any) => {
-                            let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
-                            if (selectedFeed === f.id) {
-                                className += ' selected'
-                            }
-                            return <div key={f.id} className={className} onClick={() => {
-                                setSelectedFeed(f.id);
-                                //change the URL to allow a bookmark
-                                router.push(`/feed?id=${f.id}`, undefined, { shallow: true });
-                            }
-                            }>
-                                <div className='flex flex-column flex-grow-1 mr-3' style={{ minWidth: '0' }}>
-                                    <div className='mb-2'>
-                                        {
-                                            f.contactFirstName &&
-                                            f.contactFirstName + ' ' + f.contactLastName}
-                                        {
-                                            !f.contactFirstName &&
-                                            f.contactEmail
-                                        }
-                                    </div>
-                                    <div className='text-500' style={{
-                                        fontSize: '12px',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden"
-                                    }}>
-                                        {f.message}
-                                    </div>
-                                </div>
+                    <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
+                        {
+                            feeds.map((f: FeedItem) => {
+                                let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
+                                if (selectedFeed === f.id) {
+                                    className += ' selected'
+                                }
 
-                                <div className='flex flex-column text-right'>
-                                    <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                        format='MMM D, YYYY' />
-                                    <Moment className="text-sm text-gray-600 mt-1" date={f.updatedOn.dateTime}
-                                        format='HH:mma' />
+                                var t = new Date(1970, 0, 1);
+                                t.setSeconds(f.lastTimestamp.seconds);
+
+                                return <div key={f.id} className={className} onClick={() => {
+                                    setSelectedFeed(f.id);
+                                    //change the URL to allow a bookmark
+                                    router.push(`/feed?id=${f.id}`, undefined, { shallow: true });
+                                }
+                                }>
+                                    <div className='flex flex-column flex-grow-1 mr-3' style={{ minWidth: '0' }}>
+                                        <div className='mb-2'>
+                                            {
+                                                f.initiatorFirstName &&
+                                                f.initiatorFirstName + ' ' + f.initiatorLastName}
+                                            {
+                                                !f.initiatorFirstName &&
+                                                f.initiatorUsername
+                                            }
+                                        </div>
+                                        <div className='text-500' style={{
+                                            fontSize: '12px',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden"
+                                        }}>
+                                            {f.lastContentPreview}
+                                        </div>
+                                    </div>
+
+                                    <div className='flex flex-column text-right'>
+                                        <Moment className="text-sm text-gray-600" date={t}
+                                            format={'MMM D, YYYY'}></Moment>
+                                        <Moment className="text-sm text-gray-600" date={t}
+                                            format={'HH:mma'}></Moment>
+                                    </div>
                                 </div>
-                            </div>
-                        })
-                    }
-                </div>
+                            })
+                        }
+                    </div>
 
             </div>
 
-            <div className='flex w-full flex-column'>
-                <div className='openline-top-bar'>
-                    <div className="flex align-items-center justify-content-end">
+                <div className='flex h-full w-full flex-column'>
+                    <div className='openline-top-bar'>
+                        <div className="flex align-items-center justify-content-end">
 
                         {
                             inCall &&

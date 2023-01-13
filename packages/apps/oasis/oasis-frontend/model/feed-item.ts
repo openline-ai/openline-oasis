@@ -1,12 +1,13 @@
+import {Time} from "./time";
+
 export type FeedItem = {
     id: string;
-    senderId: string;
-    senderType: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    email: string;
-    phone: string;
-    preview: string;
-    updatedOn: string;
+    initiatorFirstName: string;
+    initiatorLastName: string;
+    initiatorUsername: string;
+    initiatorType: string;
+    lastSenderFirstName: string;
+    lastSenderLastName: string;
+    lastContentPreview: string;
+    lastTimestamp: Time;
 }

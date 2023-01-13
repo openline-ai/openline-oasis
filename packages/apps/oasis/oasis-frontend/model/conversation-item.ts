@@ -1,3 +1,5 @@
+import {Time} from "./time";
+
 export type ConversationItem = {
     id:             string,
     conversationId: string,
@@ -8,8 +10,4 @@ export type ConversationItem = {
     time:           Time,
     senderType:     number,
     senderId:       string,
-}
-
-export type Time = {
-    seconds: number,
 }
