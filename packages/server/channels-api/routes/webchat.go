@@ -91,7 +91,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			})
 			return
 		}
-		log.Printf("message item created with id: %d", savedMessage.Id)
+		log.Printf("message item created with id: %s", savedMessage.Id)
 
 		//Set up a connection to the oasis-api server.
 		oasisConn := GetOasisClient(c, df)
