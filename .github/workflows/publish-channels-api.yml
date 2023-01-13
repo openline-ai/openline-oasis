@@ -1,7 +1,14 @@
 name: Build Oasis Channels API
 
 on:
-  push
+  push:
+    branches: [ "otter" ]
+    paths:
+      - 'packages/server/channels-api/**'
+      - '.github/workflows/build-channels-api.yml'
+  pull_request:
+  release:
+    types: [created, edited]
 
 env:
   REGISTRY: ghcr.io
@@ -22,6 +29,23 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.19
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Oasis api
+        working-directory: ./packages/server/oasis-api
+        run: make all
+
+      - name: Generate Oasis api
+        working-directory: ./packages/server/oasis-api
+        run: make generate
+        
+      - name: Install
+        working-directory: ./packages/server/channels-api
+        run: make install
 
       - name: Build
         working-directory: ./packages/server/channels-api
@@ -47,6 +71,18 @@ jobs:
              echo "|--------|--------|--------|" >> $GITHUB_STEP_SUMMARY
              go tool cover -func=cover.out |sed -r  's/[[:space:]]+/|/g'|sed -r 's/$/|/g'|sed -r 's/^/|/g' >> $GITHUB_STEP_SUMMARY
 
+  publish:
+    name: publish image
+    needs:
+      - build
+
+    if: github.ref_name == 'otter' || github.event_name == 'release' 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
@@ -65,6 +101,6 @@ jobs:
         with:
           context: ./packages/server/
           file: ./packages/server/channels-api/Dockerfile
-          push: ${{ github.event_name == 'DO_NOT_PUSH' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
