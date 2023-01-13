@@ -6,7 +6,6 @@ on:
     paths:
       - 'packages/server/oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
-  pull_request:
   release:
     types: [created, edited]
 
