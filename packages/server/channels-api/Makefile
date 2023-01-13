@@ -4,6 +4,6 @@ clean:
 	rm -rf bin
 
 build:
-	go build -v -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -o bin/channels-api
+	go build -v -o bin/channels-api
 
 all: clean build
