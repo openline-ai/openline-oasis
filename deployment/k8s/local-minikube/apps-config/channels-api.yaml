@@ -41,7 +41,7 @@ spec:
             - name: MAIL_API_KEY
               value: "nobody-will-guess-this-api-key"
             - name: CHANNELS_API_CORS_URL
-              value: "http://localhost:3000"
+              value: "http://localhost:3000 http://localhost:3001"
             - name: WEBCHAT_API_KEY
               value: "nobody-will-guess-this-api-key"
             - name: WEBSOCKET_PING_INTERVAL

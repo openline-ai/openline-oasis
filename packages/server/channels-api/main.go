@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/service"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/ent/proto"
-	"openline-ai/channels-api/routes"
-	"openline-ai/channels-api/routes/chatHub"
-	"openline-ai/channels-api/service"
-	"openline-ai/channels-api/util"
 )
 
 func main() {

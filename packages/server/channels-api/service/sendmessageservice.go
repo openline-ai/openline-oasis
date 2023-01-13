@@ -3,13 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
-	mail "github.com/xhit/go-simple-mail/v2"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	"log"
-	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/ent/proto"
-	"openline-ai/channels-api/routes/chatHub"
-	"openline-ai/channels-api/util"
 )
 
 type sendMessageService struct {
@@ -29,26 +28,27 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	client := msProto.NewMessageStoreServiceClient(conn)
 
 	ctx := context.Background()
-	msg, err := client.GetMessage(ctx, &msProto.Id{Id: msgId.MessageId})
+	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")
 		return nil, err
 	}
-	switch msg.Channel {
-	case msProto.MessageChannel_MAIL:
-		mailErr := s.sendMail(msg)
-		if mailErr != nil {
-			return nil, mailErr
-		}
+	switch msg.Type {
+	case msProto.MessageType_EMAIL:
+		//TODO
+		//mailErr := s.sendMail(msg)
+		//if mailErr != nil {
+		//	return nil, mailErr
+		//}
 		return &proto.EventEmpty{}, nil
-	case msProto.MessageChannel_WIDGET:
+	case msProto.MessageType_WEB_CHAT:
 		webChatErr := s.sendWebChat(msg)
 		if webChatErr != nil {
 			return nil, webChatErr
 		}
 		return &proto.EventEmpty{}, nil
 	default:
-		err := fmt.Errorf("unknown channel: %s", msg.Channel)
+		err := fmt.Errorf("unknown channel: %s", msg.Type)
 		return nil, err
 	}
 }
@@ -56,39 +56,39 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the hub
 	messageItem := chatHub.MessageItem{
-		Username: *msg.Username,
-		Message:  msg.Message,
+		Username: msg.ConversationInitiatorUsername,
+		Message:  msg.Content,
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", *msg.Username)
+	log.Printf("successfully sent new message for %s", msg.ConversationInitiatorUsername)
 	return nil
 }
 
-func (s sendMessageService) sendMail(msg *msProto.Message) error {
-
-	smtpClient, err := s.df.GetSMTPClientCon()
-	if err != nil {
-		log.Printf("Unable to connect to mail server! %v", err)
-		return err
-	}
-
-	// Create email
-	email := mail.NewMSG()
-	email.SetFrom(s.conf.Mail.SMTPFromUser)
-	email.AddTo(msg.GetUsername())
-	email.SetSubject("Hello") //TODO
-
-	email.SetBody(mail.TextPlain, msg.GetMessage())
-
-	err = email.Send(smtpClient)
-	if err != nil {
-		log.Printf("Unable to send to mail server!")
-		return err
-	}
-	log.Printf("Email successfully sent to %s", msg.GetUsername())
-	return nil
-}
+//func (s sendMessageService) sendMail(msg *msProto.Message) error {
+//
+//	smtpClient, err := s.df.GetSMTPClientCon()
+//	if err != nil {
+//		log.Printf("Unable to connect to mail server! %v", err)
+//		return err
+//	}
+//
+//	// Create email
+//	email := mail.NewMSG()
+//	email.SetFrom(s.conf.Mail.SMTPFromUser)
+//	email.AddTo(msg.GetUsername())
+//	email.SetSubject("Hello") //TODO
+//
+//	email.SetBody(mail.TextPlain, msg.GetMessage())
+//
+//	err = email.Send(smtpClient)
+//	if err != nil {
+//		log.Printf("Unable to send to mail server!")
+//		return err
+//	}
+//	log.Printf("Email successfully sent to %s", msg.GetUsername())
+//	return nil
+//}
 
 func NewSendMessageService(c *c.Config, df util.DialFactory, mh *chatHub.Hub) *sendMessageService {
 	ms := new(sendMessageService)

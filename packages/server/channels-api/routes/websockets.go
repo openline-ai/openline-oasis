@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"openline-ai/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 )
 
 type Message struct {

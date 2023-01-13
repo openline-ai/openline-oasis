@@ -7,7 +7,6 @@
     --gray-color-4: #acabab;
     --gray-color-5: #999999;
     --background-color: #F6F5F9;
-    --topbar-background: #FFFFFF;
 
     --dark-color-1: #313044;
 }
@@ -41,45 +40,28 @@ body {
 }
 
 .p-button-text:enabled:hover {
-    background: var(--gray-color-2) !important;
-}
-
-.p-button:enabled:active {
-    background: var(--gray-color-2) !important;
+    background: var(--gray-color-1) !important;
 }
 
 .p-button-label {
     font-weight: normal;
 }
 
-.p-splitbutton.p-button-text > .p-button:enabled:hover, .p-splitbutton.p-button-text > .p-button:not(button):not(a):not(.p-disabled):hover {
-    background: inherit;
-    color: inherit;
-}
-
-.p-splitbutton.p-button-text > .p-button {
-    color: inherit;
-}
-
-.p-button.p-button-icon-only {
-    padding: inherit;
-}
-
 /*Inputs*/
 .p-inputtext {
     border: solid 1px var(--gray-color-1);
     border-radius: 3px;
-    padding: 8px;
+    padding: 5px;
 }
 
 .p-inputtext:enabled:hover, .p-dropdown:not(.p-disabled):hover {
     border-color: var(--gray-color-5);
 }
 
-/* .p-inputtext:enabled:focus, .p-dropdown:not(.p-disabled).p-focus {
+.p-inputtext:enabled:focus, .p-dropdown:not(.p-disabled).p-focus {
     border-color: initial;
-    box-shadow: 0 1px 1px rgb(0 0 0 / 8%), 0 0 3px var(--gray-color-5);
-} */
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 8%), 0 0 3px var(--gray-color-5);
+}
 
 .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
     font-weight: bold;
@@ -90,18 +72,17 @@ body {
 .p-checkbox .p-checkbox-box.p-highlight {
     background: var(--dark-color-1);
     color: white;
-    border: none;
+    border:none;
 }
 
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-highlight:hover {
     border-color: var(--gray-color-5);
-    background: var(--dark-color-1);
+    background:  var(--dark-color-1);
     box-shadow: none;
 }
-
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:hover,
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus,
-.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible {
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible{
     border-color: var(--gray-color-5);
     outline-color: var(--dark-color-1);
     box-shadow: none;
@@ -140,4 +121,25 @@ body {
 .p-breadcrumb {
     background: transparent;
     border: none;
+}
+
+.p-tabview .p-tabview-panels {
+    background: transparent;
+    padding: 0px;
+}
+.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav{
+    background: transparent;
+}
+.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav .p-tabview-nav-link{
+    background: transparent;
+}
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    color:black;
+    border-color: var(--gray-color-5);
+}
+.p-tabview .p-tabview-nav .p-tabview-ink-bar {
+    background-color: var(--dark-color-1);
+}
+.p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus {
+    box-shadow: none;
 }

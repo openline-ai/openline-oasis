@@ -3,13 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
-	"log"
-	op "openline-ai/oasis-api/proto"
-	"openline-ai/oasis-api/routes/FeedHub"
-	"openline-ai/oasis-api/routes/MessageHub"
-	"openline-ai/oasis-api/util"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	"strconv"
+
+	op "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
+	"log"
+	//"strconv"
 )
 
 type OasisApiService struct {
@@ -29,13 +31,13 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	client := msProto.NewMessageStoreServiceClient(conn)
 
 	ctx := context.Background()
-	conversation, err := client.GetFeed(ctx, &msProto.Id{Id: newMessage.GetConversationId()})
+	conversation, err := client.GetFeed(ctx, &msProto.FeedId{Id: newMessage.GetConversationId()})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve the conversation!")
 		return nil, err
 	}
 
-	conversationItem, err := client.GetMessage(ctx, &msProto.Id{Id: newMessage.GetConversationItemId()})
+	conversationItem, err := client.GetMessage(ctx, &msProto.MessageId{Id: newMessage.GetConversationItemId()})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve conversation item!")
 		return nil, err
@@ -46,25 +48,23 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 		Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
 	}
 
-	log.Printf("Sending a feed of %v", conversationItem)
-	// Send a feed to hub
-	messageFeed := FeedHub.MessageFeed{FirstName: conversation.ContactFirstName, LastName: conversation.ContactLastName, ContactId: conversation.ContactId}
-	s.fh.Broadcast <- messageFeed
-	log.Printf("successfully sent new feed for %v", messageFeed)
+	reloadFeed := FeedHub.ReloadFeed{}
+	s.fh.Broadcast <- reloadFeed
+	log.Printf("successfully sent new feed for %v", reloadFeed)
 
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{
-		Username:  *conversationItem.Username,
-		Id:        strconv.FormatInt(*conversationItem.Id, 10),
-		FeedId:    strconv.FormatInt(conversation.Id, 10),
+		Username:  conversationItem.SenderUsername,
+		Id:        conversationItem.Id,
+		FeedId:    conversation.Id,
 		Direction: conversationItem.Direction.String(),
-		Message:   conversationItem.Message,
+		Message:   conversationItem.Content,
 		Time:      time,
-		Channel:   conversationItem.Channel.String(),
+		Channel:   "1", //TODO
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", *conversationItem.Username)
+	log.Printf("successfully sent new message for %s", conversationItem.SenderUsername)
 	return &op.OasisEmpty{}, nil
 }
 

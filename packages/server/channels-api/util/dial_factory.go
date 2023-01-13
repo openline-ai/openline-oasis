@@ -1,10 +1,10 @@
 package util
 
 import (
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"google.golang.org/grpc"
 	"log"
-	"openline-ai/channels-api/config"
 	"time"
 )
 

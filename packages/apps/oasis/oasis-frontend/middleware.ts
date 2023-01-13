@@ -16,7 +16,7 @@ export default withAuth(function middleware(request: NextRequestWithAuth) {
             newURL = newURL + "?" + request.nextUrl.searchParams.toString()
         }
         console.log("Rewriting url to " + newURL);
-        console.log("middleware: " + JSON.stringify(request.nextauth.token));
+        console.log("middleware: " + JSON.stringify(request.nextauth));
 
         const requestHeaders = new Headers(request.headers);
 
@@ -24,6 +24,7 @@ export default withAuth(function middleware(request: NextRequestWithAuth) {
             requestHeaders.set('X-Openline-API-KEY', process.env.OASIS_API_KEY as string)
         } else if (request.nextUrl.pathname.startsWith('/customer-os-api')) {
             requestHeaders.set('X-Openline-API-KEY', process.env.CUSTOMER_OS_API_KEY as string)
+            requestHeaders.set('X-Openline-USERNAME', request.nextauth.token?.email as string)
         }
 
         return NextResponse.rewrite(new URL(newURL, request.url),

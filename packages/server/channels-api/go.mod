@@ -1,22 +1,24 @@
-module openline-ai/channels-api
+module github.com/openline-ai/openline-oasis/packages/server/channels-api
 
 go 1.19
 
+replace github.com/openline-ai/openline-oasis/packages/server/oasis-api => ./../oasis-api
+
+//replace github.com/openline-ai/openline-customer-os/packages/server/message-store => ../../../../openline-customer-os/packages/server/message-store
+
 require (
-	github.com/DusanKasan/parsemail v1.2.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-contrib/cors v1.4.0
-	github.com/gin-gonic/gin v1.8.1
+	github.com/gin-gonic/gin v1.8.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.4.0
-	github.com/mocktools/go-smtp-mock/v2 v2.0.1
-	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20221213121355-8c5ac18585ae
+	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20230113175908-2175601d4942
+	github.com/openline-ai/openline-oasis/packages/server/oasis-api v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.1
 	github.com/xhit/go-simple-mail/v2 v2.13.0
 	golang.org/x/net v0.4.0
-	google.golang.org/grpc v1.51.0
+	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
-	openline-ai/oasis-api v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -44,7 +46,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace openline-ai/oasis-api => ./../oasis-api
-
-//replace github.com/openline-ai/openline-customer-os/packages/server/message-store => /Users/efirut/work/openline/openline-customer-os/packages/server/message-store

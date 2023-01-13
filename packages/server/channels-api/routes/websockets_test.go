@@ -2,9 +2,9 @@ package routes
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/test_utils"
 	"github.com/stretchr/testify/assert"
-	"openline-ai/channels-api/routes/chatHub"
-	"openline-ai/channels-api/test_utils"
 	"strconv"
 	"testing"
 	"time"

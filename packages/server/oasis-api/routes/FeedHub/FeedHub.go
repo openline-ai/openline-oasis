@@ -5,10 +5,7 @@ import (
 	"log"
 )
 
-type MessageFeed struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	ContactId string `json:"contactId"`
+type ReloadFeed struct {
 }
 
 // FeedHub Hub maintains the set of active clients and broadcasts messages to the
@@ -18,7 +15,7 @@ type FeedHub struct {
 	Clients map[*FeedClient]bool
 
 	// Inbound messages from the clients.
-	Broadcast chan MessageFeed
+	Broadcast chan ReloadFeed
 
 	// Register requests from the clients.
 	register chan *FeedClient
@@ -31,7 +28,7 @@ type FeedHub struct {
 
 func NewFeedHub() *FeedHub {
 	return &FeedHub{
-		Broadcast:  make(chan MessageFeed),
+		Broadcast:  make(chan ReloadFeed),
 		register:   make(chan *FeedClient),
 		unregister: make(chan *FeedClient),
 		Clients:    make(map[*FeedClient]bool),

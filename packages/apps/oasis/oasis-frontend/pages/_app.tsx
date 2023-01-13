@@ -6,20 +6,27 @@ import 'primeicons/primeicons.css';
 import '../styles/globals.css'
 import '../styles/theme-override.css'
 import '../styles/layout.css'
-import axios from "axios";
+import 'react-toastify/dist/ReactToastify.css';
+
 import {SessionProvider} from "next-auth/react"
+import {ToastContainer} from "react-toastify";
+import * as React from "react";
+import {Session} from "next-auth";
+import {AppProps} from "next/app";
+
+import axios from "axios";
 
 axios.defaults.withCredentials = true
 
 export default function App({
                                 Component,
-                                pageProps: {session, ...pageProps}
-                            }: any) {
+                                pageProps: {session, ...pageProps},
+                            }: AppProps<{ session: Session }>) {
 
     return (
-        <SessionProvider session={session}>
-            <Component {...pageProps} />
-        </SessionProvider>
-    );
+            <SessionProvider session={session}>
 
+                <Component {...pageProps} />
+            </SessionProvider>
+    )
 }

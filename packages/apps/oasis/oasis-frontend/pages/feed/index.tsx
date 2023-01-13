@@ -27,13 +27,15 @@ import { InputText } from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/WebRTC";
+import { FeedItem } from "../../model/feed-item";
+import { ToastContainer } from "react-toastify";
 
 
 const FeedPage: NextPage = () => {
     const router = useRouter()
     const { id } = router.query;
 
-    const [feeds, setFeeds] = useState([] as any)
+    const [feeds, setFeeds] = useState([] as FeedItem[]);
     const [selectedFeed, setSelectedFeed] = useState(id as string);
 
     const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
@@ -57,9 +59,6 @@ const FeedPage: NextPage = () => {
         console.log("Reloading feed!");
         axios.get(`/oasis-api/feed`)
             .then(res => {
-                res.data?.feedItems?.forEach((f: any) => {
-                    f.updatedOn.dateTime = toDateTime(f.updatedOn.seconds);
-                });
                 setFeeds(res.data?.feedItems ?? []);
                 if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
                     setSelectedFeed(res.data.feedItems[0].id);
@@ -87,12 +86,6 @@ const FeedPage: NextPage = () => {
             }
         }
     ];
-
-    const toDateTime = function (secs: any) {
-        var t = new Date(1970, 0, 1);
-        t.setSeconds(secs);
-        return t;
-    }
 
     // region WebRTC
     const phoneContainerRef = useRef<OverlayPanel>(null);
@@ -125,14 +118,12 @@ const FeedPage: NextPage = () => {
     const [onHold, setOnHold] = useState(false);
     const [onMute, setOnMute] = useState(false);
 
-
-
-    const handleCall = (contact: any) => {
+    const handleCall = (feedInitiator: any) => {
         let user = '';
-        if (contact.phoneNumber) {
-            user = contact.phoneNumber + "@oasis.openline.ai";
+        if (feedInitiator.phoneNumber) {
+            user = feedInitiator.phoneNumber + "@oasis.openline.ai";
         } else {
-            user = contact.email;
+            user = feedInitiator.email;
             const regex = /.*<(.*)>/;
             const matches = user.match(regex);
             if (matches) {
@@ -206,7 +197,12 @@ const FeedPage: NextPage = () => {
     }, [inCall]);
 
     return (
-        <>
+        <div className="flex w-full h-full">
+            <ToastContainer position="top-center"
+                autoClose={3000}
+                closeOnClick={true}
+                hideProgressBar={true}
+                theme="colored" />
             {
                 process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
                 <WebRTC
@@ -219,22 +215,24 @@ const FeedPage: NextPage = () => {
                 />
             }
 
-            <div className="flex w-full h-full">
+            <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
+                style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
 
-                <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
-                    style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
-
-                    <div className='flex p-3'>
-                        <InputText placeholder={'Search'} className='w-full' />
-                    </div>
+                <div className='flex p-3'>
+                    <InputText placeholder={'Search'} className='w-full' />
+                </div>
 
                     <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
                         {
-                            feeds.map((f: any) => {
+                            feeds.map((f: FeedItem) => {
                                 let className = 'flex w-full align-content-center align-items-center p-3 mb-2 contact-hover';
                                 if (selectedFeed === f.id) {
                                     className += ' selected'
                                 }
+
+                                var t = new Date(1970, 0, 1);
+                                t.setSeconds(f.lastTimestamp.seconds);
+
                                 return <div key={f.id} className={className} onClick={() => {
                                     setSelectedFeed(f.id);
                                     //change the URL to allow a bookmark
@@ -244,11 +242,11 @@ const FeedPage: NextPage = () => {
                                     <div className='flex flex-column flex-grow-1 mr-3' style={{ minWidth: '0' }}>
                                         <div className='mb-2'>
                                             {
-                                                f.contactFirstName &&
-                                                f.contactFirstName + ' ' + f.contactLastName}
+                                                f.initiatorFirstName &&
+                                                f.initiatorFirstName + ' ' + f.initiatorLastName}
                                             {
-                                                !f.contactFirstName &&
-                                                f.contactEmail
+                                                !f.initiatorFirstName &&
+                                                f.initiatorUsername
                                             }
                                         </div>
                                         <div className='text-500' style={{
@@ -257,88 +255,86 @@ const FeedPage: NextPage = () => {
                                             whiteSpace: "nowrap",
                                             overflow: "hidden"
                                         }}>
-                                            {f.message}
+                                            {f.lastContentPreview}
                                         </div>
                                     </div>
 
-                                    <div className='flex flex-column'>
-                                        <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                            format={'d.MM.yy'}></Moment>
-                                        <Moment className="text-sm text-gray-600" date={f.updatedOn.dateTime}
-                                            format={'HH:mm'}></Moment>
+                                    <div className='flex flex-column text-right'>
+                                        <Moment className="text-sm text-gray-600" date={t}
+                                            format={'MMM D, YYYY'}></Moment>
+                                        <Moment className="text-sm text-gray-600" date={t}
+                                            format={'HH:mma'}></Moment>
                                     </div>
                                 </div>
                             })
                         }
                     </div>
 
-                </div>
+            </div>
 
-                <div className='flex w-full flex-column'>
+                <div className='flex h-full w-full flex-column'>
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                            {
-                                inCall &&
-                                <>
-                                    <Button className="p-button-rounded p-button-success p-2"
-                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                        <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
+                        {
+                            inCall &&
+                            <>
+                                <Button className="p-button-rounded p-button-success p-2"
+                                    onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
+                                    <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
+                                </Button>
+
+                                <OverlayPanel ref={phoneContainerRef} dismissable>
+
+                                    <div className='font-bold text-center'>In call with</div>
+                                    <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
+
+                                    <div className='font-bold text-center mb-3'>{callFrom}</div>
+
+                                    <Button onClick={() => toggleMute()} className="mr-2">
+                                        <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
+                                    </Button>
+                                    <Button onClick={() => toggleHold()} className="mr-2">
+                                        <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
+                                    </Button>
+                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
+                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
+                                    </Button>
+                                    <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
+                                        <FontAwesomeIcon icon={faRightLeft} className="mr-2" /> Transfer
                                     </Button>
 
-                                    <OverlayPanel ref={phoneContainerRef} dismissable>
+                                </OverlayPanel>
+                            </>
+                        }
 
-                                        <div className='font-bold text-center'>In call with</div>
-                                        <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
+                        <Button className="flex-none px-3 m-3"
+                            onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                            <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                            <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                            <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                        </Button>
 
-                                        <div className='font-bold text-center mb-3'>{callFrom}</div>
+                        <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                            <Menu model={userItems} style={{ border: 'none' }} />
+                        </OverlayPanel>
 
-                                        <Button onClick={() => toggleMute()} className="mr-2">
-                                            <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
-                                        </Button>
-                                        <Button onClick={() => toggleHold()} className="mr-2">
-                                            <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
-                                        </Button>
-                                        <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
-                                            <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
-                                        </Button>
-                                        <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
-                                            <FontAwesomeIcon icon={faRightLeft} className="mr-2" /> Transfer
-                                        </Button>
-
-                                    </OverlayPanel>
-                                </>
-                            }
-
-                            <Button className="flex-none px-3 m-3"
-                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
-                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
-                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-                            </Button>
-
-                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                                <Menu model={userItems} style={{ border: 'none' }} />
-                            </OverlayPanel>
-
-                        </div>
                     </div>
-                    {
-                        selectedFeed &&
-                        <Chat
-                            feedId={selectedFeed}
-                            inCall={inCall}
-                            handleCall={(contact: any) => handleCall(contact)}
-                            hangupCall={() => hangupCall()}
-                            showTransfer={() => showTransfer()}
-                        />
-                    }
                 </div>
-
-
+                {
+                    selectedFeed &&
+                    <Chat
+                        feedId={selectedFeed}
+                        inCall={inCall}
+                        handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
+                        hangupCall={() => hangupCall()}
+                        showTransfer={() => showTransfer()}
+                    />
+                }
             </div>
 
-        </>
+
+        </div>
     );
 }
 

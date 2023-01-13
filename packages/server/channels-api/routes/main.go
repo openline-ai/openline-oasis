@@ -3,10 +3,10 @@ package routes
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	"log"
-	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/routes/chatHub"
-	"openline-ai/channels-api/util"
 	"strings"
 )
 

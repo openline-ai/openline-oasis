@@ -5,18 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	pb "github.com/openline-ai/openline-customer-os/packages/server/message-store/gen/proto"
+	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	o "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
-	c "openline-ai/channels-api/config"
-	"openline-ai/channels-api/util"
-	pbOasis "openline-ai/oasis-api/proto"
 )
 
 type WebchatMessage struct {
 	Username string `json:"username"`
+	UserId   string `json:"userId"`
 	Message  string `json:"message"`
 }
 
@@ -40,7 +42,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			return
 		}
 		// TODO: This needs more work. Returning email back for now
-		response := LoginResponse{UserName: email, FirstName: "Gabriel", LastName: "Gontariu"}
+		response := LoginResponse{UserName: email, FirstName: "", LastName: ""}
 
 		c.JSON(http.StatusOK, response)
 	})
@@ -64,66 +66,88 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		log.Printf("Got message from %s", req.Username)
 
 		//Contact the server and print out its response.
-		mi := &pb.Message{
-			Type:      pb.MessageType_MESSAGE,
-			Message:   req.Message,
-			Direction: pb.MessageDirection_INBOUND,
-			Channel:   pb.MessageChannel_WIDGET,
-			Username:  &req.Username,
+		message := &ms.WebChatInputMessage{
+			Type:       ms.MessageType_WEB_CHAT,
+			Subtype:    ms.MessageSubtype_MESSAGE,
+			Message:    &req.Message,
+			Direction:  ms.MessageDirection_INBOUND,
+			Email:      &req.Username,
+			SenderType: ms.SenderType_CONTACT,
 		}
 
-		//Set up a connection to the oasis-api server.
-		oasisConn, oasisErr := df.GetOasisAPICon()
-		if oasisErr != nil {
-			log.Printf("did not connect: %v", oasisErr)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", oasisErr.Error()),
-			})
-			return
-		}
-		defer oasisConn.Close()
-		oasisClient := pbOasis.NewOasisApiServiceClient(oasisConn)
-
-		//Set up a connection to the message store server.
-		msConn, msErr := df.GetMessageStoreCon()
-		if msErr != nil {
-			log.Printf("did not connect: %v", msErr)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
-			})
-			return
-		}
-		defer msConn.Close()
-		msClient := pb.NewMessageStoreServiceClient(msConn)
+		//Store the message in message store
+		msConn := GetMessageStoreWeChatClient(c, df)
+		defer closeMessageStoreConnection(msConn)
+		msClient := ms.NewWebChatMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
 
-		message, saveErr := msClient.SaveMessage(ctx, mi)
-		if saveErr != nil {
-			se, _ := status.FromError(saveErr)
+		savedMessage, err := msClient.SaveMessage(ctx, message)
+		if err != nil {
+			se, _ := status.FromError(err)
 			log.Printf("failed creating message item: status=%s message=%s", se.Code(), se.Message())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"result": fmt.Sprintf("failed creating message item: status=%s message=%s", se.Code(), se.Message()),
 			})
 			return
 		}
-		_, mEventErr := oasisClient.NewMessageEvent(ctx, &pbOasis.NewMessage{ConversationId: *message.FeedId, ConversationItemId: *message.Id})
+		log.Printf("message item created with id: %s", savedMessage.Id)
+
+		//Set up a connection to the oasis-api server.
+		oasisConn := GetOasisClient(c, df)
+		defer closeOasisConnection(oasisConn)
+		oasisClient := o.NewOasisApiServiceClient(oasisConn)
+		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.Id})
 		if mEventErr != nil {
 			se, _ := status.FromError(mEventErr)
 			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
 		}
 
-		log.Printf("message item created with id: %d", *message.Id)
-
 		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("New message arrived from: %s\n%s", *message.Username, message.Message)}
+			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.Email, *message.Message)}
 			json_data, _ := json.Marshal(values)
 
 			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprintf("message item created with id: %d", *message.Id),
+			"result": fmt.Sprintf("message item created with id: %s", savedMessage.Id),
 		})
 	})
+}
+
+func GetMessageStoreWeChatClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
+	conn, msErr := df.GetMessageStoreCon()
+	if msErr != nil {
+		log.Printf("did not connect: %v", msErr)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
+		})
+	}
+	return conn
+}
+
+func closeMessageStoreConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
+	if err != nil {
+		log.Printf("Error closing connection: %v", err)
+	}
+}
+
+func GetOasisClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
+	conn, msErr := df.GetOasisAPICon()
+	if msErr != nil {
+		log.Printf("did not connect: %v", msErr)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
+		})
+	}
+	return conn
+}
+
+func closeOasisConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
+	if err != nil {
+		log.Printf("Error closing connection: %v", err)
+	}
 }
