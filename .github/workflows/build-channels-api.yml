@@ -1,7 +1,7 @@
 name: Build Oasis Channels API
 
 on:
-  push
+  pull_request
 
 env:
   REGISTRY: ghcr.io
