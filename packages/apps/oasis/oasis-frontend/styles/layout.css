@@ -3,6 +3,7 @@
 .openline-top-bar {
     background: var(--topbar-background);
     color: inherit;
+    border-bottom: 1px rgb(235, 235, 235) solid;
 }
 
 /* Buttons */

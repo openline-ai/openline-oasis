@@ -234,7 +234,7 @@ export const Chat = (props: ChatProps) => {
     ]
 
     return (
-        <div className='flex flex-column w-full overflow-y-hidden'>
+        <div className='flex flex-column w-full h-full overflow-y-hidden'>
             <div className="flex-grow-1 w-full overflow-x-hidden overflow-y-auto p-5 pb-0">
                 {
                     loadingMessages &&
