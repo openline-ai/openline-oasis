@@ -386,7 +386,6 @@ const FeedPage: NextPage = () => {
 
                         </div>
                     </div>
-                </div>
                 {
                     selectedFeed &&
                     <Chat
