@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import { useRouter } from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
+import { InputTextarea } from "primereact/inputtextarea";
 import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
 import { getSession, signOut, useSession } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -18,7 +19,9 @@ import {
     faMicrophone,
     faMicrophoneSlash,
     faPause,
-    faPlay
+    faPlay,
+    faSquareXmark,
+    faXmarkSquare
 } from "@fortawesome/free-solid-svg-icons";
 
 import { OverlayPanel } from "primereact/overlaypanel";
@@ -26,7 +29,7 @@ import { Menu } from "primereact/menu";
 import { InputText } from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
-import WebRTC from "../../components/WebRTC";
+import WebRTC from "../../components/webrtc/WebRTC";
 import { FeedItem } from "../../model/feed-item";
 import { ToastContainer } from "react-toastify";
 
@@ -115,8 +118,12 @@ const FeedPage: NextPage = () => {
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
+    const [showRefer, setShowRefer] = useState(false);
+    const [inRefer, setInRefer] = useState(false);
     const [onHold, setOnHold] = useState(false);
     const [onMute, setOnMute] = useState(false);
+    const [transferDest, setTransferDest] = useState('');
+
 
     const handleCall = (feedInitiator: any) => {
         let user = '';
@@ -276,49 +283,108 @@ const FeedPage: NextPage = () => {
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                        {
-                            inCall &&
-                            <>
-                                <Button className="p-button-rounded p-button-success p-2"
-                                    onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                    <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
-                                </Button>
-
-                                <OverlayPanel ref={phoneContainerRef} dismissable>
-
-                                    <div className='font-bold text-center'>In call with</div>
-                                    <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
-
-                                    <div className='font-bold text-center mb-3'>{callFrom}</div>
-
-                                    <Button onClick={() => toggleMute()} className="mr-2">
-                                        <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
-                                    </Button>
-                                    <Button onClick={() => toggleHold()} className="mr-2">
-                                        <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
-                                    </Button>
-                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
-                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
-                                    </Button>
-                                    <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
-                                        <FontAwesomeIcon icon={faRightLeft} className="mr-2" /> Transfer
+                            {
+                                !inCall &&
+                                <>
+                                    <Button className="p-button-rounded p-button-success p-2"
+                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
+                                        <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
                                     </Button>
 
-                                </OverlayPanel>
-                            </>
-                        }
+                                    <OverlayPanel ref={phoneContainerRef} dismissable>
+                                        <div style={{position: "relative", width: "100%", height: "100%"}}>
+                                        <div className='font-bold text-center'>In call with</div>
+                                        <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
 
-                        <Button className="flex-none px-3 m-3"
-                            onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                            <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
-                            <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
-                            <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-                        </Button>
+                                        <div className='font-bold text-center mb-3'>{callFrom}</div>
+                                        <div className='mb-3'>
+                                        <Button onClick={() => toggleMute()} className="mr-2">
+                                            <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
+                                        </Button>
+                                        <Button onClick={() => toggleHold()} className="mr-2">
+                                            <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
+                                        </Button>
+                                        <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
+                                            <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
+                                        </Button>
+                                        <Button onClick={() => setShowRefer(!showRefer)} className='p-button-success mr-2'>
+                                            <FontAwesomeIcon icon={showRefer?faXmarkSquare:faRightLeft} className="mr-2" /> Transfer
+                                        </Button>
+                                        </div>
+                                        {showRefer &&
+                                        <>
+                                        <div className="w-full text-center align-items-center mb-3">
+                                            <InputTextarea className="mr-2"
+                                                value={transferDest}
+                                                onChange={(e) => setTransferDest(e.target.value)}
+                                                autoResize
+                                                rows={1}
+                                                placeholder="Transfer to"
+                                                onKeyPress={(e) => {
+                                                    if (e.shiftKey && e.key === "Enter") {
+                                                        return true
+                                                    }
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                style={{
+                                                    borderColor: "black", //Do not set as none!! It breaks InputTextarea autoResize
+                                                    boxShadow: "none"
+                                                }}
+                                            />
+                                            <span className="h-full align-items-top">
+                                            <Button onClick={() => setInRefer(!inRefer)} className='p-button-success h-full mr-2'>
+                                                <FontAwesomeIcon icon={faRightLeft} className="mr-2" />
+                                            </Button>
+                                            </span>
+                                        </div>
+                                        </>}
+                                        {inRefer && <div 
+                                            style={{
+                                                position: "absolute",
+                                                zIndex: 2000,
+                                                width: "100%",
+                                                height: "100%",
+                                                top: "0%",
+                                                background: "#FFFFFFFF",
+                                            }}>
+                                            <div
+                                            style={{  margin: 0,
+                                                position: "absolute",
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                width: "100%"
+                                                }}>
+                                                    <div className="w-full text-center align-items-center mb-3">
+                                                    Transfering call to: {transferDest}
+                                                    </div>
+                                                    <div className="w-full text-center align-items-center mb-3">
+                                                    <FontAwesomeIcon icon={faRightLeft} className="mr-2" />
+                                                    </div>
+                                            </div>
 
-                        <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                            <Menu model={userItems} style={{ border: 'none' }} />
-                        </OverlayPanel>
+                                            </div>
 
+                                            
+                                        }
+                                    </div>
+                                    </OverlayPanel>
+                                </>
+                            }
+
+                            <Button className="flex-none px-3 m-3"
+                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                            </Button>
+
+                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                                <Menu model={userItems} style={{ border: 'none' }} />
+                            </OverlayPanel>
+
+                        </div>
                     </div>
                 </div>
                 {
