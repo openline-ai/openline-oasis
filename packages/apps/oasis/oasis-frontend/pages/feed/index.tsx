@@ -5,23 +5,14 @@ import { Button } from "primereact/button";
 import { useRouter } from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
-import { InputTextarea } from "primereact/inputtextarea";
 import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
 import { getSession, signOut, useSession } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowRightFromBracket,
     faCaretDown,
-    faPhone,
-    faPhoneSlash,
-    faRightLeft,
     faUserSecret,
-    faMicrophone,
-    faMicrophoneSlash,
-    faPause,
-    faPlay,
-    faSquareXmark,
-    faXmarkSquare
+
 } from "@fortawesome/free-solid-svg-icons";
 
 import { OverlayPanel } from "primereact/overlaypanel";
@@ -32,6 +23,7 @@ import Moment from "react-moment";
 import WebRTC from "../../components/webrtc/WebRTC";
 import { FeedItem } from "../../model/feed-item";
 import { ToastContainer } from "react-toastify";
+import CallProgress from '../../components/webrtc/CallProgress';
 
 
 const FeedPage: NextPage = () => {
@@ -70,6 +62,8 @@ const FeedPage: NextPage = () => {
             });
     }
 
+    const [referStatus, setReferStatus] = useState(id as string);
+
     const { data: session, status } = useSession();
     const userSettingsContainerRef = useRef<OverlayPanel>(null);
 
@@ -91,8 +85,8 @@ const FeedPage: NextPage = () => {
     ];
 
     // region WebRTC
-    const phoneContainerRef = useRef<OverlayPanel>(null);
     const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
+    
     useEffect(() => {
 
         const refreshCredentials = () => {
@@ -118,11 +112,7 @@ const FeedPage: NextPage = () => {
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
-    const [showRefer, setShowRefer] = useState(false);
-    const [inRefer, setInRefer] = useState(false);
-    const [onHold, setOnHold] = useState(false);
-    const [onMute, setOnMute] = useState(false);
-    const [transferDest, setTransferDest] = useState('');
+
 
 
     const handleCall = (feedInitiator: any) => {
@@ -139,57 +129,9 @@ const FeedPage: NextPage = () => {
         }
         webrtc.current?.makeCall("sip:" + user);
     }
-    const hangupCall = () => {
-        webrtc.current?.hangupCall();
 
-    }
-
-    const showTransfer = () => {
-        webrtc.current?.showTransfer();
-    }
-
-    const toggleMute = () => {
-        if (onMute) {
-            webrtc.current?.unMuteCall();
-            setOnMute(false);
-        } else {
-            webrtc.current?.muteCall();
-            setOnMute(true);
-        }
-    }
-
-    const toggleHold = () => {
-        if (onHold) {
-            webrtc.current?.unHoldCall();
-            setOnHold(false);
-        } else {
-            webrtc.current?.holdCall();
-            setOnHold(true);
-        }
-    }
 
     //endregion
-    const makeButton = (number: string) => {
-        return <button className="btn btn-primary btn-lg m-1" key={number}
-            onClick={() => { webrtc.current?.sendDtmf(number) }}>{number}</button>
-    }
-
-    let dialpad_matrix = new Array(4)
-    for (let i = 0, digit = 1; i < 3; i++) {
-        dialpad_matrix[i] = new Array(3);
-        for (let j = 0; j < 3; j++, digit++) {
-            dialpad_matrix[i][j] = makeButton(digit.toString())
-        }
-    }
-    dialpad_matrix[3] = new Array(3);
-    dialpad_matrix[3][0] = makeButton("*")
-    dialpad_matrix[3][1] = makeButton("0")
-    dialpad_matrix[3][2] = makeButton("#")
-
-    let dialpad_rows = []
-    for (let i = 0; i < 4; i++) {
-        dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
-    }
 
     function setTopbarColor(newColor: any) {
         document.documentElement.style.setProperty('--topbar-background', newColor);
@@ -218,6 +160,7 @@ const FeedPage: NextPage = () => {
                     from={"sip:" + session?.user?.email}
                     notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
                     updateCallState={(state: boolean) => setInCall(state)}
+                    updateReferStatus={(status: string) => setReferStatus(status)}
                     autoStart={false}
                 />
             }
@@ -283,96 +226,7 @@ const FeedPage: NextPage = () => {
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                            {
-                                !inCall &&
-                                <>
-                                    <Button className="p-button-rounded p-button-success p-2"
-                                        onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                        <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
-                                    </Button>
-
-                                    <OverlayPanel ref={phoneContainerRef} dismissable>
-                                        <div style={{position: "relative", width: "100%", height: "100%"}}>
-                                        <div className='font-bold text-center'>In call with</div>
-                                        <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
-
-                                        <div className='font-bold text-center mb-3'>{callFrom}</div>
-                                        <div className='mb-3'>
-                                        <Button onClick={() => toggleMute()} className="mr-2">
-                                            <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
-                                        </Button>
-                                        <Button onClick={() => toggleHold()} className="mr-2">
-                                            <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
-                                        </Button>
-                                        <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
-                                            <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
-                                        </Button>
-                                        <Button onClick={() => setShowRefer(!showRefer)} className='p-button-success mr-2'>
-                                            <FontAwesomeIcon icon={showRefer?faXmarkSquare:faRightLeft} className="mr-2" /> Transfer
-                                        </Button>
-                                        </div>
-                                        {showRefer &&
-                                        <>
-                                        <div className="w-full text-center align-items-center mb-3">
-                                            <InputTextarea className="mr-2"
-                                                value={transferDest}
-                                                onChange={(e) => setTransferDest(e.target.value)}
-                                                autoResize
-                                                rows={1}
-                                                placeholder="Transfer to"
-                                                onKeyPress={(e) => {
-                                                    if (e.shiftKey && e.key === "Enter") {
-                                                        return true
-                                                    }
-                                                    if (e.key === "Enter") {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                style={{
-                                                    borderColor: "black", //Do not set as none!! It breaks InputTextarea autoResize
-                                                    boxShadow: "none"
-                                                }}
-                                            />
-                                            <span className="h-full align-items-top">
-                                            <Button onClick={() => setInRefer(!inRefer)} className='p-button-success h-full mr-2'>
-                                                <FontAwesomeIcon icon={faRightLeft} className="mr-2" />
-                                            </Button>
-                                            </span>
-                                        </div>
-                                        </>}
-                                        {inRefer && <div 
-                                            style={{
-                                                position: "absolute",
-                                                zIndex: 2000,
-                                                width: "100%",
-                                                height: "100%",
-                                                top: "0%",
-                                                background: "#FFFFFFFF",
-                                            }}>
-                                            <div
-                                            style={{  margin: 0,
-                                                position: "absolute",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                width: "100%"
-                                                }}>
-                                                    <div className="w-full text-center align-items-center mb-3">
-                                                    Transfering call to: {transferDest}
-                                                    </div>
-                                                    <div className="w-full text-center align-items-center mb-3">
-                                                    <FontAwesomeIcon icon={faRightLeft} className="mr-2" />
-                                                    </div>
-                                            </div>
-
-                                            </div>
-
-                                            
-                                        }
-                                    </div>
-                                    </OverlayPanel>
-                                </>
-                            }
-
+                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom} referStatus={referStatus}></CallProgress>
                             <Button className="flex-none px-3 m-3"
                                 onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
                                 <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
@@ -392,8 +246,6 @@ const FeedPage: NextPage = () => {
                         feedId={selectedFeed}
                         inCall={inCall}
                         handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
-                        hangupCall={() => hangupCall()}
-                        showTransfer={() => showTransfer()}
                     />
                 }
             </div>

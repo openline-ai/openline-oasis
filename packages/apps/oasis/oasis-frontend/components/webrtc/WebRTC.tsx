@@ -22,15 +22,12 @@ interface WebRTCState {
     from: string
     notifyCallFrom: Function
     updateCallState: Function
+    updateReferStatus: Function
     callerId: string
     ringing: boolean
     autoStart: boolean
     username?: string
     password?: string
-    transferDestination: string
-    refer: boolean
-    referStatus: string
-
 }
 
 interface WebRTCProps {
@@ -38,6 +35,7 @@ interface WebRTCProps {
     from: string
     notifyCallFrom: Function
     updateCallState: Function
+    updateReferStatus: Function
     autoStart?: boolean
 }
 
@@ -56,12 +54,10 @@ export default class WebRTC extends React.Component<WebRTCProps> {
                 from: props.from,
                 notifyCallFrom: props.notifyCallFrom,
                 updateCallState: props.updateCallState,
+                updateReferStatus: props.updateReferStatus,
                 callerId: "",
                 ringing: false,
                 autoStart: false,
-                transferDestination: "",
-                refer: false,
-                referStatus: ""
             };
 
         if (props.autoStart) {
@@ -79,46 +75,39 @@ export default class WebRTC extends React.Component<WebRTCProps> {
         this._session?.answer();
     }
 
-    showTransfer() {
-        this.setState({refer: !this.state.refer});
-    }
-
-    transferCall() {
-        let transferDest = this.state.transferDestination;
+    transferCall(transferDest: string) {
         var localScope = this;
-        localScope.setState({referStatus: ''})
 
         let eventHandlers = {
             'requestSucceeded': function (e: any) {
                 console.log('xfer is accepted');
-                localScope.setState({referStatus: 'Transferring Call....'})
+                localScope.state.updateReferStatus('requestSucceeded');
 
             },
             'trying': function (e: any) {
                 console.log('xfer is trying');
-                localScope.setState({referStatus: 'Trying'})
+                localScope.state.updateReferStatus('trying');
 
             },
             'progress': function (e: any) {
                 console.log('xfer is ringing');
-                localScope.setState({referStatus: 'Ringing'})
+                localScope.state.updateReferStatus('progress');
+
 
             },
             'requestFailed': function (e: any) {
                 console.log('Faled to contact remote party cause: ' + JSON.stringify(e.cause));
-                localScope.setState({referStatus: 'Faled to contact remote party cause: ' + JSON.stringify(e.cause)})
+                localScope.state.updateReferStatus('requestFailed');
 
             },
             'failed': function (e: any) {
                 console.log('Transfer Request rejected with cause: ' + JSON.stringify(e.cause));
-                localScope.setState({referStatus: 'Faled to contact remote party cause: ' + JSON.stringify(e.cause)})
+                localScope.state.updateReferStatus('failed');
 
             },
             'accepted': function (e: IncomingAckEvent | OutgoingAckEvent) {
                 console.log('call confirmed');
-                localScope.setState({referStatus: ''})
-                localScope.setState({refer: false});
-                localScope.hangupCall();
+                localScope.state.updateReferStatus('accepted');
 
             }
         };
