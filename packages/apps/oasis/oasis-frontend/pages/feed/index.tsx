@@ -11,14 +11,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowRightFromBracket,
     faCaretDown,
-    faPhone,
-    faPhoneSlash,
-    faRightLeft,
     faUserSecret,
-    faMicrophone,
-    faMicrophoneSlash,
-    faPause,
-    faPlay
+
 } from "@fortawesome/free-solid-svg-icons";
 
 import { OverlayPanel } from "primereact/overlaypanel";
@@ -26,14 +20,20 @@ import { Menu } from "primereact/menu";
 import { InputText } from "primereact/inputtext";
 import Chat from "./chat";
 import Moment from "react-moment";
-import WebRTC from "../../components/WebRTC";
+import WebRTC from "../../components/webrtc/WebRTC";
 import { FeedItem } from "../../model/feed-item";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
+import CallProgress from '../../components/webrtc/CallProgress';
+import SuggestionList from "../../components/SuggestionList";
+import { Suggestion } from "../../components/SuggestionList";
 
+import {gql, GraphQLClient} from "graphql-request";
 
 const FeedPage: NextPage = () => {
     const router = useRouter()
     const { id } = router.query;
+    const client = new GraphQLClient(`/customer-os-api/query`);
+
 
     const [feeds, setFeeds] = useState([] as FeedItem[]);
     const [selectedFeed, setSelectedFeed] = useState(id as string);
@@ -67,6 +67,8 @@ const FeedPage: NextPage = () => {
             });
     }
 
+    const [referStatus, setReferStatus] = useState(id as string);
+
     const { data: session, status } = useSession();
     const userSettingsContainerRef = useRef<OverlayPanel>(null);
 
@@ -88,8 +90,8 @@ const FeedPage: NextPage = () => {
     ];
 
     // region WebRTC
-    const phoneContainerRef = useRef<OverlayPanel>(null);
     const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
+    
     useEffect(() => {
 
         const refreshCredentials = () => {
@@ -115,8 +117,8 @@ const FeedPage: NextPage = () => {
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
-    const [onHold, setOnHold] = useState(false);
-    const [onMute, setOnMute] = useState(false);
+
+
 
     const handleCall = (feedInitiator: any) => {
         let user = '';
@@ -132,57 +134,9 @@ const FeedPage: NextPage = () => {
         }
         webrtc.current?.makeCall("sip:" + user);
     }
-    const hangupCall = () => {
-        webrtc.current?.hangupCall();
 
-    }
-
-    const showTransfer = () => {
-        webrtc.current?.showTransfer();
-    }
-
-    const toggleMute = () => {
-        if (onMute) {
-            webrtc.current?.unMuteCall();
-            setOnMute(false);
-        } else {
-            webrtc.current?.muteCall();
-            setOnMute(true);
-        }
-    }
-
-    const toggleHold = () => {
-        if (onHold) {
-            webrtc.current?.unHoldCall();
-            setOnHold(false);
-        } else {
-            webrtc.current?.holdCall();
-            setOnHold(true);
-        }
-    }
 
     //endregion
-    const makeButton = (number: string) => {
-        return <button className="btn btn-primary btn-lg m-1" key={number}
-            onClick={() => { webrtc.current?.sendDtmf(number) }}>{number}</button>
-    }
-
-    let dialpad_matrix = new Array(4)
-    for (let i = 0, digit = 1; i < 3; i++) {
-        dialpad_matrix[i] = new Array(3);
-        for (let j = 0; j < 3; j++, digit++) {
-            dialpad_matrix[i][j] = makeButton(digit.toString())
-        }
-    }
-    dialpad_matrix[3] = new Array(3);
-    dialpad_matrix[3][0] = makeButton("*")
-    dialpad_matrix[3][1] = makeButton("0")
-    dialpad_matrix[3][2] = makeButton("#")
-
-    let dialpad_rows = []
-    for (let i = 0; i < 4; i++) {
-        dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
-    }
 
     function setTopbarColor(newColor: any) {
         document.documentElement.style.setProperty('--topbar-background', newColor);
@@ -195,6 +149,46 @@ const FeedPage: NextPage = () => {
             setTopbarColor('#FFFFFF');
         }
     }, [inCall]);
+
+    interface ContactResponse {
+        contacts: {
+            content: {
+                id: string;
+                firstName: string;
+                lastName: string;
+                phoneNumbers: { e164: string }[];
+            }[]
+        }
+
+    }
+
+    const getContactSuggestions = (filter: string, callback: Function) => {
+        const query = gql`query  getContacts($value: Any!) { 
+            contacts( where: {OR: [{filter: {property: "FIRST_NAME", value: $value, operation: CONTAINS }}, {filter: {property: "LAST_NAME", value: $value, operation: CONTAINS }}]}) 
+            {
+              content{id, firstName, lastName, phoneNumbers{e164}}
+            }
+          }`
+
+        client.request(query, {value: filter}).then((response: ContactResponse) => {
+            var suggestions: Suggestion[] = [];
+            if (response.contacts && response.contacts.content) {
+                for (const contact of response.contacts.content) {
+                    if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                        var sugestion = {id: contact.id, display: contact.firstName + " " + contact.lastName, value: contact.phoneNumbers[0].e164}
+                        suggestions.push(sugestion);                    
+
+                    }
+                }
+  
+            }
+            callback(suggestions);
+
+        }).catch(reason => {
+            //todo log on backend
+            toast.error("There was a problem on our side and we are doing our best to solve it!");
+        });
+    }
 
     return (
         <div className="flex w-full h-full">
@@ -211,6 +205,7 @@ const FeedPage: NextPage = () => {
                     from={"sip:" + session?.user?.email}
                     notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
                     updateCallState={(state: boolean) => setInCall(state)}
+                    updateReferStatus={(status: string) => setReferStatus(status)}
                     autoStart={false}
                 />
             }
@@ -276,59 +271,26 @@ const FeedPage: NextPage = () => {
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                        {
-                            inCall &&
-                            <>
-                                <Button className="p-button-rounded p-button-success p-2"
-                                    onClick={(e: any) => phoneContainerRef?.current?.toggle(e)}>
-                                    <FontAwesomeIcon icon={faPhone} fontSize={'16px'} />
-                                </Button>
+                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom} referStatus={referStatus} getContactSuggestions={getContactSuggestions}></CallProgress>
+                            <Button className="flex-none px-3 m-3"
+                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                            </Button>
 
-                                <OverlayPanel ref={phoneContainerRef} dismissable>
+                            <OverlayPanel ref={userSettingsContainerRef} dismissable>
+                                <Menu model={userItems} style={{ border: 'none' }} />
+                            </OverlayPanel>
 
-                                    <div className='font-bold text-center'>In call with</div>
-                                    <div className='font-bold text-center mb-3'>{dialpad_rows}</div>
-
-                                    <div className='font-bold text-center mb-3'>{callFrom}</div>
-
-                                    <Button onClick={() => toggleMute()} className="mr-2">
-                                        <FontAwesomeIcon icon={onMute ? faMicrophone : faMicrophoneSlash} className="mr-2" /> {onMute ? "Unmute" : "Mute"}
-                                    </Button>
-                                    <Button onClick={() => toggleHold()} className="mr-2">
-                                        <FontAwesomeIcon icon={onHold ? faPlay : faPause} className="mr-2" /> {onHold ? "Release hold" : "Hold"}
-                                    </Button>
-                                    <Button onClick={() => hangupCall()} className='p-button-danger mr-2'>
-                                        <FontAwesomeIcon icon={faPhoneSlash} className="mr-2" /> Hangup
-                                    </Button>
-                                    <Button onClick={() => showTransfer()} className='p-button-success mr-2'>
-                                        <FontAwesomeIcon icon={faRightLeft} className="mr-2" /> Transfer
-                                    </Button>
-
-                                </OverlayPanel>
-                            </>
-                        }
-
-                        <Button className="flex-none px-3 m-3"
-                            onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                            <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
-                            <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
-                            <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-                        </Button>
-
-                        <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                            <Menu model={userItems} style={{ border: 'none' }} />
-                        </OverlayPanel>
-
+                        </div>
                     </div>
-                </div>
                 {
                     selectedFeed &&
                     <Chat
                         feedId={selectedFeed}
                         inCall={inCall}
                         handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
-                        hangupCall={() => hangupCall()}
-                        showTransfer={() => showTransfer()}
                     />
                 }
             </div>

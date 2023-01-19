@@ -22,10 +22,6 @@ interface ChatProps {
     inCall: boolean;
 
     handleCall(feedInitiator: any): void;
-
-    hangupCall(): void;
-
-    showTransfer(): void;
 }
 
 export const Chat = (props: ChatProps) => {
