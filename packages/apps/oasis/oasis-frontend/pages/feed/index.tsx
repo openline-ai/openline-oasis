@@ -22,13 +22,18 @@ import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/webrtc/WebRTC";
 import { FeedItem } from "../../model/feed-item";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import CallProgress from '../../components/webrtc/CallProgress';
+import SuggestionList from "../../components/SuggestionList";
+import { Suggestion } from "../../components/SuggestionList";
 
+import {gql, GraphQLClient} from "graphql-request";
 
 const FeedPage: NextPage = () => {
     const router = useRouter()
     const { id } = router.query;
+    const client = new GraphQLClient(`/customer-os-api/query`);
+
 
     const [feeds, setFeeds] = useState([] as FeedItem[]);
     const [selectedFeed, setSelectedFeed] = useState(id as string);
@@ -145,6 +150,46 @@ const FeedPage: NextPage = () => {
         }
     }, [inCall]);
 
+    interface ContactResponse {
+        contacts: {
+            content: {
+                id: string;
+                firstName: string;
+                lastName: string;
+                phoneNumbers: { e164: string }[];
+            }[]
+        }
+
+    }
+
+    const getContactSuggestions = (filter: string, callback: Function) => {
+        const query = gql`query  getContacts($value: Any!) { 
+            contacts( where: {OR: [{filter: {property: "FIRST_NAME", value: $value, operation: CONTAINS }}, {filter: {property: "LAST_NAME", value: $value, operation: CONTAINS }}]}) 
+            {
+              content{id, firstName, lastName, phoneNumbers{e164}}
+            }
+          }`
+
+        client.request(query, {value: filter}).then((response: ContactResponse) => {
+            var suggestions: Suggestion[] = [];
+            if (response.contacts && response.contacts.content) {
+                for (const contact of response.contacts.content) {
+                    if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
+                        var sugestion = {id: contact.id, display: contact.firstName + " " + contact.lastName, value: contact.phoneNumbers[0].e164}
+                        suggestions.push(sugestion);                    
+
+                    }
+                }
+  
+            }
+            callback(suggestions);
+
+        }).catch(reason => {
+            //todo log on backend
+            toast.error("There was a problem on our side and we are doing our best to solve it!");
+        });
+    }
+
     return (
         <div className="flex w-full h-full">
             <ToastContainer position="top-center"
@@ -226,7 +271,7 @@ const FeedPage: NextPage = () => {
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom} referStatus={referStatus}></CallProgress>
+                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom} referStatus={referStatus} getContactSuggestions={getContactSuggestions}></CallProgress>
                             <Button className="flex-none px-3 m-3"
                                 onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
                                 <FontAwesomeIcon icon={faUserSecret} className="mr-2" />

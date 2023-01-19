@@ -17,12 +17,14 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { Button } from "primereact/button";
 import WebRTC from "../../components/webrtc/WebRTC";
 import { InputTextarea } from "primereact/inputtextarea";
+import SuggestionList from '../SuggestionList';
 
 interface CallProgressProps {
     inCall: boolean
     webrtc: React.RefObject<WebRTC>
     callFrom: string
     referStatus: string
+    getContactSuggestions: Function
 }
 
 
@@ -108,7 +110,7 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
 
 
     const makeButton = (number: string) => {
-        return <button className="btn btn-primary btn-lg m-1" key={number}
+        return <button className="btn btn-primary btn-lg m-1" key={"dtmf-"+number}
             onClick={() => { props.webrtc.current?.sendDtmf(number) }}>{number}</button>
     }
 
@@ -126,7 +128,7 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
 
     let dialpad_rows = []
     for (let i = 0; i < 4; i++) {
-        dialpad_rows.push(<div className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
+        dialpad_rows.push(<div key={"dtmf-row-" + i} className="d-flex flex-row justify-content-center">{dialpad_matrix[i]}</div>)
     }
 
     return (
@@ -161,6 +163,7 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
                     </div>
                     {showRefer &&
                     <>
+                    <div>
                     <div className="w-full text-center align-items-center mb-3">
                         <InputTextarea className="mr-2"
                             value={transferDest}
@@ -187,6 +190,10 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
                         </Button>
                         </span>
                     </div>
+                    <div>
+                        <SuggestionList currentValue={transferDest} getSuggestions={props.getContactSuggestions} setCurrentValue={setTransferDest}></SuggestionList>
+                    </div>
+                    </div>
                     </>}
                     {inRefer && <div 
                         style={{
@@ -207,7 +214,7 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
                                 <div className="w-full text-center align-items-center mb-3">
                                 Transfering call to: {transferDest}
                                 </div>
-                                <div className="w-full text-center align-items-center mb-3">
+                                <div key="referProgress" className="w-full text-center align-items-center mb-3">
                                 {referProgressString}
                                 </div>
                                 <div className="w-full text-center align-items-center mb-3">
