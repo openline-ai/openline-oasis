@@ -252,7 +252,7 @@ const FeedPage: NextPage = () => {
                                     boxShadow: "none"
                                 }}
                             />
-                            {dialedNumber.length > 0 && 
+                            {dialedNumber.length > 0 && !inCall &&
                         <Button
                                 onClick={() => handleCall(buildFeedInitator(dialedNumber))}
                                 tooltip={
