@@ -68,6 +68,8 @@ const CallProgress: NextPage<CallProgressProps> = (props:CallProgressProps) => {
     const clearRefer = () => {
         setReferProgressString('');
         setInRefer(false);
+        setShowRefer(false);
+        setTransferDest('')
         props.webrtc.current?.hangupCall();
     }
 
