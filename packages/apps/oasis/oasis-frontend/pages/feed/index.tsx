@@ -12,12 +12,14 @@ import {
     faArrowRightFromBracket,
     faCaretDown,
     faUserSecret,
+    faPhone,
 
 } from "@fortawesome/free-solid-svg-icons";
 
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Menu } from "primereact/menu";
 import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
 import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/webrtc/WebRTC";
@@ -37,6 +39,8 @@ const FeedPage: NextPage = () => {
 
     const [feeds, setFeeds] = useState([] as FeedItem[]);
     const [selectedFeed, setSelectedFeed] = useState(id as string);
+    const [dialedNumber, setDialedNumber] = useState('');
+
 
     const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -119,12 +123,27 @@ const FeedPage: NextPage = () => {
     const [inCall, setInCall] = useState(false);
 
 
+    interface FeedInitatior {
+        phoneNumber?: string
+        email?: string
+    }
 
-    const handleCall = (feedInitiator: any) => {
+    const buildFeedInitator = (dest: string): FeedInitatior => {
+        const feedInitiator: FeedInitatior = {};
+        if (dest.includes("@")) {
+            feedInitiator.email = dest;
+        } else {
+            feedInitiator.phoneNumber = dest;
+        }
+        return feedInitiator;
+
+    }
+
+    const handleCall = (feedInitiator: FeedInitatior) => {
         let user = '';
         if (feedInitiator.phoneNumber) {
             user = feedInitiator.phoneNumber + "@oasis.openline.ai";
-        } else {
+        } else if(feedInitiator.email){
             user = feedInitiator.email;
             const regex = /.*<(.*)>/;
             const matches = user.match(regex);
@@ -212,10 +231,49 @@ const FeedPage: NextPage = () => {
 
             <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
                 style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
+                <div>
+                    <div className='flex p-3 w-full'>
+                        <InputTextarea className="w-full"
+                                value={dialedNumber}
+                                onChange={(e) => setDialedNumber(e.target.value)}
+                                autoResize
+                                rows={1}
+                                placeholder="Call"
+                                onKeyPress={(e) => {
+                                    if (e.shiftKey && e.key === "Enter") {
+                                        return true
+                                    }
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                style={{
+                                    borderColor: "black", //Do not set as none!! It breaks InputTextarea autoResize
+                                    boxShadow: "none"
+                                }}
+                            />
+                            {dialedNumber.length > 0 && 
+                        <Button
+                                onClick={() => handleCall(buildFeedInitator(dialedNumber))}
+                                tooltip={
+                                    `Call (${dialedNumber})`
+                                }
+                                tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
+                                className='p-button-text mx-2 p-2'
+                                style={{
+                                    border: 'solid 1px #E8E8E8',
+                                    borderRadius: '6px'
+                                }}>
+                            <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
+                        </Button>
+}
+                    </div>
 
-                <div className='flex p-3'>
-                    <InputText placeholder={'Search'} className='w-full' />
+                    <div className='flex p-3'>
+                        <SuggestionList currentValue={dialedNumber} getSuggestions={getContactSuggestions} setCurrentValue={setDialedNumber}></SuggestionList>
+                    </div>
                 </div>
+                
 
                     <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
                         {
