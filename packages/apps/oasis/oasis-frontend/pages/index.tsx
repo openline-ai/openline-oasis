@@ -21,8 +21,7 @@ const Home: NextPage = () => {
         ory
                 .toSession()
                 .then(({data}) => {
-                    // User has a session!
-                    setSession(data)
+
                     let userName = getUserName(data.identity);
                     setUserEmail(userName)
 
@@ -39,6 +38,9 @@ const Home: NextPage = () => {
                     ory.createBrowserLogoutFlow().then(({data}) => {
                         setLogoutUrl(data.logout_url)
                     })
+
+                    // User has a session!
+                    setSession(data)
 
                     router.push('/feed');
                 })
