@@ -14,16 +14,18 @@ import Moment from "react-moment";
 import {FeedItem} from "../../model/feed-item";
 import {toast} from "react-toastify";
 import {ConversationItem} from "../../model/conversation-item";
+import {useGraphQLClient} from "../../utils/graphQLClient";
 
 interface ChatProps {
     feedId: string;
     inCall: boolean;
+    userLoggedInEmail: string;
 
     handleCall(feedInitiator: any): void;
 }
 
 export const Chat = (props: ChatProps) => {
-    const client = new GraphQLClient(`/customer-os-api/query`);
+    const client = useGraphQLClient();
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -187,7 +189,7 @@ export const Chat = (props: ChatProps) => {
         if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             channel: currentChannel,
-            // username: session?.user?.email, //TODO EDI
+            username: props.userLoggedInEmail,
             message: currentText
         }).then(res => {
             console.log(res)

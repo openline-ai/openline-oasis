@@ -12,6 +12,8 @@ const nextConfig = {
         NEXT_PUBLIC_TURN_SERVER: process.env.NEXT_PUBLIC_TURN_SERVER,
         NEXT_PUBLIC_TURN_USER: process.env.NEXT_PUBLIC_TURN_USER,
 
+        ORY_SDK_URL: process.env.ORY_SDK_URL,
+
         OASIS_API_KEY: process.env.OASIS_API_KEY,
         CUSTOMER_OS_API_KEY: process.env.CUSTOMER_OS_API_KEY
     },
