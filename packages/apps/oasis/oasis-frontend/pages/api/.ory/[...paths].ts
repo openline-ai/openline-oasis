@@ -9,5 +9,6 @@ export { config }
 
 // And create the Ory Network API "bridge".
 export default createApiHandler({
-  fallbackToPlayground: true
+  fallbackToPlayground: true,
+  forceCookieDomain: "vercel.app",
 })
