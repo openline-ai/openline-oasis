@@ -10,5 +10,4 @@ export { config }
 // And create the Ory Network API "bridge".
 export default createApiHandler({
   fallbackToPlayground: true,
-  forceCookieDomain: "openline-oasis-git-rc-openline.vercel.app",
 })
