@@ -1,37 +1,24 @@
-import type { NextPage } from 'next'
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "primereact/button";
-import { useRouter } from "next/router";
+import {useEffect, useRef, useState} from "react";
+import {Button} from "primereact/button";
+import {useRouter} from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faArrowRightFromBracket,
-    faCaretDown,
-    faUserSecret,
-    faPhone,
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faArrowRightFromBracket, faCaretDown, faPhone, faUserSecret,} from "@fortawesome/free-solid-svg-icons";
 
-} from "@fortawesome/free-solid-svg-icons";
-
-import { OverlayPanel } from "primereact/overlaypanel";
-import { Menu } from "primereact/menu";
-import { InputText } from "primereact/inputtext";
-import { InputTextarea } from "primereact/inputtextarea";
+import {OverlayPanel} from "primereact/overlaypanel";
+import {Menu} from "primereact/menu";
+import {InputTextarea} from "primereact/inputtextarea";
 import Chat from "./chat";
 import Moment from "react-moment";
 import WebRTC from "../../components/webrtc/WebRTC";
-import { FeedItem } from "../../model/feed-item";
-import { ToastContainer, toast } from "react-toastify";
+import {FeedItem} from "../../model/feed-item";
+import {toast, ToastContainer} from "react-toastify";
 import CallProgress from '../../components/webrtc/CallProgress';
-import SuggestionList from "../../components/SuggestionList";
-import { Suggestion } from "../../components/SuggestionList";
+import SuggestionList, {Suggestion} from "../../components/SuggestionList";
 
 import {gql, GraphQLClient} from "graphql-request";
-import {Configuration, FrontendApi, Session} from "@ory/client";
-import {edgeConfig} from "@ory/integrations/next";
-import {getUserName} from "../../utils/logged-in";
-import {setClient, useGraphQLClient} from "../../utils/graphQLClient";
 
 interface FeedProps {
     feedId: string | undefined;
@@ -48,7 +35,7 @@ export const Feed = (props: FeedProps) => {
     const [dialedNumber, setDialedNumber] = useState('');
 
 
-    const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
+    const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
         shouldReconnect: (closeEvent) => true,
@@ -68,13 +55,13 @@ export const Feed = (props: FeedProps) => {
     const loadFeed = function () {
         console.log("Reloading feed!");
         axios.get(`/oasis-api/feed`)
-            .then(res => {
-                setFeeds(res.data?.feedItems ?? []);
-                if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
-                    setSelectedFeed(res.data.feedItems[0].id);
-                    router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, { shallow: true });
-                }
-            });
+                .then(res => {
+                    setFeeds(res.data?.feedItems ?? []);
+                    if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
+                        setSelectedFeed(res.data.feedItems[0].id);
+                        router.push(`/feed?id=${res.data.feedItems[0].id}`, undefined, {shallow: true});
+                    }
+                });
     }
 
     const [referStatus, setReferStatus] = useState(props.feedId);
@@ -84,14 +71,14 @@ export const Feed = (props: FeedProps) => {
     let userItems = [
         {
             label: 'My profile',
-            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2" />,
+            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
             command: () => {
                 router.push('/');
             }
         },
         {
             label: 'Logout',
-            icon: <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-2" />,
+            icon: <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-2"/>,
             command: () => {
                 window.location.href = props.logoutUrl as string;
             }
@@ -100,26 +87,26 @@ export const Feed = (props: FeedProps) => {
 
     // region WebRTC
     const webrtc: React.RefObject<WebRTC> = useRef<WebRTC>(null);
-    
+
     useEffect(() => {
 
         const refreshCredentials = () => {
             axios.get(`/oasis-api/call_credentials?service=sip&username=` + props.userLoggedInEmail)
-                .then(res => {
-                    console.error("Got a key: " + JSON.stringify(res.data));
+                    .then(res => {
+                        console.error("Got a key: " + JSON.stringify(res.data));
 
-                    webrtc.current?.setCredentials(res.data.username, res.data.password,
-                        () => {
-                            if (!webrtc.current?._ua) {
-                                webrtc.current?.startUA()
-                            }
-                        });
-                    setTimeout(() => {
-                        refreshCredentials()
-                    }, (res.data.ttl * 3000) / 4);
-                });
+                        webrtc.current?.setCredentials(res.data.username, res.data.password,
+                                () => {
+                                    if (!webrtc.current?._ua) {
+                                        webrtc.current?.startUA()
+                                    }
+                                });
+                        setTimeout(() => {
+                            refreshCredentials()
+                        }, (res.data.ttl * 3000) / 4);
+                    });
         }
-            refreshCredentials();
+        refreshCredentials();
     }, []);
 
     const [callFrom, setCallFrom] = useState('');
@@ -146,7 +133,7 @@ export const Feed = (props: FeedProps) => {
         let user = '';
         if (feedInitiator.phoneNumber) {
             user = feedInitiator.phoneNumber + "@oasis.openline.ai";
-        } else if(feedInitiator.email){
+        } else if (feedInitiator.email) {
             user = feedInitiator.email;
             const regex = /.*<(.*)>/;
             const matches = user.match(regex);
@@ -185,24 +172,28 @@ export const Feed = (props: FeedProps) => {
     }
 
     const getContactSuggestions = (filter: string, callback: Function) => {
-        const query = gql`query  getContacts($value: Any!) { 
-            contacts( where: {OR: [{filter: {property: "FIRST_NAME", value: $value, operation: CONTAINS }}, {filter: {property: "LAST_NAME", value: $value, operation: CONTAINS }}]}) 
+        const query = gql`query  getContacts($value: Any!) {
+            contacts( where: {OR: [{filter: {property: "FIRST_NAME", value: $value, operation: CONTAINS }}, {filter: {property: "LAST_NAME", value: $value, operation: CONTAINS }}]})
             {
-              content{id, firstName, lastName, phoneNumbers{e164}}
+                content{id, firstName, lastName, phoneNumbers{e164}}
             }
-          }`
+        }`
 
         graphQlClient.request(query, {value: filter}).then((response: ContactResponse) => {
             var suggestions: Suggestion[] = [];
             if (response.contacts && response.contacts.content) {
                 for (const contact of response.contacts.content) {
                     if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-                        var sugestion = {id: contact.id, display: contact.firstName + " " + contact.lastName, value: contact.phoneNumbers[0].e164}
-                        suggestions.push(sugestion);                    
+                        var sugestion = {
+                            id: contact.id,
+                            display: contact.firstName + " " + contact.lastName,
+                            value: contact.phoneNumbers[0].e164
+                        }
+                        suggestions.push(sugestion);
 
                     }
                 }
-  
+
             }
             callback(suggestions);
 
@@ -212,70 +203,71 @@ export const Feed = (props: FeedProps) => {
     }
 
     return (
-        <div className="flex w-full h-full">
-            <ToastContainer position="top-center"
-                autoClose={3000}
-                closeOnClick={true}
-                hideProgressBar={true}
-                theme="colored" />
-            {
-                process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
-                <WebRTC
-                    ref={webrtc}
-                    websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                    from={"sip:" + props.userLoggedInEmail}
-                    notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
-                    updateCallState={(state: boolean) => setInCall(state)}
-                    updateReferStatus={(status: string) => setReferStatus(status)}
-                    autoStart={false}
-                />
-            }
+            <div className="flex w-full h-full">
+                <ToastContainer position="top-center"
+                                autoClose={3000}
+                                closeOnClick={true}
+                                hideProgressBar={true}
+                                theme="colored"/>
+                {
+                        process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL &&
+                        <WebRTC
+                                ref={webrtc}
+                                websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
+                                from={"sip:" + props.userLoggedInEmail}
+                                notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
+                                updateCallState={(state: boolean) => setInCall(state)}
+                                updateReferStatus={(status: string) => setReferStatus(status)}
+                                autoStart={false}
+                        />
+                }
 
-            <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
-                style={{ width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid' }}>
-                <div>
-                    <div className='flex p-3 w-full'>
-                        <InputTextarea className="w-full"
-                                value={dialedNumber}
-                                onChange={(e) => setDialedNumber(e.target.value)}
-                                autoResize
-                                rows={1}
-                                placeholder="Call"
-                                onKeyPress={(e) => {
-                                    if (e.shiftKey && e.key === "Enter") {
-                                        return true
-                                    }
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                style={{
-                                    borderColor: "black", //Do not set as none!! It breaks InputTextarea autoResize
-                                    boxShadow: "none"
-                                }}
+                <div className="flex flex-column flex-grow-0 h-full overflow-hidden"
+                     style={{width: '350px', background: 'white', borderRight: '1px rgb(235, 235, 235) solid'}}>
+                    <div>
+                        <div className='flex p-3 w-full'>
+                            <InputTextarea className="w-full"
+                                           value={dialedNumber}
+                                           onChange={(e) => setDialedNumber(e.target.value)}
+                                           autoResize
+                                           rows={1}
+                                           placeholder="Call"
+                                           onKeyPress={(e) => {
+                                               if (e.shiftKey && e.key === "Enter") {
+                                                   return true
+                                               }
+                                               if (e.key === "Enter") {
+                                                   e.preventDefault();
+                                               }
+                                           }}
+                                           style={{
+                                               borderColor: "black", //Do not set as none!! It breaks InputTextarea autoResize
+                                               boxShadow: "none"
+                                           }}
                             />
                             {dialedNumber.length > 0 && !inCall &&
-                        <Button
-                                onClick={() => handleCall(buildFeedInitator(dialedNumber))}
-                                tooltip={
-                                    `Call (${dialedNumber})`
-                                }
-                                tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
-                                className='p-button-text mx-2 p-2'
-                                style={{
-                                    border: 'solid 1px #E8E8E8',
-                                    borderRadius: '6px'
-                                }}>
-                            <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
-                        </Button>
-}
+                                    <Button
+                                            onClick={() => handleCall(buildFeedInitator(dialedNumber))}
+                                            tooltip={
+                                                `Call (${dialedNumber})`
+                                            }
+                                            tooltipOptions={{position: 'top', showDelay: 200, hideDelay: 200}}
+                                            className='p-button-text mx-2 p-2'
+                                            style={{
+                                                border: 'solid 1px #E8E8E8',
+                                                borderRadius: '6px'
+                                            }}>
+                                        <FontAwesomeIcon icon={faPhone} style={{fontSize: '20px'}}/>
+                                    </Button>
+                            }
+                        </div>
+
+                        <div className='flex p-3'>
+                            <SuggestionList currentValue={dialedNumber} getSuggestions={getContactSuggestions}
+                                            setCurrentValue={setDialedNumber}></SuggestionList>
+                        </div>
                     </div>
 
-                    <div className='flex p-3'>
-                        <SuggestionList currentValue={dialedNumber} getSuggestions={getContactSuggestions} setCurrentValue={setDialedNumber}></SuggestionList>
-                    </div>
-                </div>
-                
 
                     <div className='flex flex-column pl-3 pr-3 mb-3 overflow-x-hidden overflow-y-auto'>
                         {
@@ -291,17 +283,17 @@ export const Feed = (props: FeedProps) => {
                                 return <div key={f.id} className={className} onClick={() => {
                                     setSelectedFeed(f.id);
                                     //change the URL to allow a bookmark
-                                    router.push(`/feed?id=${f.id}`, undefined, { shallow: true });
+                                    router.push(`/feed?id=${f.id}`, undefined, {shallow: true});
                                 }
                                 }>
-                                    <div className='flex flex-column flex-grow-1 mr-3' style={{ minWidth: '0' }}>
+                                    <div className='flex flex-column flex-grow-1 mr-3' style={{minWidth: '0'}}>
                                         <div className='mb-2'>
                                             {
-                                                f.initiatorFirstName &&
-                                                f.initiatorFirstName + ' ' + f.initiatorLastName}
+                                                    f.initiatorFirstName &&
+                                                    f.initiatorFirstName + ' ' + f.initiatorLastName}
                                             {
-                                                !f.initiatorFirstName &&
-                                                f.initiatorUsername
+                                                    !f.initiatorFirstName &&
+                                                    f.initiatorUsername
                                             }
                                         </div>
                                         <div className='text-500' style={{
@@ -316,47 +308,51 @@ export const Feed = (props: FeedProps) => {
 
                                     <div className='flex flex-column text-right'>
                                         <Moment className="text-sm text-gray-600" date={t}
-                                            format={'MMM D, YYYY'}></Moment>
+                                                format={'MMM D, YYYY'}></Moment>
                                         <Moment className="text-sm text-gray-600" date={t}
-                                            format={'HH:mma'}></Moment>
+                                                format={'HH:mma'}></Moment>
                                     </div>
                                 </div>
                             })
                         }
                     </div>
 
-            </div>
+                </div>
 
                 <div className='flex h-full w-full flex-column'>
                     <div className='openline-top-bar'>
                         <div className="flex align-items-center justify-content-end">
 
-                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom} referStatus={referStatus as string} getContactSuggestions={getContactSuggestions}></CallProgress>
+                            <CallProgress inCall={inCall} webrtc={webrtc} callFrom={callFrom}
+                                          referStatus={referStatus as string}
+                                          getContactSuggestions={getContactSuggestions}></CallProgress>
                             <Button className="flex-none px-3 m-3"
-                                onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
-                                <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
+                                    onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
+                                <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>
                                 <span className='flex-grow-1'>{props.userLoggedInEmail}</span>
-                                <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+                                <FontAwesomeIcon icon={faCaretDown} className="ml-2"/>
                             </Button>
 
                             <OverlayPanel ref={userSettingsContainerRef} dismissable>
-                                <Menu model={userItems} style={{ border: 'none' }} />
+                                <Menu model={userItems} style={{border: 'none'}}/>
                             </OverlayPanel>
 
                         </div>
                     </div>
-                {
-                    selectedFeed &&
-                    <Chat
-                        feedId={selectedFeed}
-                        inCall={inCall}
-                        userLoggedInEmail={props.userLoggedInEmail}
-                        handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
-                    />
-                }
+                    {
+                            selectedFeed &&
+                            <Chat
+                                    feedId={selectedFeed}
+                                    inCall={inCall}
+                                    userLoggedInEmail={props.userLoggedInEmail}
+                                    handleCall={(feedInitiator: any) => handleCall(feedInitiator)}
+                            />
+                    }
+                </div>
+
+
             </div>
-
-
-        </div>
     );
 }
+
+export default Feed;
