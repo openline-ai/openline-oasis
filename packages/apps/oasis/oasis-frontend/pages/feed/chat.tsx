@@ -7,8 +7,6 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputTextarea} from "primereact/inputtextarea";
 import axios from "axios";
 import useWebSocket from "react-use-websocket";
-import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession, useSession} from "next-auth/react";
 import {gql, GraphQLClient} from "graphql-request";
 import {ProgressSpinner} from "primereact/progressspinner";
 import {Tooltip} from 'primereact/tooltip';
@@ -67,7 +65,6 @@ export const Chat = (props: ChatProps) => {
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as ConversationItem[]);
-    const {data: session, status} = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -190,7 +187,7 @@ export const Chat = (props: ChatProps) => {
         if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             channel: currentChannel,
-            username: session?.user?.email,
+            // username: session?.user?.email, //TODO EDI
             message: currentText
         }).then(res => {
             console.log(res)
@@ -447,10 +444,6 @@ export const Chat = (props: ChatProps) => {
             </div>
     );
 
-}
-
-export async function getServerSideProps(context: any) {
-    return loggedInOrRedirectToLogin(await getSession(context));
 }
 
 export default Chat;

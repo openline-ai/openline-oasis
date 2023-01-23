@@ -20,7 +20,6 @@
         "http-proxy-middleware": "^2.0.6",
         "jssip": "^3.9.1",
         "next": "^13.0.5",
-        "next-auth": "^4.17.0",
         "preact": "^10.10.6",
         "primeflex": "^3.2.1",
         "primeicons": "^5.0.0",

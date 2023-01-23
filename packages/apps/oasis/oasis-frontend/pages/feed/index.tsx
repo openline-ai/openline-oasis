@@ -5,8 +5,6 @@ import { Button } from "primereact/button";
 import { useRouter } from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
-import { loggedInOrRedirectToLogin } from "../../utils/logged-in";
-import { getSession, signOut, useSession } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowRightFromBracket,
@@ -73,7 +71,6 @@ const FeedPage: NextPage = () => {
 
     const [referStatus, setReferStatus] = useState(id as string);
 
-    const { data: session, status } = useSession();
     const userSettingsContainerRef = useRef<OverlayPanel>(null);
 
     let userItems = [
@@ -88,7 +85,6 @@ const FeedPage: NextPage = () => {
             label: 'Logout',
             icon: <FontAwesomeIcon icon={faArrowRightFromBracket} className="mr-2" />,
             command: () => {
-                signOut();
             }
         }
     ];
@@ -99,7 +95,7 @@ const FeedPage: NextPage = () => {
     useEffect(() => {
 
         const refreshCredentials = () => {
-            axios.get(`/oasis-api/call_credentials?service=sip&username=` + session?.user?.email)
+            axios.get(`/oasis-api/call_credentials?service=sip&username=` + '')
                 .then(res => {
                     console.error("Got a key: " + JSON.stringify(res.data));
 
@@ -114,10 +110,10 @@ const FeedPage: NextPage = () => {
                     }, (res.data.ttl * 3000) / 4);
                 });
         }
-        if (session?.user?.email) {
+        if ('') { //TODO
             refreshCredentials();
         }
-    }, [session?.user?.email]);
+    }, []); //TODO
 
     const [callFrom, setCallFrom] = useState('');
     const [inCall, setInCall] = useState(false);
@@ -221,7 +217,7 @@ const FeedPage: NextPage = () => {
                 <WebRTC
                     ref={webrtc}
                     websocket={`${process.env.NEXT_PUBLIC_WEBRTC_WEBSOCKET_URL}`}
-                    from={"sip:" + session?.user?.email}
+                    from={"sip:" + ''} //TODO EDI
                     notifyCallFrom={(callFrom: string) => setCallFrom(callFrom)}
                     updateCallState={(state: boolean) => setInCall(state)}
                     updateReferStatus={(status: string) => setReferStatus(status)}
@@ -333,7 +329,7 @@ const FeedPage: NextPage = () => {
                             <Button className="flex-none px-3 m-3"
                                 onClick={(e: any) => userSettingsContainerRef?.current?.toggle(e)}>
                                 <FontAwesomeIcon icon={faUserSecret} className="mr-2" />
-                                <span className='flex-grow-1'>{session?.user?.email}</span> {/* TODO: Add name */}
+                                <span className='flex-grow-1'>{}</span> {/* TODO: Add name */}
                                 <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
                             </Button>
 
@@ -356,10 +352,6 @@ const FeedPage: NextPage = () => {
 
         </div>
     );
-}
-
-export async function getServerSideProps(context: any) {
-    return loggedInOrRedirectToLogin(await getSession(context));
 }
 
 export default FeedPage
