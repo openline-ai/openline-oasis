@@ -1,5 +1,6 @@
 FROM node:16.16-alpine as deps
 RUN apk add --no-cache libc6-compat
+RUN apk add g++ make py3-pip
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile

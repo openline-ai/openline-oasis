@@ -22,6 +22,9 @@ const Home: NextPage = () => {
                 .toSession()
                 .then(({data}) => {
 
+                    console.log('HAVE SESSION')
+                    console.log(data)
+
                     let userName = getUserName(data.identity);
                     setUserEmail(userName)
 
@@ -43,19 +46,24 @@ const Home: NextPage = () => {
                     setSession(data)
 
                 })
-                .catch(() => {
+                .catch((e) => {
                     // Redirect to login page
+                    console.log('NO SESSION')
+                    console.log(e)
                     return router.push(edgeConfig.basePath + "/ui/login")
                 })
     }, [router])
 
     if (!session) {
+        console.log('checking for session. no session')
         // Still loading
         return null
     } else {
+        console.log('checking for session. have session')
         router.push('/feed');
     }
 
+    console.log('printing empy html')
     return (
         <>
         </>
