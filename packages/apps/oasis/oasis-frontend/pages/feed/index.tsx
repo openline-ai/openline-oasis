@@ -14,8 +14,8 @@ import {Feed} from "./feed";
 const ory = new FrontendApi(new Configuration(edgeConfig))
 
 const FeedPage: NextPage = () => {
-
     const router = useRouter()
+    const {id} = router.query;
 
     //region AUTH
     const [session, setSession] = useState<Session | undefined>()
@@ -59,8 +59,6 @@ const FeedPage: NextPage = () => {
         return null
     }
     //endregion
-
-    const {id} = router.query;
 
     return (
             <>
