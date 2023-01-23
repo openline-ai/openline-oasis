@@ -42,7 +42,6 @@ const Home: NextPage = () => {
                     // User has a session!
                     setSession(data)
 
-                    router.push('/feed');
                 })
                 .catch(() => {
                     // Redirect to login page
@@ -53,6 +52,8 @@ const Home: NextPage = () => {
     if (!session) {
         // Still loading
         return null
+    } else {
+        router.push('/feed');
     }
 
     return (

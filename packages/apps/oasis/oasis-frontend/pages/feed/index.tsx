@@ -63,7 +63,7 @@ const FeedPage: NextPage = () => {
     return (
             <>
                 {
-                        userEmail &&
+                        session && userEmail &&
                         <Feed feedId={id as string} logoutUrl={logoutUrl} userLoggedInEmail={userEmail}/>
                 }
             </>
