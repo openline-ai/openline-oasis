@@ -7,8 +7,6 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputTextarea} from "primereact/inputtextarea";
 import axios from "axios";
 import useWebSocket from "react-use-websocket";
-import {loggedInOrRedirectToLogin} from "../../utils/logged-in";
-import {getSession, useSession} from "next-auth/react";
 import {gql, GraphQLClient} from "graphql-request";
 import {ProgressSpinner} from "primereact/progressspinner";
 import {Tooltip} from 'primereact/tooltip';
@@ -16,16 +14,18 @@ import Moment from "react-moment";
 import {FeedItem} from "../../model/feed-item";
 import {toast} from "react-toastify";
 import {ConversationItem} from "../../model/conversation-item";
+import {useGraphQLClient} from "../../utils/graphQLClient";
 
 interface ChatProps {
     feedId: string;
     inCall: boolean;
+    userLoggedInEmail: string;
 
     handleCall(feedInitiator: any): void;
 }
 
 export const Chat = (props: ChatProps) => {
-    const client = new GraphQLClient(`/customer-os-api/query`);
+    const client = useGraphQLClient();
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}/${props.feedId}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -67,7 +67,6 @@ export const Chat = (props: ChatProps) => {
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as ConversationItem[]);
-    const {data: session, status} = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -190,7 +189,7 @@ export const Chat = (props: ChatProps) => {
         if (!currentText) return;
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             channel: currentChannel,
-            username: session?.user?.email,
+            username: props.userLoggedInEmail,
             message: currentText
         }).then(res => {
             console.log(res)
@@ -447,10 +446,6 @@ export const Chat = (props: ChatProps) => {
             </div>
     );
 
-}
-
-export async function getServerSideProps(context: any) {
-    return loggedInOrRedirectToLogin(await getSession(context));
 }
 
 export default Chat;

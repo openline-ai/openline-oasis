@@ -1,16 +1,5 @@
-import {Session} from "next-auth";
+import {Identity} from "@ory/client";
 
-export async function loggedInOrRedirectToLogin(session: Session | null) {
-    if (!session) {
-        return {
-            redirect: {
-                destination: '/api/auth/signin',
-                permanent: false,
-            },
-        }
-    }
-
-    return {
-        props: {session}
-    }
+export function getUserName(identity: Identity): string {
+    return identity.traits.email || identity.traits.username
 }
