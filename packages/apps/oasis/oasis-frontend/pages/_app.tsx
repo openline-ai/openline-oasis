@@ -8,10 +8,7 @@ import '../styles/theme-override.css'
 import '../styles/layout.css'
 import 'react-toastify/dist/ReactToastify.css';
 
-import {SessionProvider} from "next-auth/react"
-import {ToastContainer} from "react-toastify";
 import * as React from "react";
-import {Session} from "next-auth";
 import {AppProps} from "next/app";
 
 import axios from "axios";
@@ -21,12 +18,9 @@ axios.defaults.withCredentials = true
 export default function App({
                                 Component,
                                 pageProps: {session, ...pageProps},
-                            }: AppProps<{ session: Session }>) {
+                            }: AppProps) {
 
     return (
-            <SessionProvider session={session}>
-
-                <Component {...pageProps} />
-            </SessionProvider>
+            <Component {...pageProps} />
     )
 }

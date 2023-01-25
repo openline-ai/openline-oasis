@@ -37,18 +37,8 @@ spec:
             - name: NEXT_PUBLIC_TURN_CREDENTIAL
               value: "1234"
 
-            - name: NEXTAUTH_URL
-              value: "http://localhost:3006"
-            - name: NEXTAUTH_OAUTH_CLIENT_ID
-              value: "8f1f74c4-6fcd-11ed-a1eb-0242ac120002"
-            - name: NEXTAUTH_OAUTH_CLIENT_SECRET
-              value: "XEBSZzdEke9GZTh1YiAzsirRM6FsB0DwN2R1XaUf_Zg"
-            - name: NEXTAUTH_OAUTH_TENANT_ID
-              value: "7c7b794e-6fcd-11ed-a1eb-0242ac120002"
-            - name: NEXTAUTH_OAUTH_SERVER_URL
-              value: "http://auth-fusionauth.openline.svc.cluster.local:9011/"
-            - name: NEXTAUTH_SECRET
-              value: "4691821d-ba37-4870-9626-f0cd6ad15e99"
+            - name: ORY_SDK_URL
+              value: "https://sharp-haibt-c9kexbssro.projects.oryapis.com"
 
             - name: CUSTOMER_OS_API_KEY
               value: "dd9d2474-b4a9-4799-b96f-73cd0a2917e4"
