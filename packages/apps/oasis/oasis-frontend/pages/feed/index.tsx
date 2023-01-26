@@ -30,15 +30,7 @@ const FeedPage: NextPage = () => {
                     let userName = getUserName(data.identity);
                     setUserEmail(userName);
 
-                    let graphQLClient = new GraphQLClient(`/customer-os-api/query`, {
-                        headers: {
-                            'X-Openline-USERNAME': userName
-                        }
-                    });
-
-                    setClient(graphQLClient);
-
-                    axios.defaults.headers.common['X-Openline-USERNAME'] = userName;
+                    setClient(new GraphQLClient(`/customer-os-api/query`));
 
                     // Create a logout url
                     ory.createBrowserLogoutFlow().then(({data}) => {

@@ -1,4 +1,5 @@
 import {NextRequest, NextResponse} from "next/server";
+import axios from "axios";
 
 export function middleware(request: NextRequest) {
     var newURL = '';
@@ -28,9 +29,11 @@ export function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL("/api/.ory/ui/login", request.url))
         }
 
-        console.log("User is signed in, redirecting to " + newURL);
+        return resp.json().then((data) => {
+            console.log("User is signed in. Proceeding to redirect.");
 
-        return getRedirectUrl(newURL, request);
+            return getRedirectUrl(newURL, data.identity.traits.email, request);
+        })
     }).catch((err) => {
         console.log(`Global Session Middleware error: ${JSON.stringify(err)}`)
         if (!err.response) {
@@ -59,12 +62,14 @@ export function middleware(request: NextRequest) {
     })
 }
 
-function getRedirectUrl(newURL: string, request: NextRequest) {
+function getRedirectUrl(newURL: string, userName: string, request: NextRequest) {
     if (request.nextUrl.searchParams) {
         newURL = newURL + "?" + request.nextUrl.searchParams.toString()
     }
 
     const requestHeaders = new Headers(request.headers);
+
+    requestHeaders.set('X-Openline-USERNAME', userName);
 
     if (request.nextUrl.pathname.startsWith('/oasis-api')) {
         requestHeaders.set('X-Openline-API-KEY', process.env.OASIS_API_KEY as string)
