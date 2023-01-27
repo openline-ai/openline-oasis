@@ -22,8 +22,30 @@ spec:
             - containerPort: 9006  # Should match the port number that the Go application listens on
               name: grpc-port
           env:
+            - name: POSTGRES_USER
+              value: "openline"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: POSTGRES_DB
+              value: "openline"
+            - name: POSTGRES_HOST
+              value: "customer-db-postgresql.openline.svc.cluster.local"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_MAX_CONN
+              value: "25"
+            - name: POSTGRES_MAX_IDLE_CONN
+              value: "10"
+            - name: POSTGRES_CONN_MAX_LIFETIME
+              value: "0"
+            - name: POSTGRES_LOG_LEVEL
+              value: "WARN"
+
             - name: MESSAGE_STORE_URL
               value: "message-store-api-service.openline.svc.cluster.local:9009"
+            - name: MESSAGE_STORE_API_KEY
+              value: "f6e26f68-7e69-42fb-9aee-624becc29897"
+
             - name: CHANNELS_API_URL
               value: "channels-api-service.openline.svc.cluster.local:9013"
             - name: CORS_URL
@@ -35,8 +57,6 @@ spec:
             - name: WEBRTC_AUTH_SECRET
               value: "2c42a1b6-d776-4083-b0b6-44fecea2d022"
             - name: WEBRTC_AUTH_TTL
-              value: "3600" 
-            - name: OASIS_API_KEY
-              value: "10a6747a-97cd-4a6c-bcf5-e4ee89a12567"     
+              value: "3600"
             - name: WEBSOCKET_PING_INTERVAL
               value: "30"              
