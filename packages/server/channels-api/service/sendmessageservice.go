@@ -3,11 +3,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	"google.golang.org/grpc/metadata"
 	"log"
 )
 
@@ -19,6 +21,12 @@ type sendMessageService struct {
 }
 
 func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
+	username, err := service.GetUsernameMetadataForGRPC(c)
+	if err != nil {
+		log.Printf("Missing username header")
+		return nil, err
+	}
+
 	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
@@ -28,6 +36,9 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	client := msProto.NewMessageStoreServiceClient(conn)
 
 	ctx := context.Background()
+	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
+
 	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")

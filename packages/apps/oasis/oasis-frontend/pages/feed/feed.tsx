@@ -91,7 +91,7 @@ export const Feed = (props: FeedProps) => {
     useEffect(() => {
 
         const refreshCredentials = () => {
-            axios.get(`/oasis-api/call_credentials?service=sip&username=` + props.userLoggedInEmail)
+            axios.get(`/oasis-api/call_credentials?service=sip`)
                     .then(res => {
                         console.error("Got a key: " + JSON.stringify(res.data));
 
