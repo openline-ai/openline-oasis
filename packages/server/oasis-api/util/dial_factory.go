@@ -19,7 +19,7 @@ type DialFactoryImpl struct {
 }
 
 func (dfi DialFactoryImpl) GetMessageStoreCon() (*grpc.ClientConn, error) {
-	return grpc.Dial(dfi.conf.Service.MessageStore, grpc.WithInsecure())
+	return grpc.Dial(dfi.conf.Service.MessageStoreUrl, grpc.WithInsecure())
 
 }
 func (dfi DialFactoryImpl) GetChannelsAPICon() (*grpc.ClientConn, error) {

@@ -5,6 +5,7 @@ This service uses the environment variables described below. The env files have 
 | Variable                 | Meaning                                                                                                  |
 |--------------------------|----------------------------------------------------------------------------------------------------------|
 | MESSAGE_STORE_URL        | url of the GRPC interface of the message store                                                           |
+| MESSAGE_STORE_API_KEY    | message store API key                                                                                    |
 | CHANNELS_API_URL         | url of the GPRC interface of the Channels API                                                            |
 | CORS_URL                 | url of the frontend, needed to allow cros-site scripting                                                 |
 | OASIS_API_SERVER_ADDRESS | interface and port to bind to, normally should be ":8006"                                                |

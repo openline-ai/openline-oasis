@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
+	commonRepository "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository/postgres"
+	"github.com/openline-ai/openline-customer-os/packages/server/message-store/config"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes"
@@ -17,9 +19,30 @@ import (
 	"net"
 )
 
+func InitDB(cfg *c.Config) (db *config.StorageDB, err error) {
+	if db, err = config.NewDBConn(
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.Db,
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.MaxConn,
+		cfg.Postgres.MaxIdleConn,
+		cfg.Postgres.ConnMaxLifetime); err != nil {
+		log.Fatalf("Coud not open db connection: %s", err.Error())
+	}
+	return
+}
+
 func main() {
 	flag.Parse()
 	conf := loadConfiguration()
+
+	//GORM
+	db, _ := InitDB(conf)
+	defer db.SqlDB.Close()
+
+	commonRepositories := commonRepository.InitCommonRepositories(db.GormDB)
 
 	fh := FeedHub.NewFeedHub()
 	go fh.Run()
@@ -28,10 +51,10 @@ func main() {
 	go mh.Run()
 
 	// Our server will live in the routes package
-	go routes.Run(&conf, fh, mh) // run this as a background goroutine
+	go routes.ConfigureRoutes(conf, commonRepositories, fh, mh) // run this as a background goroutine
 
 	// Initialize the generated User service.
-	df := util.MakeDialFactory(&conf)
+	df := util.MakeDialFactory(conf)
 	svc := service.NewOasisApiService(df, fh, mh)
 
 	log.Printf("Attempting to start GRPC server")
@@ -55,7 +78,7 @@ func main() {
 	}
 }
 
-func loadConfiguration() c.Config {
+func loadConfiguration() *c.Config {
 	if err := godotenv.Load(); err != nil {
 		log.Println("[WARNING] Error loading .env file")
 	}
@@ -65,5 +88,5 @@ func loadConfiguration() c.Config {
 		log.Printf("%+v\n", err)
 	}
 
-	return cfg
+	return &cfg
 }

@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
 	"log"
 	"net/http"
 )
@@ -33,6 +35,8 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 
 		pagedRequest := &msProto.GetFeedsPagedRequest{}
 		feedList, err := msClient.GetFeeds(ctx, pagedRequest)
@@ -59,8 +63,12 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer util.CloseMessageStoreConnection(msConn)
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
 
+		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+
 		request := msProto.FeedId{Id: feedId.ID}
-		feed, err := msClient.GetFeed(context.Background(), &request)
+		feed, err := msClient.GetFeed(ctx, &request)
 		log.Printf("Got the feed!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -79,8 +87,12 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer util.CloseMessageStoreConnection(msConn)
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
 
+		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+
 		request := msProto.FeedId{Id: feedId.ID}
-		messages, err := msClient.GetMessagesForFeed(context.Background(), &request)
+		messages, err := msClient.GetMessagesForFeed(ctx, &request)
 		log.Printf("Got the list of messages!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -106,8 +118,12 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer util.CloseMessageStoreConnection(msConn)
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
 
+		msCtx := context.Background()
+		msCtx = metadata.AppendToOutgoingContext(msCtx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		msCtx = metadata.AppendToOutgoingContext(msCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+
 		request := msProto.FeedId{Id: feedId.ID}
-		_, err := msClient.GetFeed(context.Background(), &request)
+		_, err := msClient.GetFeed(msCtx, &request)
 		log.Printf("Got the feed!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -129,13 +145,11 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//	message.Channel = msProto.MessageChannel_MAIL
 		//}
 
-		ctx := context.Background()
-
 		msStoreClient := msProto.NewWebChatMessageStoreServiceClient(msConn)
-		newMsg, err := msStoreClient.SaveMessage(ctx, message)
+		newMsg, err := msStoreClient.SaveMessage(msCtx, message)
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
-			//return
+			return
 		}
 
 		// inform the channel api a new message
@@ -143,9 +157,10 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		defer util.CloseChannelsConnection(channelsConn)
 		channelsClient := chProto.NewMessageEventServiceClient(channelsConn)
 
-		ctx = context.Background()
+		channelsCtx := context.Background()
+		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 
-		_, err = channelsClient.SendMessageEvent(ctx, &chProto.MessageId{MessageId: newMsg.GetId()})
+		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetId()})
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return

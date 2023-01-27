@@ -17,6 +17,7 @@ This service uses the environment variables described below. The env files have 
 | Variable                    | Meaning                                                                                |
 |-----------------------------|----------------------------------------------------------------------------------------|
 | MESSAGE_STORE_URL           | url of the GRPC interface of the message store                                         |
+| MESSAGE_STORE_API_KEY       | message store API key                                                                  |
 | CHANNELS_API_SERVER_ADDRESS | ip:port to bind for the rest api, normally should be ":8013"                           |
 | CHANNELS_GRPC_PORT          | port used for the channel-api grpc interface, should be 9013                           |
 | SMTP_SERVER_ADDRESS         | hostname of smtp server to connect to                                                  |
