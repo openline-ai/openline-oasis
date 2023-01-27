@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	cr "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository/postgres"
+	cr "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
@@ -14,7 +14,7 @@ import (
 )
 
 // Run will start the server
-func ConfigureRoutes(conf *c.Config, commonRepositories *cr.PostgresCommonRepositoryContainer, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) {
+func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
@@ -29,7 +29,7 @@ func ConfigureRoutes(conf *c.Config, commonRepositories *cr.PostgresCommonReposi
 
 	route := router.Group("/")
 	route.Use(service.ApiKeyCheckerHTTP(commonRepositories.AppKeyRepo, service.OASIS_API))
-	route.Use(service.UserToTenantEnhancer(commonRepositories.UserToTenantRepo))
+	route.Use(service.UserToTenantEnhancer(commonRepositories.UserRepo))
 
 	df := util.MakeDialFactory(conf)
 	addFeedRoutes(route, conf, df)
