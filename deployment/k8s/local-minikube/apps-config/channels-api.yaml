@@ -24,6 +24,8 @@ spec:
           env:
             - name: MESSAGE_STORE_URL
               value: "message-store-api-service.openline.svc.cluster.local:9009"
+            - name: MESSAGE_STORE_API_KEY
+              value: "f6e26f68-7e69-42fb-9aee-624becc29897"
             - name: OASIS_API_URL
               value: "oasis-api-service.openline.svc.cluster.local:9006"
             - name: CHANNELS_API_SERVER_ADDRESS
