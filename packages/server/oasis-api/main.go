@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
-	commonRepository "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository/postgres"
+	commonRepository "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository"
 	"github.com/openline-ai/openline-customer-os/packages/server/message-store/config"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
@@ -14,6 +14,7 @@ import (
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/service"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -42,7 +43,14 @@ func main() {
 	db, _ := InitDB(conf)
 	defer db.SqlDB.Close()
 
-	commonRepositories := commonRepository.InitCommonRepositories(db.GormDB)
+	// NEO4J
+	neo4jDriver, err := c.NewDriver(conf)
+	if err != nil {
+		logrus.Fatalf("Could not establish connection with neo4j at: %v, error: %v", conf.Neo4j.Target, err.Error())
+	}
+	defer neo4jDriver.Close()
+
+	commonRepositories := commonRepository.InitRepositories(db.GormDB, &neo4jDriver)
 
 	fh := FeedHub.NewFeedHub()
 	go fh.Run()
