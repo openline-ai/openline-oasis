@@ -6,7 +6,6 @@
         "dev": "env-cmd -f .env.dev next dev -p 3006",
         "build:dev": "env-cmd -f .env.dev next build",
         "build:cluster": "env-cmd -f .env.cluster next build",
-        "start": "next start -p 3006",
         "lint": "next lint"
     },
     "dependencies": {
