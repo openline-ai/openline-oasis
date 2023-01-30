@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
@@ -130,7 +131,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			return
 		}
 
-		message := &msProto.WebChatInputMessage{
+		message := &msProto.InputMessage{
 			ConversationId: &feedId.ID,
 			Type:           msProto.MessageType_WEB_CHAT,
 			Subtype:        msProto.MessageSubtype_MESSAGE,
@@ -145,7 +146,8 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//	message.Channel = msProto.MessageChannel_MAIL
 		//}
 
-		msStoreClient := msProto.NewWebChatMessageStoreServiceClient(msConn)
+
+		msStoreClient := msProto.NewMessageStoreServiceClient(msConn)
 		newMsg, err := msStoreClient.SaveMessage(msCtx, message)
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
