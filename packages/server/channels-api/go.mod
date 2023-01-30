@@ -8,6 +8,7 @@ replace github.com/openline-ai/openline-oasis/packages/server/oasis-api => ./../
 //replace github.com/openline-ai/openline-customer-os/packages/server/message-store => ../../../../openline-customer-os/packages/server/message-store
 
 require (
+	github.com/DusanKasan/parsemail v1.2.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.2
