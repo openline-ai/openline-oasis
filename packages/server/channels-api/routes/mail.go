@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/DusanKasan/parsemail"
@@ -131,13 +130,6 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		if mEventErr != nil {
 			se, _ := status.FromError(mEventErr)
 			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
-		}
-
-		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.Email, *message.Message)}
-			json_data, _ := json.Marshal(values)
-
-			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))
 		}
 
 		c.JSON(http.StatusOK, gin.H{
