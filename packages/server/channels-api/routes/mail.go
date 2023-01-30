@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/DusanKasan/parsemail"
 	"github.com/gin-gonic/gin"
-	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	o "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
@@ -96,7 +96,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		}
 		//Contact the server and print out its response.
 		jsonContentString := string(jsonContent)
-		message := &ms.WebChatInputMessage{
+		message := &ms.InputMessage{
 			Type:       ms.MessageType_EMAIL,
 			Subtype:    ms.MessageSubtype_MESSAGE,
 			Message:    &jsonContentString,
@@ -108,7 +108,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
 		defer util.CloseMessageStoreConnection(msConn)
-		msClient := ms.NewWebChatMessageStoreServiceClient(msConn)
+		msClient := ms.NewMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
 

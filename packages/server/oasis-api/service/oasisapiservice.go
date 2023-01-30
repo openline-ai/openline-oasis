@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	"strconv"
 
 	op "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
@@ -55,7 +55,7 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{
 		Username:  conversationItem.SenderUsername,
-		Id:        conversationItem.Id,
+		Id:        conversationItem.MessageId.Id,
 		FeedId:    conversation.Id,
 		Direction: conversationItem.Direction.String(),
 		Message:   conversationItem.Content,
