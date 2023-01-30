@@ -1,10 +1,13 @@
 package util
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"google.golang.org/grpc"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -44,4 +47,22 @@ func MakeDialFactory(conf *config.Config) DialFactory {
 	dfi := new(DialFactoryImpl)
 	dfi.conf = conf
 	return *dfi
+}
+
+func GetMessageStoreConnection(c *gin.Context, df DialFactory) *grpc.ClientConn {
+	conn, msErr := df.GetMessageStoreCon()
+	if msErr != nil {
+		log.Printf("did not connect: %v", msErr)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
+		})
+	}
+	return conn
+}
+
+func CloseMessageStoreConnection(conn *grpc.ClientConn) {
+	err := conn.Close()
+	if err != nil {
+		log.Printf("Error closing connection: %v", err)
+	}
 }

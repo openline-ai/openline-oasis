@@ -76,8 +76,8 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		}
 
 		//Store the message in message store
-		msConn := GetMessageStoreWeChatClient(c, df)
-		defer closeMessageStoreConnection(msConn)
+		msConn := util.GetMessageStoreConnection(c, df)
+		defer util.CloseMessageStoreConnection(msConn)
 		msClient := ms.NewWebChatMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
@@ -114,24 +114,6 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			"result": fmt.Sprintf("message item created with id: %s", savedMessage.Id),
 		})
 	})
-}
-
-func GetMessageStoreWeChatClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
-	conn, msErr := df.GetMessageStoreCon()
-	if msErr != nil {
-		log.Printf("did not connect: %v", msErr)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"result": fmt.Sprintf("did not connect: %v", msErr.Error()),
-		})
-	}
-	return conn
-}
-
-func closeMessageStoreConnection(conn *grpc.ClientConn) {
-	err := conn.Close()
-	if err != nil {
-		log.Printf("Error closing connection: %v", err)
-	}
 }
 
 func GetOasisClient(c *gin.Context, df util.DialFactory) *grpc.ClientConn {
