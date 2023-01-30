@@ -16,7 +16,8 @@ the lambda takes 3 environment variables
 | variable          | meaning                                             |
 |-------------------|-----------------------------------------------------|
 | OL_MAIL_CB_HOST   | ip or hostname of the channel-api server            |
-| OL_MAIL_CB_PORT	  | port channel-api server is listening on             |
+| OL_MAIL_CB_PORT	 | port channel-api server is listening on             |
+| OL_MAIL_CB_PATH	 | path to use by the post                             |
 | OL_MAIL_S3_BUCKET | name of the s3 bucket you created for mail storage  |
 | OL_API_KEY        | API key that will be sent to the channel-api server |
 
