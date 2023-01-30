@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
@@ -145,7 +144,6 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//} else {
 		//	message.Channel = msProto.MessageChannel_MAIL
 		//}
-
 
 		msStoreClient := msProto.NewMessageStoreServiceClient(msConn)
 		newMsg, err := msStoreClient.SaveMessage(msCtx, message)
