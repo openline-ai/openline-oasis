@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
-	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store/proto/generated"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"

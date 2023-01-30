@@ -6,7 +6,6 @@ replace github.com/openline-ai/openline-oasis/packages/server/channels-api => ./
 
 //replace github.com/openline-ai/openline-customer-os/packages/server/message-store-api => ../../../../openline-customer-os/packages/server/message-store-api
 //replace github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module => ../../../../openline-customer-os/packages/server/customer-os-common-module
-//replace github.com/openline-ai/openline-customer-os/packages/server/message-store => ../../../../openline-customer-os/packages/server/message-store
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1
@@ -14,10 +13,10 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.4.0
-	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-00010101000000-000000000000
-	github.com/neo4j/neo4j-go-driver/v4 v4.4.4
+	github.com/neo4j/neo4j-go-driver/v4 v4.4.5
 	github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230127100359-b1bf9fe2fccf
 	github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20230113175908-2175601d4942
+	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230130162042-32c4dc2b48a5
 	github.com/openline-ai/openline-oasis/packages/server/channels-api v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
