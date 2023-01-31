@@ -27,12 +27,15 @@ type MailPostRequest struct {
 }
 
 type EmailContent struct {
-	Html    string   `json:"html"`
-	Subject string   `json:"subject"`
-	From    string   `json:"from"`
-	To      []string `json:"to"`
-	Cc      []string `json:"cc"`
-	Bcc     []string `json:"bcc"`
+	MessageId string   `json:"messageId"`
+	Html      string   `json:"html"`
+	Subject   string   `json:"subject"`
+	From      string   `json:"from"`
+	To        []string `json:"to"`
+	Cc        []string `json:"cc"`
+	Bcc       []string `json:"bcc"`
+	InReplyTo []string `json:"InReplyTo"`
+	Reference []string `json:"Reference"`
 }
 
 func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
@@ -78,12 +81,15 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 
 		fromAddress := email.From[0].Address
 		emailContent := EmailContent{
-			Subject: email.Subject,
-			Html:    email.HTMLBody,
-			From:    fromAddress,
-			To:      toStringArr(email.To),
-			Cc:      toStringArr(email.Cc),
-			Bcc:     toStringArr(email.Bcc),
+			MessageId: email.MessageID,
+			Subject:   email.Subject,
+			Html:      email.HTMLBody,
+			From:      fromAddress,
+			To:        toStringArr(email.To),
+			Cc:        toStringArr(email.Cc),
+			Bcc:       toStringArr(email.Bcc),
+			InReplyTo: email.InReplyTo,
+			Reference: email.References,
 		}
 		jsonContent, err := json.Marshal(emailContent)
 		if err != nil {
@@ -103,7 +109,6 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			Email:      &fromAddress,
 			SenderType: ms.SenderType_CONTACT,
 		}
-
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
 		defer util.CloseMessageStoreConnection(msConn)
