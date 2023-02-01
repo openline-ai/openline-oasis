@@ -12,23 +12,24 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    console.log(request.headers.get("cookie"))
+    console.log(request.headers.get("cookie") )
 
     return fetch(`${process.env.ORY_SDK_URL}/sessions/whoami`, {
         headers: {
             cookie: request.headers.get("cookie") || "",
         },
     }).then((resp) => {
+        console.log(resp);
         // there must've been no response (invalid URL or something...)
         if (!resp) {
             console.log("no response");
-            return NextResponse.redirect(new URL("/api/.ory/ui/login", request.url))
+            return NextResponse.error()
         }
 
         // the user is not signed in
         if (resp.status === 401) {
             console.log("not signed in");
-            return NextResponse.redirect(new URL("/api/.ory/ui/login", request.url))
+            return NextResponse.error()
         }
 
         return resp.json().then((data) => {
