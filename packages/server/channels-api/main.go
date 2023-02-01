@@ -11,9 +11,13 @@ import (
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/service"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/gmail/v1"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"strings"
 )
 
 func initDB(cfg *c.Config) (db *c.StorageDB, err error) {
@@ -45,8 +49,19 @@ func main() {
 
 	repositories := repository.InitRepositories(db.GormDB)
 
+	oauthConfig := &oauth2.Config{
+		ClientID:     conf.GMail.ClientId,
+		ClientSecret: conf.GMail.ClientSecret,
+		RedirectURL:  strings.Split(conf.GMail.RedirectUris, " ")[0],
+		Scopes:       []string{gmail.GmailReadonlyScope, gmail.GmailComposeScope},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  google.Endpoint.AuthURL,
+			TokenURL: google.Endpoint.TokenURL,
+		},
+	}
+
 	// Our server will live in the routes package
-	go routes.Run(&conf, mh) // run this as a backround goroutine
+	go routes.Run(&conf, mh, oauthConfig, repositories) // run this as a backround goroutine
 
 	// Initialize the generated User service.
 	df := util.MakeDialFactory(&conf)

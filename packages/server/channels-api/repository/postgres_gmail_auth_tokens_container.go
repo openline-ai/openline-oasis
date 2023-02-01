@@ -7,7 +7,7 @@ import (
 )
 
 type GmailAuthTokensRepository interface {
-	Save(conversationEvent *entity.GmailAuthToken) helper.QueryResult
+	Save(gmailAuthToken *entity.GmailAuthToken) helper.QueryResult
 }
 
 type gmailAuthTokensRepository struct {
@@ -19,12 +19,13 @@ func NewGmailAuthTokensRepository(db *gorm.DB) GmailAuthTokensRepository {
 		db: db,
 	}
 }
-func (r *gmailAuthTokensRepository) Save(conversationEvent *entity.GmailAuthToken) helper.QueryResult {
-	result := r.db.Create(&conversationEvent)
+
+func (r *gmailAuthTokensRepository) Save(gmailAuthToken *entity.GmailAuthToken) helper.QueryResult {
+	result := r.db.Create(&gmailAuthToken)
 
 	if result.Error != nil {
 		return helper.QueryResult{Error: result.Error}
 	}
 
-	return helper.QueryResult{Result: &conversationEvent}
+	return helper.QueryResult{Result: &gmailAuthToken}
 }

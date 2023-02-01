@@ -7,6 +7,16 @@ message GmailCredential {
   string token = 2;
 }
 
+message GmailStateInfo {
+  string email = 1;
+  string redirect_url = 2;
+}
+
+message GmailAuthUrl {
+  string url = 1;
+}
+
 service GmailAuthTokenService {
   rpc setGmailAuth(GmailCredential) returns (EventEmpty) {};
+  rpc getGmailAuthUrl(GmailStateInfo) returns (GmailAuthUrl) {};
 }
