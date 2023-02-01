@@ -12,6 +12,8 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
+    console.log(request.headers.get("cookie"))
+
     return fetch(`${process.env.ORY_SDK_URL}/sessions/whoami`, {
         headers: {
             cookie: request.headers.get("cookie") || "",
