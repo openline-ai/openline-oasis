@@ -25,7 +25,7 @@ type MessageId struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MessageId string `protobuf:"bytes,1,opt,name=messageId,proto3" json:"messageId"`
+	MessageId string `protobuf:"bytes,1,opt,name=messageId,proto3" json:"messageId,omitempty"`
 }
 
 func (x *MessageId) Reset() {
@@ -67,52 +67,14 @@ func (x *MessageId) GetMessageId() string {
 	return ""
 }
 
-type EventEmpty struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *EventEmpty) Reset() {
-	*x = EventEmpty{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_messageevent_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *EventEmpty) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EventEmpty) ProtoMessage() {}
-
-func (x *EventEmpty) ProtoReflect() protoreflect.Message {
-	mi := &file_messageevent_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EventEmpty.ProtoReflect.Descriptor instead.
-func (*EventEmpty) Descriptor() ([]byte, []int) {
-	return file_messageevent_proto_rawDescGZIP(), []int{1}
-}
-
 var File_messageevent_proto protoreflect.FileDescriptor
 
 var file_messageevent_proto_rawDesc = []byte{
 	0x0a, 0x12, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x29, 0x0a, 0x09, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49,
-	0x64, 0x12, 0x1c, 0x0a, 0x09, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x22,
-	0x0c, 0x0a, 0x0a, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x32, 0x44, 0x0a,
+	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x0c, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x22, 0x29, 0x0a, 0x09, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x12,
+	0x1c, 0x0a, 0x09, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x32, 0x44, 0x0a,
 	0x13, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x65, 0x72,
 	0x76, 0x69, 0x63, 0x65, 0x12, 0x2d, 0x0a, 0x10, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73,
 	0x61, 0x67, 0x65, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x0a, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61,
@@ -135,7 +97,7 @@ func file_messageevent_proto_rawDescGZIP() []byte {
 	return file_messageevent_proto_rawDescData
 }
 
-var file_messageevent_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_messageevent_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_messageevent_proto_goTypes = []interface{}{
 	(*MessageId)(nil),  // 0: MessageId
 	(*EventEmpty)(nil), // 1: EventEmpty
@@ -155,21 +117,10 @@ func file_messageevent_proto_init() {
 	if File_messageevent_proto != nil {
 		return
 	}
+	file_common_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_messageevent_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MessageId); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_messageevent_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventEmpty); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -187,7 +138,7 @@ func file_messageevent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messageevent_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
