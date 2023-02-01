@@ -34,6 +34,7 @@ func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *Fe
 	df := util.MakeDialFactory(conf)
 	addFeedRoutes(route, conf, df)
 	addCallCredentialRoutes(route, conf)
+	addGmailTokenAuthRoutes(route, conf, df)
 	addLoginRoutes(route)
 
 	// TODO: a different typ of auth for websockets
