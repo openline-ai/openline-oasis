@@ -92,12 +92,12 @@ github.com/onsi/ginkgo v1.16.5/go.mod h1:+E8gABHa3K6zRBolWtd+ROzc/U5bkGt0FwiG042
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
-github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230127100359-b1bf9fe2fccf h1:7hlvip6kXlTPOAS4HENnMwyNWITo4itly1Sgo2qIgb0=
-github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230127100359-b1bf9fe2fccf/go.mod h1:2xUNH7xeAyo9flzfkdEMgSMrjGnBORpl+MeCOONXn+k=
+github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230202090615-ff0877a20953 h1:7ib8u8yOn4GndKNpFBBkTMden/3vi4g7zd84ofz+OAU=
+github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230202090615-ff0877a20953/go.mod h1:Qu/ak7ye0Ty/NB64cUOxV0jazsPNOcohhHH/BuXQEDM=
 github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20230113175908-2175601d4942 h1:6xqLmRGVXHqy6+J8YJc/6dDxPsBJFonT9lf5pszaQO4=
 github.com/openline-ai/openline-customer-os/packages/server/message-store v0.0.0-20230113175908-2175601d4942/go.mod h1:SyR4kwXCDpHVT4X0nlx+ChZXOJQrf7wkumx9q6Qze3o=
-github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230130162042-32c4dc2b48a5 h1:Cj0Tq1MpmyC3lkapQdVa36pg2tduWSby3Qk0bDix21Y=
-github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230130162042-32c4dc2b48a5/go.mod h1:CYq8+U7Cbbn/z7ieXqMkOvu5PiHSwI+mQMmgRbqcZMk=
+github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230202090615-ff0877a20953 h1:aNqvtIp8CWqWAsegUD9AgNlsk1GJ4pP076nk72kC25Y=
+github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230202090615-ff0877a20953/go.mod h1:CYq8+U7Cbbn/z7ieXqMkOvu5PiHSwI+mQMmgRbqcZMk=
 github.com/pelletier/go-toml/v2 v2.0.1/go.mod h1:r9LEWfGN8R5k0VXJ+0BkIe7MYkRdwZOjgMj2KwnJFUo=
 github.com/pelletier/go-toml/v2 v2.0.6 h1:nrzqCb7j9cDFj2coyLNLaZuJTLjWjlaz6nvTvIwycIU=
 github.com/pelletier/go-toml/v2 v2.0.6/go.mod h1:eumQOmlWiOPt5WriQQqoM5y18pDHwha2N+QD+EUNTek=
