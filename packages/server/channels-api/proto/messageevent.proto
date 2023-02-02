@@ -1,11 +1,9 @@
 syntax = "proto3";
+import "common.proto";
 option go_package = "openline-ai/channels-api/ent/proto/";
 
 message MessageId {
   string messageId = 1;
-}
-
-message EventEmpty {
 }
 
 service MessageEventService {

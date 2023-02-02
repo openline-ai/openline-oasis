@@ -19,6 +19,7 @@ import CallProgress from '../../components/webrtc/CallProgress';
 import SuggestionList, {Suggestion} from "../../components/SuggestionList";
 
 import {gql, GraphQLClient} from "graphql-request";
+import { browser } from "process";
 
 interface FeedProps {
     feedId: string | undefined;
@@ -74,6 +75,16 @@ export const Feed = (props: FeedProps) => {
             icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
             command: () => {
                 router.push('/');
+            }
+        },
+        {
+            label: 'Activate GMAIL',
+            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
+            command: () => {
+                axios.get(`/oasis-api/gmail_token/auth_url?email=${encodeURIComponent(props.userLoggedInEmail)}&url=${encodeURIComponent(window.location.href)}`)
+                .then(res => {  
+                    router.push(res.data.auth_url)
+                 });
             }
         },
         {

@@ -1,17 +1,21 @@
 # syntax=docker/dockerfile:1
 
 FROM golang:1.19-alpine as builder
+RUN apk add --update make protobuf
 
 WORKDIR /app
 
 COPY oasis-api ./oasis-api
 COPY channels-api ./channels-api
 
+WORKDIR /app/oasis-api
+RUN make clean install generate
+
 WORKDIR /app/channels-api
-RUN go build -o /go/bin/app github.com/openline-ai/openline-oasis/packages/server/channels-api
+RUN make clean all
 
 FROM alpine:3.14
-COPY --chown=65534:65534 --from=builder /go/bin/app .
+COPY --chown=65534:65534 --from=builder /app/channels-api/bin/channels-api .
 USER 65534
 
-ENTRYPOINT [ "./app" ]
+ENTRYPOINT [ "./channels-api" ]
