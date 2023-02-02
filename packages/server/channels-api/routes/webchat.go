@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	o "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"log"
 	"net/http"
@@ -81,6 +83,8 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		msClient := ms.NewMessageStoreServiceClient(msConn)
 
 		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 
 		savedMessage, err := msClient.SaveMessage(ctx, message)
 		if err != nil {
