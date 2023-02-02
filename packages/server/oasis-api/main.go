@@ -6,7 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
 	commonRepository "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository"
-	"github.com/openline-ai/openline-customer-os/packages/server/message-store/config"
+	"github.com/openline-ai/openline-customer-os/packages/server/message-store-api/config"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes"
