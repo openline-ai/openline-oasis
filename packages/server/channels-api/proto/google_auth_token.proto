@@ -1,0 +1,22 @@
+syntax = "proto3";
+option go_package = "openline-ai/channels-api/ent/proto/";
+import "common.proto";
+
+message GmailCredential {
+  string email = 1;
+  string token = 2;
+}
+
+message GmailStateInfo {
+  string email = 1;
+  string redirect_url = 2;
+}
+
+message GmailAuthUrl {
+  string url = 1;
+}
+
+service GmailAuthTokenService {
+  rpc setGmailAuth(GmailCredential) returns (EventEmpty) {};
+  rpc getGmailAuthUrl(GmailStateInfo) returns (GmailAuthUrl) {};
+}

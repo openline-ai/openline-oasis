@@ -1,0 +1,5 @@
+syntax = "proto3";
+option go_package = "openline-ai/channels-api/ent/proto/";
+
+message EventEmpty {
+}

@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
         }
 
         return resp.json().then((data) => {
-            console.log("User is signed in. Proceeding to redirect.");
+            console.log(`User is signed in. Proceeding to redirect. ${newURL}`);
 
             return getRedirectUrl(newURL, data.identity.traits.email, request);
         })
