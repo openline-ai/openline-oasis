@@ -38,7 +38,7 @@ spec:
               value: "1234"
 
             - name: ORY_SDK_URL
-              value: "https://sharp-haibt-c9kexbssro.projects.oryapis.com"
+              value: "https://compassionate-boyd-kbnxb7gcyc.projects.oryapis.com"
 
             - name: CUSTOMER_OS_API_KEY
               value: "dd9d2474-b4a9-4799-b96f-73cd0a2917e4"
