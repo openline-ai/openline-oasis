@@ -38,7 +38,7 @@ func (c *gmailAuthTokenService) GetGmailAuthUrl(ctx context.Context, state *prot
 	if err != nil {
 		return nil, err
 	}
-	authURL := c.oauthConfig.AuthCodeURL(string(bytes), oauth2.AccessTypeOffline)
+	authURL := c.oauthConfig.AuthCodeURL(string(bytes), oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	return &proto.GmailAuthUrl{Url: authURL}, nil
 
 }

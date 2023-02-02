@@ -66,7 +66,7 @@ func main() {
 	// Initialize the generated User service.
 	df := util.MakeDialFactory(&conf)
 	svc := service.NewSendMessageService(&conf, df, mh)
-	gats := service.NewGmailAuthTokenService(&conf, df, repositories)
+	gats := service.NewGmailAuthTokenService(&conf, df, repositories, oauthConfig)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).

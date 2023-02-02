@@ -23,10 +23,9 @@ type Config struct {
 		ApiKey string `env:"MAIL_API_KEY,required"`
 	}
 	GMail struct {
-		ClientId          string `env:"GMAIL_CLIENT_ID,unset"`
-		ClientSecret      string `env:"GMAIL_CLIENT_SECRET,unset"`
-		RedirectUris      string `env:"GMAIL_REDIRECT_URIS"`
-		JavascriptOrigins string `env:"GMAIL_JAVASCRIPT_ORIGINS"`
+		ClientId     string `env:"GMAIL_CLIENT_ID,unset"`
+		ClientSecret string `env:"GMAIL_CLIENT_SECRET,unset"`
+		RedirectUris string `env:"GMAIL_REDIRECT_URIS"`
 	}
 	WebChat struct {
 		ApiKey          string `env:"WEBCHAT_API_KEY,required"`
