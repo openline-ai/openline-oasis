@@ -5,7 +5,7 @@ import {useRouter} from "next/router";
 import useWebSocket from 'react-use-websocket';
 import axios from "axios";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faArrowRightFromBracket, faCaretDown, faPhone, faUserSecret,} from "@fortawesome/free-solid-svg-icons";
+import {faArrowRightFromBracket, faCaretDown, faPhone, faUserSecret, faCheck, faRightToBracket} from "@fortawesome/free-solid-svg-icons";
 
 import {OverlayPanel} from "primereact/overlaypanel";
 import {Menu} from "primereact/menu";
@@ -35,6 +35,7 @@ export const Feed = (props: FeedProps) => {
     const [selectedFeed, setSelectedFeed] = useState(props.feedId);
     const [dialedNumber, setDialedNumber] = useState('');
 
+    const [gmailActive, setGmailActive] = useState(false);
 
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
@@ -52,6 +53,14 @@ export const Feed = (props: FeedProps) => {
         }
 
     }, [lastMessage]);
+
+    useEffect(() => {
+        axios.get(`/oasis-api/gmail_token/exists?email=${encodeURIComponent(props.userLoggedInEmail)}`)
+        .then(res => {  
+            setGmailActive(res.data?.exists ?? false);
+         });
+
+    }, [props.userLoggedInEmail]);
 
     const loadFeed = function () {
         console.log("Reloading feed!");
@@ -78,13 +87,15 @@ export const Feed = (props: FeedProps) => {
             }
         },
         {
-            label: 'Activate GMAIL',
-            icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
+            label: gmailActive ? 'Gmail Is Active':'Activate GMAIL',
+            icon: <FontAwesomeIcon icon={gmailActive?faCheck:faRightToBracket} className="mr-2"/>,
             command: () => {
-                axios.get(`/oasis-api/gmail_token/auth_url?email=${encodeURIComponent(props.userLoggedInEmail)}&url=${encodeURIComponent(window.location.href)}`)
-                .then(res => {  
-                    router.push(res.data.auth_url)
-                 });
+                if (!gmailActive) {
+                    axios.get(`/oasis-api/gmail_token/auth_url?email=${encodeURIComponent(props.userLoggedInEmail)}&url=${encodeURIComponent(window.location.href)}`)
+                    .then(res => {  
+                        router.push(res.data.auth_url)
+                    });
+                }
             }
         },
         {

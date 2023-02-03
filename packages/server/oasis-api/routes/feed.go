@@ -7,6 +7,7 @@ import (
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	channelRoute "github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"golang.org/x/net/context"
@@ -27,6 +28,29 @@ type FeedID struct {
 	ID string `uri:"id"`
 }
 
+func decodeMessageType(channel string) msProto.MessageType {
+	switch channel {
+	case "EMAIL":
+		return msProto.MessageType_EMAIL
+	case "CHAT":
+		return msProto.MessageType_WEB_CHAT
+	case "VOICE":
+		return msProto.MessageType_VOICE
+	default:
+		return msProto.MessageType_WEB_CHAT
+	}
+}
+
+func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
+	emailContent := channelRoute.EmailContent{
+		From:    req.Username,
+		To:      []string{item.InitiatorUsername},
+		Subject: "Hello from Oasis",
+		Html:    req.Message,
+	}
+	json, _ := json.Marshal(emailContent)
+	return string(json)
+}
 func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 	rg.GET("/feed", func(c *gin.Context) {
@@ -123,7 +147,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		msCtx = metadata.AppendToOutgoingContext(msCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 
 		request := msProto.FeedId{Id: feedId.ID}
-		_, err := msClient.GetFeed(msCtx, &request)
+		feed, err := msClient.GetFeed(msCtx, &request)
 		log.Printf("Got the feed!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -132,14 +156,18 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		message := &msProto.InputMessage{
 			ConversationId: &feedId.ID,
-			Type:           msProto.MessageType_WEB_CHAT,
+			Type:           decodeMessageType(req.Channel),
 			Subtype:        msProto.MessageSubtype_MESSAGE,
-			Message:        &req.Message,
 			Direction:      msProto.MessageDirection_OUTBOUND,
 			Email:          &req.Username,
 			SenderType:     msProto.SenderType_USER,
 		}
-		//if req.Channel == "CHAT" {
+		if req.Channel == "EMAIL" {
+			body := buildEmailJson(feed, req)
+			message.Message = &body
+		} else {
+			message.Message = &req.Message
+		}
 		//	message.Channel = msProto.MessageChannel_WIDGET
 		//} else {
 		//	message.Channel = msProto.MessageChannel_MAIL

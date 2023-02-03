@@ -50,10 +50,17 @@ func (gatr *gmailAuthTokenRoute) GetToken(ctx *gin.Context) {
 		return
 	}
 
-	gatr.repositories.GmailAuthTokensRepository.Save(&entity.GmailAuthToken{
+	_, err = gatr.repositories.GmailAuthTokensRepository.Save(&entity.GmailAuthToken{
 		Email: stateInfo.Email,
 		Token: string(bytes),
 	})
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"result": fmt.Sprintf("Unable to Save token to database: %v", err.Error()),
+		})
+		return
+	}
 	ctx.Redirect(http.StatusTemporaryRedirect, stateInfo.RedirectURL)
 }
 

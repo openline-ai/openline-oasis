@@ -6,7 +6,6 @@ import (
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository"
-	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository/entity"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	"golang.org/x/oauth2"
@@ -43,15 +42,12 @@ func (c *gmailAuthTokenService) GetGmailAuthUrl(ctx context.Context, state *prot
 
 }
 
-func (c gmailAuthTokenService) SetGmailAuth(ctx context.Context, cred *proto.GmailCredential) (*proto.EventEmpty, error) {
-	gmailAuthToken := entity.GmailAuthToken{
-		Email: cred.Email,
-		Token: cred.Token,
-	}
-	result := c.repo.GmailAuthTokensRepository.Save(&gmailAuthToken)
-	if result.Error != nil {
-		return nil, result.Error
+func (c *gmailAuthTokenService) CheckGmailActive(ctx context.Context, in *proto.GmailActiveReq) (*proto.GmailActiveResp, error) {
+
+	exists, err := c.repo.GmailAuthTokensRepository.Exists(in.Email)
+	if err != nil {
+		return nil, err
 	}
 
-	return &proto.EventEmpty{}, nil
+	return &proto.GmailActiveResp{Exists: exists}, nil
 }
