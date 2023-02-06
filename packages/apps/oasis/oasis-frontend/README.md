@@ -19,11 +19,18 @@ modify the env vars in the following file
 deployment/k8s/local-minikube/apps-config/oasis-frontend.yaml
 ```
 
-then modify your /etc/hosts as follows to resolve fusionauth-customer-os.openline.svc.cluster.local
+To use the social login you need to install the ory cli
 
-```
-127.0.0.1	localhost fusionauth-customer-os.openline.svc.cluster.local
-```
+````
+brew install ory/tap/cli
+ory auth
+````
+
+Then you need to set up the tunnel
+
+````
+ory tunnel --dev --project  kind-babbage-plrgzvk56q http://localhost:3006
+````
 
 ###Install dependencies:
 
