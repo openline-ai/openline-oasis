@@ -25,8 +25,8 @@ type NewMessage struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ConversationId     string `protobuf:"bytes,1,opt,name=conversationId,proto3" json:"conversationId"`
-	ConversationItemId string `protobuf:"bytes,2,opt,name=conversationItemId,proto3" json:"conversationItemId"`
+	ConversationId     string `protobuf:"bytes,1,opt,name=conversationId,proto3" json:"conversationId,omitempty"`
+	ConversationItemId string `protobuf:"bytes,2,opt,name=conversationItemId,proto3" json:"conversationItemId,omitempty"`
 }
 
 func (x *NewMessage) Reset() {
