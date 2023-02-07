@@ -13,4 +13,4 @@ install:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	go install gotest.tools/gotestsum@latest
 
-all: clean install build
+all: clean install generate build
