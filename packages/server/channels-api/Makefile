@@ -1,4 +1,8 @@
-generate:
+generated = proto/generated/common.pb.go proto/generated/google_auth_token.pb.go proto/generated/messageevent.pb.go
+
+generate: $(generated)
+
+$(generated): proto/generated/%.pb.go: proto/%.proto
 	export PATH="${PATH}:$(shell go env GOPATH)/bin";go generate ./...
 
 clean:
@@ -8,7 +12,9 @@ clean:
 test:
 	go test -v ./... -cover
 
-build: generate
+build: generate bin/channels-api
+
+bin/channels-api:
 	go build -v -o bin/channels-api
 
 install:
@@ -16,4 +22,4 @@ install:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	go install gotest.tools/gotestsum@latest
 
-all: clean install generate build
+all: clean install build

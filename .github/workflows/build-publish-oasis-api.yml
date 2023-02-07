@@ -2,7 +2,7 @@ name: Build And Publish Oasis API
 
 on:
   push:
-    branches: [ "otter"]
+    branches: [ "otter" ]
     paths:
       - 'packages/server/oasis-api/**'
       - '.github/workflows/build-oasis-api.yml'
