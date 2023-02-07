@@ -13,7 +13,7 @@ spec:
         app: channels-api
     spec:                        # Spec for the container which will run in the Pod
       containers:
-        - image: ghcr.io/openline-ai/openline-oasis/channels-api:latest
+        - image: ghcr.io/openline-ai/openline-oasis/channels-api:otter
           name: channels-api
           imagePullPolicy: Never
           ports:
