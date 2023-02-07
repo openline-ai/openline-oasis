@@ -26,6 +26,7 @@ type Config struct {
 		ClientId     string `env:"GMAIL_CLIENT_ID,unset"`
 		ClientSecret string `env:"GMAIL_CLIENT_SECRET,unset"`
 		RedirectUris string `env:"GMAIL_REDIRECT_URIS"`
+		OryApiKey    string `env:"ORY_API_KEY,unset"`
 	}
 	WebChat struct {
 		ApiKey          string `env:"WEBCHAT_API_KEY,required"`
