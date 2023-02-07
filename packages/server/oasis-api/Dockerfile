@@ -15,7 +15,7 @@ WORKDIR /app/oasis-api
 RUN make clean all
 
 FROM alpine:3.14
-COPY --chown=65534:65534 --from=builder /app/bin/oasis-api .
+COPY --chown=65534:65534 --from=builder /app/oasis-api/bin/oasis-api .
 USER 65534
 EXPOSE 3006
 
