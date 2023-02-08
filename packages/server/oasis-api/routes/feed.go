@@ -17,11 +17,19 @@ import (
 )
 
 type FeedPostRequest struct {
-	Username  string `json:"username"`
-	Message   string `json:"message"`
-	Channel   string `json:"channel"`
-	Source    string `json:"source"`
-	Direction string `json:"direction"`
+	Username    string   `json:"username"`
+	Message     string   `json:"message"`
+	Channel     string   `json:"channel"`
+	Source      string   `json:"source"`
+	Direction   string   `json:"direction"`
+	Destination []string `json:"destination"`
+}
+
+type FeedParticipant struct {
+	EMail string `json:"email"`
+}
+type FeedParticipantList struct {
+	Participants []FeedParticipant `json:"participants"`
 }
 
 type FeedID struct {
@@ -44,13 +52,14 @@ func decodeMessageType(channel string) msProto.MessageType {
 func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
 	emailContent := channelRoute.EmailContent{
 		From:    req.Username,
-		To:      []string{item.InitiatorUsername},
+		To:      req.Destination,
 		Subject: "Hello from Oasis",
 		Html:    req.Message,
 	}
 	json, _ := json.Marshal(emailContent)
 	return string(json)
 }
+
 func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 	rg.GET("/feed", func(c *gin.Context) {
@@ -101,6 +110,35 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			return
 		}
 		c.JSON(http.StatusOK, feed)
+	})
+	rg.GET("/feed/:id/participants", func(c *gin.Context) {
+		var feedId FeedID
+		if err := c.ShouldBindUri(&feedId); err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+		msConn := util.GetMessageStoreConnection(c, df)
+		defer util.CloseMessageStoreConnection(msConn)
+		msClient := msProto.NewMessageStoreServiceClient(msConn)
+
+		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
+
+		request := msProto.FeedId{Id: feedId.ID}
+
+		emails, err := msClient.GetParticipants(ctx, &request)
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+
+		response := &FeedParticipantList{}
+		for _, email := range emails.GetParticipants() {
+			response.Participants = append(response.Participants, FeedParticipant{EMail: email})
+		}
+		c.JSON(http.StatusOK, response)
 	})
 	rg.GET("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
@@ -159,18 +197,18 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 
 		message := &msProto.InputMessage{
-			ConversationId: &feedId.ID,
-			Type:           decodeMessageType(req.Channel),
-			Subtype:        msProto.MessageSubtype_MESSAGE,
-			Direction:      msProto.MessageDirection_OUTBOUND,
-			Email:          &req.Username,
-			SenderType:     msProto.SenderType_USER,
+			ConversationId:      &feedId.ID,
+			Type:                decodeMessageType(req.Channel),
+			Subtype:             msProto.MessageSubtype_MESSAGE,
+			Direction:           msProto.MessageDirection_OUTBOUND,
+			InitiatorIdentifier: &req.Username,
+			SenderType:          msProto.SenderType_USER,
 		}
 		if req.Channel == "EMAIL" {
 			body := buildEmailJson(feed, req)
-			message.Message = &body
+			message.Content = &body
 		} else {
-			message.Message = &req.Message
+			message.Content = &req.Message
 		}
 		//	message.Channel = msProto.MessageChannel_WIDGET
 		//} else {
@@ -194,7 +232,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		log.Printf("Got a header: %v", c.GetHeader("X-Openline-IDENTITY-ID"))
 		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
-		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetId()})
+		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetConversationEventId()})
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return

@@ -37,7 +37,7 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 		return nil, err
 	}
 
-	conversationItem, err := client.GetMessage(ctx, &msProto.MessageId{Id: newMessage.GetConversationItemId()})
+	conversationItem, err := client.GetMessage(ctx, &msProto.MessageId{ConversationEventId: newMessage.GetConversationItemId()})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve conversation item!")
 		return nil, err
@@ -55,7 +55,7 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{
 		Username:  conversationItem.SenderUsername,
-		Id:        conversationItem.MessageId.Id,
+		Id:        conversationItem.MessageId.ConversationEventId,
 		FeedId:    conversation.Id,
 		Direction: conversationItem.Direction.String(),
 		Message:   conversationItem.Content,

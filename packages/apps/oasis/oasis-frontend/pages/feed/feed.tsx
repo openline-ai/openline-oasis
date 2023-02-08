@@ -35,8 +35,6 @@ export const Feed = (props: FeedProps) => {
     const [selectedFeed, setSelectedFeed] = useState(props.feedId);
     const [dialedNumber, setDialedNumber] = useState('');
 
-    const [gmailActive, setGmailActive] = useState(false);
-
     const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
         onOpen: () => console.log('Websocket opened'),
         //Will attempt to reconnect on all close events, such as server shutting down
@@ -53,14 +51,6 @@ export const Feed = (props: FeedProps) => {
         }
 
     }, [lastMessage]);
-
-    useEffect(() => {
-        axios.get(`/oasis-api/gmail_token/exists?email=${encodeURIComponent(props.userLoggedInEmail)}`)
-        .then(res => {  
-            setGmailActive(res.data?.exists ?? false);
-         });
-
-    }, [props.userLoggedInEmail]);
 
     const loadFeed = function () {
         console.log("Reloading feed!");
@@ -84,18 +74,6 @@ export const Feed = (props: FeedProps) => {
             icon: <FontAwesomeIcon icon={faUserSecret} className="mr-2"/>,
             command: () => {
                 router.push('/');
-            }
-        },
-        {
-            label: gmailActive ? 'Gmail Is Active':'Activate GMAIL',
-            icon: <FontAwesomeIcon icon={gmailActive?faCheck:faUserSecret} className="mr-2"/>,
-            command: () => {
-                if (!gmailActive) {
-                    axios.get(`/oasis-api/gmail_token/auth_url?email=${encodeURIComponent(props.userLoggedInEmail)}&url=${encodeURIComponent(window.location.href)}`)
-                    .then(res => {  
-                        router.push(res.data.auth_url)
-                    });
-                }
             }
         },
         {

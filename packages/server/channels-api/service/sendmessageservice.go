@@ -12,7 +12,6 @@ import (
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
-	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
@@ -31,7 +30,6 @@ type sendMessageService struct {
 	conf        *c.Config
 	mh          *chatHub.Hub
 	df          util.DialFactory
-	repos       *repository.PostgresRepositories
 	oauthConfig *oauth2.Config
 }
 
@@ -74,7 +72,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
 	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
 
-	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
+	msg, err := client.GetMessage(ctx, &msProto.MessageId{ConversationEventId: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")
 		return nil, err
@@ -101,12 +99,12 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the hub
 	messageItem := chatHub.MessageItem{
-		Username: msg.ConversationInitiatorUsername,
+		Username: msg.InitiatorUsername,
 		Message:  msg.Content,
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", msg.ConversationInitiatorUsername)
+	log.Printf("successfully sent new message for %s", msg.InitiatorUsername)
 	return nil
 }
 
@@ -149,12 +147,13 @@ func (s sendMessageService) getMailAuthToken(identityId string) (*oauth2.Token, 
 	}
 	tok := &oauth2.Token{AccessToken: token, TokenType: "Bearer"}
 
-	refresh_token, ok := provider["initial_refresh_token"].(string)
+	refreshToken, ok := provider["initial_refresh_token"].(string)
 
 	if !ok {
 		log.Printf("unable to get refresh token`` %s", identityId)
 	} else {
-		tok.RefreshToken = refresh_token
+		log.Printf("Setting refresh token to %s", refreshToken)
+		tok.RefreshToken = refreshToken
 	}
 	return tok, nil
 }
@@ -174,7 +173,10 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) er
 		return err
 	}
 	fromAddress := []*mimemail.Address{{"", jsonMail.From}}
-	toAddress := []*mimemail.Address{{"", jsonMail.To[0]}}
+	toAddress := []*mimemail.Address{}
+	for _, to := range jsonMail.To {
+		toAddress = append(toAddress, &mimemail.Address{"", to})
+	}
 
 	var b bytes.Buffer
 	user := "me"
@@ -245,12 +247,11 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) er
 //	return nil
 //}
 
-func NewSendMessageService(c *c.Config, df util.DialFactory, repos *repository.PostgresRepositories, oauthConfig *oauth2.Config, mh *chatHub.Hub) *sendMessageService {
+func NewSendMessageService(c *c.Config, df util.DialFactory, oauthConfig *oauth2.Config, mh *chatHub.Hub) *sendMessageService {
 	ms := new(sendMessageService)
 	ms.conf = c
 	ms.mh = mh
 	ms.df = df
-	ms.repos = repos
 	ms.oauthConfig = oauthConfig
 	return ms
 }
