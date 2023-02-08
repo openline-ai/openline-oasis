@@ -61,6 +61,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		pagedRequest := &msProto.GetFeedsPagedRequest{}
 		feedList, err := msClient.GetFeeds(ctx, pagedRequest)
@@ -90,6 +91,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
 		feed, err := msClient.GetFeed(ctx, &request)
@@ -114,6 +116,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
 		messages, err := msClient.GetMessagesForFeed(ctx, &request)
@@ -145,6 +148,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		msCtx := context.Background()
 		msCtx = metadata.AppendToOutgoingContext(msCtx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		msCtx = metadata.AppendToOutgoingContext(msCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		msCtx = metadata.AppendToOutgoingContext(msCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
 		feed, err := msClient.GetFeed(msCtx, &request)
