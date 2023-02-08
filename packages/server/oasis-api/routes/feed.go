@@ -131,13 +131,13 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 
 		message := &msProto.InputMessage{
-			ConversationId: &feedId.ID,
-			Type:           msProto.MessageType_WEB_CHAT,
-			Subtype:        msProto.MessageSubtype_MESSAGE,
-			Message:        &req.Message,
-			Direction:      msProto.MessageDirection_OUTBOUND,
-			Email:          &req.Username,
-			SenderType:     msProto.SenderType_USER,
+			ConversationId:      &feedId.ID,
+			Type:                msProto.MessageType_WEB_CHAT,
+			Subtype:             msProto.MessageSubtype_MESSAGE,
+			Content:             &req.Message,
+			Direction:           msProto.MessageDirection_OUTBOUND,
+			InitiatorIdentifier: &req.Username,
+			SenderType:          msProto.SenderType_USER,
 		}
 		//if req.Channel == "CHAT" {
 		//	message.Channel = msProto.MessageChannel_WIDGET
@@ -160,7 +160,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		channelsCtx := context.Background()
 		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 
-		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetId()})
+		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetConversationEventId()})
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return

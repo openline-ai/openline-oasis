@@ -39,7 +39,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
 	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
 
-	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
+	msg, err := client.GetMessage(ctx, &msProto.MessageId{ConversationEventId: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")
 		return nil, err
@@ -67,39 +67,14 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the hub
 	messageItem := chatHub.MessageItem{
-		Username: msg.ConversationInitiatorUsername,
+		Username: msg.InitiatorUsername,
 		Message:  msg.Content,
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", msg.ConversationInitiatorUsername)
+	log.Printf("successfully sent new message for %s", msg.InitiatorUsername)
 	return nil
 }
-
-//func (s sendMessageService) sendMail(msg *msProto.Message) error {
-//
-//	smtpClient, err := s.df.GetSMTPClientCon()
-//	if err != nil {
-//		log.Printf("Unable to connect to mail server! %v", err)
-//		return err
-//	}
-//
-//	// Create email
-//	email := mail.NewMSG()
-//	email.SetFrom(s.conf.Mail.SMTPFromUser)
-//	email.AddTo(msg.GetUsername())
-//	email.SetSubject("Hello") //TODO
-//
-//	email.SetBody(mail.TextPlain, msg.GetMessage())
-//
-//	err = email.Send(smtpClient)
-//	if err != nil {
-//		log.Printf("Unable to send to mail server!")
-//		return err
-//	}
-//	log.Printf("Email successfully sent to %s", msg.GetUsername())
-//	return nil
-//}
 
 func NewSendMessageService(c *c.Config, df util.DialFactory, mh *chatHub.Hub) *sendMessageService {
 	ms := new(sendMessageService)
