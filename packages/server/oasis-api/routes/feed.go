@@ -187,6 +187,8 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		channelsCtx := context.Background()
 		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		log.Printf("Got a header: %v", c.GetHeader("X-Openline-IDENTITY-ID"))
+		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetId()})
 		if err != nil {

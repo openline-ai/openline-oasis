@@ -88,7 +88,7 @@ export const Feed = (props: FeedProps) => {
         },
         {
             label: gmailActive ? 'Gmail Is Active':'Activate GMAIL',
-            icon: <FontAwesomeIcon icon={gmailActive?faCheck:faRightToBracket} className="mr-2"/>,
+            icon: <FontAwesomeIcon icon={gmailActive?faCheck:faUserSecret} className="mr-2"/>,
             command: () => {
                 if (!gmailActive) {
                     axios.get(`/oasis-api/gmail_token/auth_url?email=${encodeURIComponent(props.userLoggedInEmail)}&url=${encodeURIComponent(window.location.href)}`)

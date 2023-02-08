@@ -53,7 +53,7 @@ func main() {
 		ClientID:     conf.GMail.ClientId,
 		ClientSecret: conf.GMail.ClientSecret,
 		RedirectURL:  strings.Split(conf.GMail.RedirectUris, " ")[0],
-		Scopes:       []string{gmail.GmailReadonlyScope, gmail.GmailComposeScope},
+		Scopes:       []string{gmail.GmailReadonlyScope, gmail.GmailComposeScope, "email", "profile"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  google.Endpoint.AuthURL,
 			TokenURL: google.Endpoint.TokenURL,

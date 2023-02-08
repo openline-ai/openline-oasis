@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	mimemail "github.com/emersion/go-message/mail"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
@@ -12,10 +13,10 @@ import (
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository"
-	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository/entity"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	oryClient "github.com/ory/client-go"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
@@ -34,6 +35,19 @@ type sendMessageService struct {
 	oauthConfig *oauth2.Config
 }
 
+func getIdentityIdMetadataForGRPC(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("no metadata")
+	}
+
+	kh := md.Get("X-Openline-IDENTITY-ID")
+	if kh != nil && len(kh) == 1 {
+		return kh[0], nil
+	}
+	return "", errors.New("no IdentityId header")
+}
+
 func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
 	username, err := service.GetUsernameMetadataForGRPC(c)
 	if err != nil {
@@ -41,6 +55,13 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 		return nil, err
 	}
 
+	identityId, err := getIdentityIdMetadataForGRPC(c)
+	if err != nil {
+		log.Printf("Missing Identity Id header")
+		return nil, err
+	}
+
+	log.Printf("Got a and ID Hader of %s", identityId)
 	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
@@ -60,7 +81,7 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	}
 	switch msg.Type {
 	case msProto.MessageType_EMAIL:
-		mailErr := s.sendMail(msg)
+		mailErr := s.sendMail(identityId, msg)
 		if mailErr != nil {
 			return nil, mailErr
 		}
@@ -89,23 +110,60 @@ func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	return nil
 }
 
-func (s sendMessageService) sendMail(msg *msProto.Message) error {
-	tok, err := s.repos.GmailAuthTokensRepository.Get(msg.SenderUsername)
+func (s sendMessageService) getMailAuthToken(identityId string) (*oauth2.Token, error) {
+	configuration := oryClient.NewConfiguration()
+	configuration.Servers = []oryClient.ServerConfiguration{
+		{
+			URL: s.conf.GMail.OryServerUrl,
+		},
+	}
+	ory := oryClient.NewAPIClient(configuration)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, oryClient.ContextAccessToken, s.conf.GMail.OryApiKey)
+	identity, _, err := ory.IdentityApi.GetIdentity(ctx, identityId).IncludeCredential([]string{"oidc"}).Execute()
 	if err != nil {
-		log.Printf("Unable to get gmail auth token for %s", msg.SenderUsername)
-		return err
+		log.Printf("Unable to get gmail auth token for %s, (%s)", identityId, err.Error())
+		return nil, err
+	}
+	credentials := identity.GetCredentials()["oidc"]
+	log.Printf("Got credentials of %v", credentials)
+
+	providers, ok := credentials.GetConfig()["providers"].([]interface{})
+	log.Printf("Got providers of %T", providers[0])
+
+	if !ok {
+		log.Printf("unable to get provider list %s", identityId)
+		return nil, err
 	}
 
-	expired := !tok.Valid()
-	client := s.oauthConfig.Client(context.Background(), tok)
-	if expired {
-		bytes, err := json.Marshal(tok)
-		if err == nil {
-			s.repos.GmailAuthTokensRepository.Save(&entity.GmailAuthToken{Email: msg.SenderUsername, Token: string(bytes)})
-		} else {
-			log.Printf("Unable to save new token for %s", msg.SenderUsername)
-		}
+	provider, ok := providers[0].(map[string]interface{})
+	if !ok {
+		log.Printf("unable to get provider list %s", identityId)
+		return nil, err
 	}
+	token, ok := provider["initial_access_token"].(string)
+
+	if !ok {
+		log.Printf("unable to get access token %s", identityId)
+		return nil, err
+	}
+	tok := &oauth2.Token{AccessToken: token, TokenType: "Bearer"}
+
+	refresh_token, ok := provider["initial_refresh_token"].(string)
+
+	if !ok {
+		log.Printf("unable to get refresh token`` %s", identityId)
+	} else {
+		tok.RefreshToken = refresh_token
+	}
+	return tok, nil
+}
+
+func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) error {
+	tok, err := s.getMailAuthToken(identityId)
+
+	log.Printf("Got Auth Token of %v", tok)
+	client := s.oauthConfig.Client(context.Background(), tok)
 
 	srv, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
 
@@ -157,6 +215,7 @@ func (s sendMessageService) sendMail(msg *msProto.Message) error {
 	}
 	_, err = srv.Users.Messages.Send(user, msgToSend).Do()
 	if err != nil {
+		log.Printf("Unable to send email: %v", err)
 		return err
 	}
 	return nil
