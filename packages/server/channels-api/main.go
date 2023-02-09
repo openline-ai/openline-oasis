@@ -6,7 +6,6 @@ import (
 	"github.com/joho/godotenv"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
-	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/service"
@@ -20,40 +19,17 @@ import (
 	"strings"
 )
 
-func initDB(cfg *c.Config) (db *c.StorageDB, err error) {
-	if db, err = c.NewDBConn(
-		cfg.Postgres.Host,
-		cfg.Postgres.Port,
-		cfg.Postgres.Db,
-		cfg.Postgres.User,
-		cfg.Postgres.Password,
-		cfg.Postgres.MaxConn,
-		cfg.Postgres.MaxIdleConn,
-		cfg.Postgres.ConnMaxLifetime); err != nil {
-		log.Fatalf("Coud not open db connection: %s", err.Error())
-	}
-	return
-}
-
 func main() {
 	conf := loadConfiguration()
 
 	mh := chatHub.NewHub()
 	go mh.Run()
-	//GORM
-	db, err := initDB(&conf)
-	if err != nil {
-		log.Fatalf("Unable to connect to the database %s", err)
-	}
-	defer db.SqlDB.Close()
-
-	repositories := repository.InitRepositories(db.GormDB)
 
 	oauthConfig := &oauth2.Config{
 		ClientID:     conf.GMail.ClientId,
 		ClientSecret: conf.GMail.ClientSecret,
 		RedirectURL:  strings.Split(conf.GMail.RedirectUris, " ")[0],
-		Scopes:       []string{gmail.GmailReadonlyScope, gmail.GmailComposeScope},
+		Scopes:       []string{gmail.GmailReadonlyScope, gmail.GmailComposeScope, "email", "profile"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  google.Endpoint.AuthURL,
 			TokenURL: google.Endpoint.TokenURL,
@@ -61,12 +37,11 @@ func main() {
 	}
 
 	// Our server will live in the routes package
-	go routes.Run(&conf, mh, oauthConfig, repositories) // run this as a backround goroutine
+	go routes.Run(&conf, mh, oauthConfig) // run this as a backround goroutine
 
 	// Initialize the generated User service.
 	df := util.MakeDialFactory(&conf)
-	svc := service.NewSendMessageService(&conf, df, mh)
-	gats := service.NewGmailAuthTokenService(&conf, df, repositories, oauthConfig)
+	svc := service.NewSendMessageService(&conf, df, oauthConfig, mh)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).
@@ -74,7 +49,6 @@ func main() {
 
 	// Register the Message Item service with the server.
 	proto.RegisterMessageEventServiceServer(server, svc)
-	proto.RegisterGmailAuthTokenServiceServer(server, gats)
 
 	// Open port for listening to traffic.
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", conf.Service.GRPCPort))

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
-	"github.com/openline-ai/openline-oasis/packages/server/channels-api/repository"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
 	"golang.org/x/oauth2"
@@ -13,14 +12,14 @@ import (
 )
 
 // Run will start the server
-func Run(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config, repositories *repository.PostgresRepositories) {
-	router := getRouter(conf, fh, oauthConfig, repositories)
+func Run(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config) {
+	router := getRouter(conf, fh, oauthConfig)
 	if err := router.Run(conf.Service.ServerAddress); err != nil {
 		log.Fatalf("could not run server: %v", err)
 	}
 }
 
-func getRouter(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config, repositories *repository.PostgresRepositories) *gin.Engine {
+func getRouter(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config) *gin.Engine {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
@@ -42,6 +41,5 @@ func getRouter(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config, repo
 	route2 := router.Group("/")
 
 	addHealthRoutes(route2)
-	addGmailAuthTokenRoutes(conf, oauthConfig, repositories, route2)
 	return router
 }

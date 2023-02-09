@@ -25,14 +25,6 @@ This service uses the environment variables described below. The env files have 
 | CHANNELS_API_CORS_URL         | url of the frontend, needed to allow cros-site scripting                               |
 | WEBCHAT_API_KEY               | The api key used to validated received messages and login requests                     |
 | WEBSOCKET_PING_INTERVAL       | Ping interval in seconds to monitor websocket connections                              |
-| POSTGRES_HOST                 | hostname/ip of the postgres db to connect to                                           |
-| POSTGRES_PORT                 | port of the database normally should be 5432                                           |
-| POSTGRES_USER                 | username to connect to the datbase with                                                |
-| POSTGRES_DB                   | name of the postgres db to use                                                         |
-| POSTGRES_PASSWORD             | password to use to connect to the database                                             |
-| POSTGRES_DB_MAX_CONN          | (optional)                                                                             |
-| POSTGRES_DB_MAX_IDLE_CONN     | (optional)                                                                             |     
-| POSTGRES_DB_CONN_MAX_LIFETIME | (optional)                                                                             | 
 
 
 ## Setting up gmail in local environment

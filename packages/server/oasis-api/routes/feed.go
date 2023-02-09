@@ -7,6 +7,7 @@ import (
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	channelRoute "github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"golang.org/x/net/context"
@@ -16,15 +17,47 @@ import (
 )
 
 type FeedPostRequest struct {
-	Username  string `json:"username"`
-	Message   string `json:"message"`
-	Channel   string `json:"channel"`
-	Source    string `json:"source"`
-	Direction string `json:"direction"`
+	Username    string   `json:"username"`
+	Message     string   `json:"message"`
+	Channel     string   `json:"channel"`
+	Source      string   `json:"source"`
+	Direction   string   `json:"direction"`
+	Destination []string `json:"destination"`
+}
+
+type FeedParticipant struct {
+	EMail string `json:"email"`
+}
+type FeedParticipantList struct {
+	Participants []FeedParticipant `json:"participants"`
 }
 
 type FeedID struct {
 	ID string `uri:"id"`
+}
+
+func decodeMessageType(channel string) msProto.MessageType {
+	switch channel {
+	case "EMAIL":
+		return msProto.MessageType_EMAIL
+	case "CHAT":
+		return msProto.MessageType_WEB_CHAT
+	case "VOICE":
+		return msProto.MessageType_VOICE
+	default:
+		return msProto.MessageType_WEB_CHAT
+	}
+}
+
+func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
+	emailContent := channelRoute.EmailContent{
+		From:    req.Username,
+		To:      req.Destination,
+		Subject: "Hello from Oasis",
+		Html:    req.Message,
+	}
+	json, _ := json.Marshal(emailContent)
+	return string(json)
 }
 
 func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
@@ -37,6 +70,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		pagedRequest := &msProto.GetFeedsPagedRequest{}
 		feedList, err := msClient.GetFeeds(ctx, pagedRequest)
@@ -66,6 +100,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
 		feed, err := msClient.GetFeed(ctx, &request)
@@ -75,6 +110,35 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			return
 		}
 		c.JSON(http.StatusOK, feed)
+	})
+	rg.GET("/feed/:id/participants", func(c *gin.Context) {
+		var feedId FeedID
+		if err := c.ShouldBindUri(&feedId); err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+		msConn := util.GetMessageStoreConnection(c, df)
+		defer util.CloseMessageStoreConnection(msConn)
+		msClient := msProto.NewMessageStoreServiceClient(msConn)
+
+		ctx := context.Background()
+		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
+
+		request := msProto.FeedId{Id: feedId.ID}
+
+		emails, err := msClient.GetParticipants(ctx, &request)
+		if err != nil {
+			c.JSON(400, gin.H{"msg": err.Error()})
+			return
+		}
+
+		response := &FeedParticipantList{}
+		for _, email := range emails.GetParticipants() {
+			response.Participants = append(response.Participants, FeedParticipant{EMail: email})
+		}
+		c.JSON(http.StatusOK, response)
 	})
 	rg.GET("/feed/:id/item", func(c *gin.Context) {
 		var feedId FeedID
@@ -90,6 +154,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
 		messages, err := msClient.GetMessagesForFeed(ctx, &request)
@@ -121,9 +186,10 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		msCtx := context.Background()
 		msCtx = metadata.AppendToOutgoingContext(msCtx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		msCtx = metadata.AppendToOutgoingContext(msCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		msCtx = metadata.AppendToOutgoingContext(msCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
 		request := msProto.FeedId{Id: feedId.ID}
-		_, err := msClient.GetFeed(msCtx, &request)
+		feed, err := msClient.GetFeed(msCtx, &request)
 		log.Printf("Got the feed!")
 		if err != nil {
 			c.JSON(400, gin.H{"msg": err.Error()})
@@ -131,15 +197,19 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 
 		message := &msProto.InputMessage{
-			ConversationId: &feedId.ID,
-			Type:           msProto.MessageType_WEB_CHAT,
-			Subtype:        msProto.MessageSubtype_MESSAGE,
-			Message:        &req.Message,
-			Direction:      msProto.MessageDirection_OUTBOUND,
-			Email:          &req.Username,
-			SenderType:     msProto.SenderType_USER,
+			ConversationId:      &feedId.ID,
+			Type:                decodeMessageType(req.Channel),
+			Subtype:             msProto.MessageSubtype_MESSAGE,
+			Direction:           msProto.MessageDirection_OUTBOUND,
+			InitiatorIdentifier: &req.Username,
+			SenderType:          msProto.SenderType_USER,
 		}
-		//if req.Channel == "CHAT" {
+		if req.Channel == "EMAIL" {
+			body := buildEmailJson(feed, req)
+			message.Content = &body
+		} else {
+			message.Content = &req.Message
+		}
 		//	message.Channel = msProto.MessageChannel_WIDGET
 		//} else {
 		//	message.Channel = msProto.MessageChannel_MAIL
@@ -159,8 +229,10 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 		channelsCtx := context.Background()
 		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		log.Printf("Got a header: %v", c.GetHeader("X-Openline-IDENTITY-ID"))
+		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
-		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetId()})
+		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetConversationEventId()})
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return
