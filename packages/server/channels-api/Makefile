@@ -3,7 +3,7 @@ generated = proto/generated/common.pb.go proto/generated/messageevent.pb.go
 generate: $(generated)
 
 $(generated): proto/generated/%.pb.go: proto/%.proto
-	./import-protobuf.sh message-store-api
+	$(shell ./import-protobuf.sh message-store-api)
 	export PATH="${PATH}:$(shell go env GOPATH)/bin";go generate ./...
 
 clean:

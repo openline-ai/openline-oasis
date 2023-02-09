@@ -15,8 +15,8 @@ go mod download
 
 # Get all the modules we use and create required directory structure
 go list -f "${PROTOBUF_IMPORT_DIR}/{{ .Path }}" -m all \
-  | grep $PACKAGE | xargs -L1 dirname | sort | uniq | xargs mkdir -p
+  | grep $PACKAGE | xargs -n1 dirname | sort | uniq  | xargs mkdir -p
 
 # Create symlinks
 go list -f "{{ .Dir }} ${PROTOBUF_IMPORT_DIR}/{{ .Path }}" -m all \
-  | grep $PACKAGE | xargs -L1 -- ln -s
+  | grep $PACKAGE  | xargs -n2 -- ln -s
