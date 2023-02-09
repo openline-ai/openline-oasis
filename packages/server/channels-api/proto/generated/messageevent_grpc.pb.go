@@ -8,6 +8,7 @@ package proto
 
 import (
 	context "context"
+	generated "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -22,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessageEventServiceClient interface {
-	SendMessageEvent(ctx context.Context, in *MessageId, opts ...grpc.CallOption) (*EventEmpty, error)
+	SendMessageEvent(ctx context.Context, in *generated.InputMessage, opts ...grpc.CallOption) (*generated.MessageId, error)
 }
 
 type messageEventServiceClient struct {
@@ -33,8 +34,8 @@ func NewMessageEventServiceClient(cc grpc.ClientConnInterface) MessageEventServi
 	return &messageEventServiceClient{cc}
 }
 
-func (c *messageEventServiceClient) SendMessageEvent(ctx context.Context, in *MessageId, opts ...grpc.CallOption) (*EventEmpty, error) {
-	out := new(EventEmpty)
+func (c *messageEventServiceClient) SendMessageEvent(ctx context.Context, in *generated.InputMessage, opts ...grpc.CallOption) (*generated.MessageId, error) {
+	out := new(generated.MessageId)
 	err := c.cc.Invoke(ctx, "/MessageEventService/sendMessageEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -46,7 +47,7 @@ func (c *messageEventServiceClient) SendMessageEvent(ctx context.Context, in *Me
 // All implementations must embed UnimplementedMessageEventServiceServer
 // for forward compatibility
 type MessageEventServiceServer interface {
-	SendMessageEvent(context.Context, *MessageId) (*EventEmpty, error)
+	SendMessageEvent(context.Context, *generated.InputMessage) (*generated.MessageId, error)
 	mustEmbedUnimplementedMessageEventServiceServer()
 }
 
@@ -54,7 +55,7 @@ type MessageEventServiceServer interface {
 type UnimplementedMessageEventServiceServer struct {
 }
 
-func (UnimplementedMessageEventServiceServer) SendMessageEvent(context.Context, *MessageId) (*EventEmpty, error) {
+func (UnimplementedMessageEventServiceServer) SendMessageEvent(context.Context, *generated.InputMessage) (*generated.MessageId, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessageEvent not implemented")
 }
 func (UnimplementedMessageEventServiceServer) mustEmbedUnimplementedMessageEventServiceServer() {}
@@ -71,7 +72,7 @@ func RegisterMessageEventServiceServer(s grpc.ServiceRegistrar, srv MessageEvent
 }
 
 func _MessageEventService_SendMessageEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessageId)
+	in := new(generated.InputMessage)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func _MessageEventService_SendMessageEvent_Handler(srv interface{}, ctx context.
 		FullMethod: "/MessageEventService/sendMessageEvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MessageEventServiceServer).SendMessageEvent(ctx, req.(*MessageId))
+		return srv.(MessageEventServiceServer).SendMessageEvent(ctx, req.(*generated.InputMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }

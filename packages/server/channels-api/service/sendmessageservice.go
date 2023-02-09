@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"io"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func getIdentityIdMetadataForGRPC(ctx context.Context) (string, error) {
 	return "", errors.New("no IdentityId header")
 }
 
-func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
+func (s sendMessageService) SendMessageEvent(c context.Context, msg *msProto.InputMessage) (*msProto.MessageId, error) {
 	username, err := service.GetUsernameMetadataForGRPC(c)
 	if err != nil {
 		log.Printf("Missing username header")
@@ -68,43 +69,73 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	defer conn.Close()
 	client := msProto.NewMessageStoreServiceClient(conn)
 
-	ctx := context.Background()
-	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
-	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
-
-	msg, err := client.GetMessage(ctx, &msProto.MessageId{ConversationEventId: msgId.MessageId})
-	if err != nil {
-		log.Printf("Unable to connect to retrieve message!")
-		return nil, err
-	}
 	switch msg.Type {
 	case msProto.MessageType_EMAIL:
-		mailErr := s.sendMail(identityId, msg)
+		newBody, mailErr := s.sendMail(identityId, msg)
 		if mailErr != nil {
 			return nil, mailErr
 		}
-		return &proto.EventEmpty{}, nil
+		bytes, err := json.Marshal(newBody)
+		if err != nil {
+			return nil, err
+		}
+		bodyStr := string(bytes)
+		msg.Content = &bodyStr
 	case msProto.MessageType_WEB_CHAT:
-		webChatErr := s.sendWebChat(msg)
+		webChatErr := s.sendWebChat(*username, msg)
 		if webChatErr != nil {
 			return nil, webChatErr
 		}
-		return &proto.EventEmpty{}, nil
 	default:
 		err := fmt.Errorf("unknown channel: %s", msg.Type)
 		return nil, err
 	}
+
+	ctx := context.Background()
+	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
+
+	newMsg, err := client.SaveMessage(ctx, msg)
+	if err != nil {
+		log.Printf("Unable to connect to retrieve message!")
+		return nil, err
+	}
+	return newMsg, nil
 }
 
-func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
-	// Send a message to the hub
-	messageItem := chatHub.MessageItem{
-		Username: msg.InitiatorUsername,
-		Message:  msg.Content,
+func (s sendMessageService) sendWebChat(username string, msg *msProto.InputMessage) error {
+
+	ctx := context.Background()
+	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
+	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, username)
+	conn, err := s.df.GetMessageStoreCon()
+	if err != nil {
+		log.Printf("Unable to connect to message store!")
+		return err
+	}
+	defer conn.Close()
+	client := msProto.NewMessageStoreServiceClient(conn)
+
+	participants, err := client.GetParticipants(ctx, &msProto.FeedId{Id: *msg.ConversationId})
+	if err != nil {
+		log.Printf("Unable to get participants from message store!")
+		return err
 	}
 
-	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", msg.InitiatorUsername)
+	for _, participant := range participants.Participants {
+		if participant == username {
+			continue
+		}
+		// Send a message to the hub
+		messageItem := chatHub.MessageItem{
+			Username: participant,
+			Message:  *msg.Content,
+		}
+
+		s.mh.Broadcast <- messageItem
+		log.Printf("successfully sent new message for %s", participant)
+	}
+
 	return nil
 }
 
@@ -155,10 +186,11 @@ func (s sendMessageService) getMailAuthToken(identityId string) (*oauth2.Token, 
 		log.Printf("Setting refresh token to %s", refreshToken)
 		tok.RefreshToken = refreshToken
 	}
+	tok.Expiry = time.Now().Add(time.Hour * -1)
 	return tok, nil
 }
 
-func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) error {
+func (s sendMessageService) sendMail(identityId string, msg *msProto.InputMessage) (*routes.EmailContent, error) {
 	tok, err := s.getMailAuthToken(identityId)
 
 	log.Printf("Got Auth Token of %v", tok)
@@ -167,10 +199,10 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) er
 	srv, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
 
 	jsonMail := &routes.EmailContent{}
-	err = json.Unmarshal([]byte(msg.Content), jsonMail)
+	err = json.Unmarshal([]byte(*msg.Content), jsonMail)
 	if err != nil {
-		log.Printf("Unable to parse email content for %s", msg.SenderUsername)
-		return err
+		log.Printf("Unable to parse email content for %s", *msg.InitiatorIdentifier)
+		return nil, err
 	}
 	fromAddress := []*mimemail.Address{{"", jsonMail.From}}
 	toAddress := []*mimemail.Address{}
@@ -186,6 +218,7 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) er
 	h.SetDate(time.Now())
 	h.SetAddressList("From", fromAddress)
 	h.SetAddressList("To", toAddress)
+	h.SetMessageID(jsonMail.MessageId)
 	h.SetSubject(jsonMail.Subject)
 
 	// Create a new mail writer
@@ -215,12 +248,26 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) er
 	msgToSend := &gmail.Message{
 		Raw: raw,
 	}
-	_, err = srv.Users.Messages.Send(user, msgToSend).Do()
+	result, err := srv.Users.Messages.Send(user, msgToSend).Do()
 	if err != nil {
 		log.Printf("Unable to send email: %v", err)
-		return err
+		return nil, err
 	}
-	return nil
+
+	generatedMessage, err := srv.Users.Messages.Get("me", result.Id).Do()
+	if err != nil {
+		log.Printf("Unable to get email: %v", err)
+		return nil, err
+	}
+	for _, header := range generatedMessage.Payload.Headers {
+		log.Printf("Comparing %s to %s", header.Name, "Message-ID")
+		if strings.EqualFold(header.Name, "Message-ID") {
+			jsonMail.MessageId = header.Value
+			break
+		}
+	}
+	log.Printf("Email successfully sent id %v", jsonMail.MessageId)
+	return jsonMail, nil
 }
 
 //
