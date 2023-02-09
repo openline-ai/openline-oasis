@@ -10,4 +10,5 @@ export type ConversationItem = {
     time:           Time,
     senderType:     number,
     senderId:       string,
+    senderUsername: string,
 }

@@ -1,13 +1,15 @@
-generated = proto/generated/common.pb.go proto/generated/google_auth_token.pb.go proto/generated/messageevent.pb.go
+generated = proto/generated/common.pb.go proto/generated/messageevent.pb.go
 
 generate: $(generated)
 
 $(generated): proto/generated/%.pb.go: proto/%.proto
+	./import-protobuf.sh message-store-api
 	export PATH="${PATH}:$(shell go env GOPATH)/bin";go generate ./...
 
 clean:
 	rm -rf bin
 	rm -rf proto/generated/*
+	rm -rf protobuf-import
 
 test:
 	go test -v ./... -cover

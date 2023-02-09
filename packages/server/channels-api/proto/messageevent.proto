@@ -1,11 +1,9 @@
 syntax = "proto3";
 import "common.proto";
-option go_package = "openline-ai/channels-api/ent/proto/";
+import "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/Message.proto";
+option go_package = "openline-ai/channels-api/ent/proto";
 
-message MessageId {
-  string messageId = 1;
-}
 
 service MessageEventService {
-  rpc sendMessageEvent(MessageId) returns (EventEmpty) {};
+  rpc sendMessageEvent(proto.InputMessage) returns (proto.MessageId) {};
 }

@@ -226,14 +226,17 @@ export const Chat = (props: ChatProps) => {
     };
 
     const handleWebsocketMessage = function (msg: any) {
-        let newMsg = {
-            content: msg.message,
-            username: msg.username,
-            channel: 1,
+        let newMsg:ConversationItem = {
+            content: msg.content,
+            senderUsername: msg.SenderUserName,
+            type: msg.Type,
             time: msg.time,
-            id: msg.id,
+            id: msg.messageId,
             direction: msg.direction == "OUTBOUND" ? 1 : 0,
-            contact: {},
+            conversationId: "",
+            subtype: 0,
+            senderType: 0,
+            senderId: ""
         };
 
         setMessages((messageList: any) => [...messageList, newMsg]);
@@ -345,7 +348,7 @@ export const Chat = (props: ChatProps) => {
                                                             (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                                                             <div className="w-full flex">
                                                                 <div className="flex-grow-1"></div>
-                                                                <div className="flex-grow-0 mb-1 pr-3">To be added</div>
+                                                                <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername}</div>
                                                             </div>
                                                     }
 

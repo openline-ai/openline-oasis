@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
@@ -50,11 +51,16 @@ func decodeMessageType(channel string) msProto.MessageType {
 }
 
 func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		log.Printf("Error generating UUID: %v", err)
+	}
 	emailContent := channelRoute.EmailContent{
-		From:    req.Username,
-		To:      req.Destination,
-		Subject: "Hello from Oasis",
-		Html:    req.Message,
+		From:      req.Username,
+		To:        req.Destination,
+		Subject:   "Hello from Oasis",
+		Html:      req.Message,
+		MessageId: fmt.Sprintf("<%s@openline.ai>", uuid.String()),
 	}
 	json, _ := json.Marshal(emailContent)
 	return string(json)
@@ -215,13 +221,6 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		//	message.Channel = msProto.MessageChannel_MAIL
 		//}
 
-		msStoreClient := msProto.NewMessageStoreServiceClient(msConn)
-		newMsg, err := msStoreClient.SaveMessage(msCtx, message)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err.Error()})
-			return
-		}
-
 		// inform the channel api a new message
 		channelsConn := util.GetChannelsConnection(c, df)
 		defer util.CloseChannelsConnection(channelsConn)
@@ -232,12 +231,17 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		log.Printf("Got a header: %v", c.GetHeader("X-Openline-IDENTITY-ID"))
 		channelsCtx = metadata.AppendToOutgoingContext(channelsCtx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
-		_, err = channelsClient.SendMessageEvent(channelsCtx, &chProto.MessageId{MessageId: newMsg.GetConversationEventId()})
+		newMsgId, err := channelsClient.SendMessageEvent(channelsCtx, message)
 		if err != nil {
 			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to send request to channel api: %v", err.Error())})
 			return
 		}
 
+		newMsg, err := msClient.GetMessage(msCtx, newMsgId)
+		if err != nil {
+			c.JSON(400, gin.H{"msg": fmt.Sprintf("failed to get message from the store: %v", err.Error())})
+			return
+		}
 		c.JSON(http.StatusOK, newMsg)
 	})
 }
