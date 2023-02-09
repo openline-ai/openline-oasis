@@ -1,23 +1,49 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	mimemail "github.com/emersion/go-message/mail"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/routes/chatHub"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
+	oryClient "github.com/ory/client-go"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/metadata"
+	"io"
 	"log"
+	"time"
 )
 
 type sendMessageService struct {
 	proto.UnimplementedMessageEventServiceServer
-	conf *c.Config
-	mh   *chatHub.Hub
-	df   util.DialFactory
+	conf        *c.Config
+	mh          *chatHub.Hub
+	df          util.DialFactory
+	oauthConfig *oauth2.Config
+}
+
+func getIdentityIdMetadataForGRPC(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("no metadata")
+	}
+
+	kh := md.Get("X-Openline-IDENTITY-ID")
+	if kh != nil && len(kh) == 1 {
+		return kh[0], nil
+	}
+	return "", errors.New("no IdentityId header")
 }
 
 func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.MessageId) (*proto.EventEmpty, error) {
@@ -27,6 +53,13 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 		return nil, err
 	}
 
+	identityId, err := getIdentityIdMetadataForGRPC(c)
+	if err != nil {
+		log.Printf("Missing Identity Id header")
+		return nil, err
+	}
+
+	log.Printf("Got a and ID Hader of %s", identityId)
 	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
@@ -39,18 +72,17 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 	ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, s.conf.Service.MessageStoreApiKey)
 	ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, *username)
 
-	msg, err := client.GetMessage(ctx, &msProto.MessageId{Id: msgId.MessageId})
+	msg, err := client.GetMessage(ctx, &msProto.MessageId{ConversationEventId: msgId.MessageId})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve message!")
 		return nil, err
 	}
 	switch msg.Type {
 	case msProto.MessageType_EMAIL:
-		//TODO
-		//mailErr := s.sendMail(msg)
-		//if mailErr != nil {
-		//	return nil, mailErr
-		//}
+		mailErr := s.sendMail(identityId, msg)
+		if mailErr != nil {
+			return nil, mailErr
+		}
 		return &proto.EventEmpty{}, nil
 	case msProto.MessageType_WEB_CHAT:
 		webChatErr := s.sendWebChat(msg)
@@ -67,16 +99,130 @@ func (s sendMessageService) SendMessageEvent(c context.Context, msgId *proto.Mes
 func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 	// Send a message to the hub
 	messageItem := chatHub.MessageItem{
-		Username: msg.ConversationInitiatorUsername,
+		Username: msg.InitiatorUsername,
 		Message:  msg.Content,
 	}
 
 	s.mh.Broadcast <- messageItem
-	log.Printf("successfully sent new message for %s", msg.ConversationInitiatorUsername)
+	log.Printf("successfully sent new message for %s", msg.InitiatorUsername)
 	return nil
 }
 
-//func (s sendMessageService) sendMail(msg *msProto.Message) error {
+func (s sendMessageService) getMailAuthToken(identityId string) (*oauth2.Token, error) {
+	configuration := oryClient.NewConfiguration()
+	configuration.Servers = []oryClient.ServerConfiguration{
+		{
+			URL: s.conf.GMail.OryServerUrl,
+		},
+	}
+	ory := oryClient.NewAPIClient(configuration)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, oryClient.ContextAccessToken, s.conf.GMail.OryApiKey)
+	identity, _, err := ory.IdentityApi.GetIdentity(ctx, identityId).IncludeCredential([]string{"oidc"}).Execute()
+	if err != nil {
+		log.Printf("Unable to get gmail auth token for %s, (%s)", identityId, err.Error())
+		return nil, err
+	}
+	credentials := identity.GetCredentials()["oidc"]
+	log.Printf("Got credentials of %v", credentials)
+
+	providers, ok := credentials.GetConfig()["providers"].([]interface{})
+	log.Printf("Got providers of %T", providers[0])
+
+	if !ok {
+		log.Printf("unable to get provider list %s", identityId)
+		return nil, err
+	}
+
+	provider, ok := providers[0].(map[string]interface{})
+	if !ok {
+		log.Printf("unable to get provider list %s", identityId)
+		return nil, err
+	}
+	token, ok := provider["initial_access_token"].(string)
+
+	if !ok {
+		log.Printf("unable to get access token %s", identityId)
+		return nil, err
+	}
+	tok := &oauth2.Token{AccessToken: token, TokenType: "Bearer"}
+
+	refreshToken, ok := provider["initial_refresh_token"].(string)
+
+	if !ok {
+		log.Printf("unable to get refresh token`` %s", identityId)
+	} else {
+		log.Printf("Setting refresh token to %s", refreshToken)
+		tok.RefreshToken = refreshToken
+	}
+	return tok, nil
+}
+
+func (s sendMessageService) sendMail(identityId string, msg *msProto.Message) error {
+	tok, err := s.getMailAuthToken(identityId)
+
+	log.Printf("Got Auth Token of %v", tok)
+	client := s.oauthConfig.Client(context.Background(), tok)
+
+	srv, err := gmail.NewService(context.Background(), option.WithHTTPClient(client))
+
+	jsonMail := &routes.EmailContent{}
+	err = json.Unmarshal([]byte(msg.Content), jsonMail)
+	if err != nil {
+		log.Printf("Unable to parse email content for %s", msg.SenderUsername)
+		return err
+	}
+	fromAddress := []*mimemail.Address{{"", jsonMail.From}}
+	toAddress := []*mimemail.Address{}
+	for _, to := range jsonMail.To {
+		toAddress = append(toAddress, &mimemail.Address{"", to})
+	}
+
+	var b bytes.Buffer
+	user := "me"
+
+	// Create our mail header
+	var h mimemail.Header
+	h.SetDate(time.Now())
+	h.SetAddressList("From", fromAddress)
+	h.SetAddressList("To", toAddress)
+	h.SetSubject(jsonMail.Subject)
+
+	// Create a new mail writer
+	mw, err := mimemail.CreateWriter(&b, h)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create a text part
+	tw, err := mw.CreateInline()
+	if err != nil {
+		log.Fatal(err)
+	}
+	var th mimemail.InlineHeader
+	th.Set("Content-Type", "text/html")
+	w, err := tw.CreatePart(th)
+	if err != nil {
+		log.Fatal(err)
+	}
+	io.WriteString(w, jsonMail.Html)
+	w.Close()
+	tw.Close()
+
+	mw.Close()
+
+	raw := base64.StdEncoding.EncodeToString(b.Bytes())
+	msgToSend := &gmail.Message{
+		Raw: raw,
+	}
+	_, err = srv.Users.Messages.Send(user, msgToSend).Do()
+	if err != nil {
+		log.Printf("Unable to send email: %v", err)
+		return err
+	}
+	return nil
+}
+
 //
 //	smtpClient, err := s.df.GetSMTPClientCon()
 //	if err != nil {
@@ -101,10 +247,11 @@ func (s sendMessageService) sendWebChat(msg *msProto.Message) error {
 //	return nil
 //}
 
-func NewSendMessageService(c *c.Config, df util.DialFactory, mh *chatHub.Hub) *sendMessageService {
+func NewSendMessageService(c *c.Config, df util.DialFactory, oauthConfig *oauth2.Config, mh *chatHub.Hub) *sendMessageService {
 	ms := new(sendMessageService)
 	ms.conf = c
 	ms.mh = mh
 	ms.df = df
+	ms.oauthConfig = oauthConfig
 	return ms
 }

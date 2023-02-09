@@ -16,7 +16,15 @@ message GmailAuthUrl {
   string url = 1;
 }
 
+message GmailActiveReq {
+  string email = 1;
+}
+
+message GmailActiveResp {
+  bool exists = 1;
+}
+
 service GmailAuthTokenService {
-  rpc setGmailAuth(GmailCredential) returns (EventEmpty) {};
+  rpc checkGmailActive(GmailActiveReq) returns (GmailActiveResp) {};
   rpc getGmailAuthUrl(GmailStateInfo) returns (GmailAuthUrl) {};
 }

@@ -69,12 +69,12 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 
 		//Contact the server and print out its response.
 		message := &ms.InputMessage{
-			Type:       ms.MessageType_WEB_CHAT,
-			Subtype:    ms.MessageSubtype_MESSAGE,
-			Message:    &req.Message,
-			Direction:  ms.MessageDirection_INBOUND,
-			Email:      &req.Username,
-			SenderType: ms.SenderType_CONTACT,
+			Type:                ms.MessageType_WEB_CHAT,
+			Subtype:             ms.MessageSubtype_MESSAGE,
+			Content:             &req.Message,
+			Direction:           ms.MessageDirection_INBOUND,
+			InitiatorIdentifier: &req.Username,
+			SenderType:          ms.SenderType_CONTACT,
 		}
 
 		//Store the message in message store
@@ -95,27 +95,27 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			})
 			return
 		}
-		log.Printf("message item created with id: %s", savedMessage.Id)
+		log.Printf("message item created with id: %s", savedMessage.ConversationEventId)
 
 		//Set up a connection to the oasis-api server.
 		oasisConn := GetOasisClient(c, df)
 		defer closeOasisConnection(oasisConn)
 		oasisClient := o.NewOasisApiServiceClient(oasisConn)
-		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.Id})
+		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.ConversationEventId})
 		if mEventErr != nil {
 			se, _ := status.FromError(mEventErr)
 			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
 		}
 
 		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.Email, *message.Message)}
+			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.InitiatorIdentifier, *message.Content)}
 			json_data, _ := json.Marshal(values)
 
 			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprintf("message item created with id: %s", savedMessage.Id),
+			"result": fmt.Sprintf("message item created with id: %s", savedMessage.ConversationEventId),
 		})
 	})
 }

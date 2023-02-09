@@ -24,6 +24,10 @@ interface ChatProps {
     handleCall(feedInitiator: any): void;
 }
 
+interface Participant {
+    email: string;
+}
+
 export const Chat = (props: ChatProps) => {
     const client = useGraphQLClient();
 
@@ -67,6 +71,8 @@ export const Chat = (props: ChatProps) => {
     const [currentText, setCurrentText] = useState('');
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as ConversationItem[]);
+    const [participants, setParticipants] = useState([] as Participant[]);
+
 
     const [loadingMessages, setLoadingMessages] = useState(false)
 
@@ -156,6 +162,21 @@ export const Chat = (props: ChatProps) => {
                 //todo log on backend
                 toast.error("There was a problem on our side and we are doing our best to solve it!");
             });
+            axios.get(`/oasis-api/feed/${props.feedId}/participants`)
+                .then(res => {
+                    if (res.data && res.data.participants) {
+                        let list: Participant[] = [];
+                        for (let participant of res.data.participants) {
+                            if (participant.email !== props.userLoggedInEmail) {
+                                list.push({email: participant.email});
+                            }
+                        }
+                        setParticipants(list);
+                    }
+                }).catch((reason: any) => {
+                //todo log on backend
+                toast.error("There was a problem on our side and we are doing our best to solve it!");
+            });
         }
     }, [props.feedId]);
 
@@ -190,7 +211,8 @@ export const Chat = (props: ChatProps) => {
         axios.post(`/oasis-api/feed/${props.feedId}/item`, {
             channel: currentChannel,
             username: props.userLoggedInEmail,
-            message: currentText
+            message: currentText,
+            destination: participants.map((participant: Participant) => participant.email)
         }).then(res => {
             console.log(res)
             if (res.data) {
@@ -215,6 +237,20 @@ export const Chat = (props: ChatProps) => {
         };
 
         setMessages((messageList: any) => [...messageList, newMsg]);
+    }
+
+    const showParticipants = () => {
+        return participants.map((participant: Participant, index: any) => {
+            return <><span style={{
+                border: 'solid 1px #E8E8E8',
+                borderRadius: '8px',
+                boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)',
+                padding: '5px',
+                background: '#E8E8E8'
+            }}>
+                {participant.email}
+            </span></>
+        })
     }
 
     const sendButtonOptions = [
@@ -345,13 +381,12 @@ export const Chat = (props: ChatProps) => {
                     {/* TODO: This is the div that will be scrolled to instantly on page load*/}
                 </div>
                 <div className="flex-grow-0 w-full p-3 pt-1">
-
                     <div className="w-full h-full bg-white py-2" style={{
                         border: 'solid 1px #E8E8E8',
                         borderRadius: '8px',
                         boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
                     }}>
-
+                        { currentChannel == "EMAIL" && <div className="py-2">To: {showParticipants()}</div> }
                         <div className="flex flex-grow-1">
                             <InputTextarea className="w-full px-3 outline-none"
                                            value={currentText}

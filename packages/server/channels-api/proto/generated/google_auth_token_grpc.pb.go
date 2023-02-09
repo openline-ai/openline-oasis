@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GmailAuthTokenServiceClient interface {
-	SetGmailAuth(ctx context.Context, in *GmailCredential, opts ...grpc.CallOption) (*EventEmpty, error)
+	CheckGmailActive(ctx context.Context, in *GmailActiveReq, opts ...grpc.CallOption) (*GmailActiveResp, error)
 	GetGmailAuthUrl(ctx context.Context, in *GmailStateInfo, opts ...grpc.CallOption) (*GmailAuthUrl, error)
 }
 
@@ -34,9 +34,9 @@ func NewGmailAuthTokenServiceClient(cc grpc.ClientConnInterface) GmailAuthTokenS
 	return &gmailAuthTokenServiceClient{cc}
 }
 
-func (c *gmailAuthTokenServiceClient) SetGmailAuth(ctx context.Context, in *GmailCredential, opts ...grpc.CallOption) (*EventEmpty, error) {
-	out := new(EventEmpty)
-	err := c.cc.Invoke(ctx, "/GmailAuthTokenService/setGmailAuth", in, out, opts...)
+func (c *gmailAuthTokenServiceClient) CheckGmailActive(ctx context.Context, in *GmailActiveReq, opts ...grpc.CallOption) (*GmailActiveResp, error) {
+	out := new(GmailActiveResp)
+	err := c.cc.Invoke(ctx, "/GmailAuthTokenService/checkGmailActive", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *gmailAuthTokenServiceClient) GetGmailAuthUrl(ctx context.Context, in *G
 // All implementations must embed UnimplementedGmailAuthTokenServiceServer
 // for forward compatibility
 type GmailAuthTokenServiceServer interface {
-	SetGmailAuth(context.Context, *GmailCredential) (*EventEmpty, error)
+	CheckGmailActive(context.Context, *GmailActiveReq) (*GmailActiveResp, error)
 	GetGmailAuthUrl(context.Context, *GmailStateInfo) (*GmailAuthUrl, error)
 	mustEmbedUnimplementedGmailAuthTokenServiceServer()
 }
@@ -65,8 +65,8 @@ type GmailAuthTokenServiceServer interface {
 type UnimplementedGmailAuthTokenServiceServer struct {
 }
 
-func (UnimplementedGmailAuthTokenServiceServer) SetGmailAuth(context.Context, *GmailCredential) (*EventEmpty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetGmailAuth not implemented")
+func (UnimplementedGmailAuthTokenServiceServer) CheckGmailActive(context.Context, *GmailActiveReq) (*GmailActiveResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckGmailActive not implemented")
 }
 func (UnimplementedGmailAuthTokenServiceServer) GetGmailAuthUrl(context.Context, *GmailStateInfo) (*GmailAuthUrl, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGmailAuthUrl not implemented")
@@ -84,20 +84,20 @@ func RegisterGmailAuthTokenServiceServer(s grpc.ServiceRegistrar, srv GmailAuthT
 	s.RegisterService(&GmailAuthTokenService_ServiceDesc, srv)
 }
 
-func _GmailAuthTokenService_SetGmailAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GmailCredential)
+func _GmailAuthTokenService_CheckGmailActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GmailActiveReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GmailAuthTokenServiceServer).SetGmailAuth(ctx, in)
+		return srv.(GmailAuthTokenServiceServer).CheckGmailActive(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/GmailAuthTokenService/setGmailAuth",
+		FullMethod: "/GmailAuthTokenService/checkGmailActive",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GmailAuthTokenServiceServer).SetGmailAuth(ctx, req.(*GmailCredential))
+		return srv.(GmailAuthTokenServiceServer).CheckGmailActive(ctx, req.(*GmailActiveReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,8 +128,8 @@ var GmailAuthTokenService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GmailAuthTokenServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "setGmailAuth",
-			Handler:    _GmailAuthTokenService_SetGmailAuth_Handler,
+			MethodName: "checkGmailActive",
+			Handler:    _GmailAuthTokenService_CheckGmailActive_Handler,
 		},
 		{
 			MethodName: "getGmailAuthUrl",

@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
         return resp.json().then((data) => {
             console.log(`User is signed in. Proceeding to redirect. ${newURL}`);
 
-            return getRedirectUrl(newURL, data.identity.traits.email, request);
+            return getRedirectUrl(newURL, data.identity.traits.email, data.identity.id, request);
         })
     }).catch((err) => {
         console.log(`Global Session Middleware error: ${JSON.stringify(err)}`)
@@ -62,7 +62,7 @@ export function middleware(request: NextRequest) {
     })
 }
 
-function getRedirectUrl(newURL: string, userName: string, request: NextRequest) {
+function getRedirectUrl(newURL: string, userName: string, identityId: string, request: NextRequest) {
     if (request.nextUrl.searchParams) {
         newURL = newURL + "?" + request.nextUrl.searchParams.toString()
     }
@@ -70,6 +70,8 @@ function getRedirectUrl(newURL: string, userName: string, request: NextRequest) 
     const requestHeaders = new Headers(request.headers);
 
     requestHeaders.set('X-Openline-USERNAME', userName);
+    requestHeaders.set('X-Openline-IDENTITY-ID', identityId);
+
 
     if (request.nextUrl.pathname.startsWith('/oasis-api')) {
         requestHeaders.set('X-Openline-API-KEY', process.env.OASIS_API_KEY as string)

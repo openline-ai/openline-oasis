@@ -104,12 +104,12 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		//Contact the server and print out its response.
 		jsonContentString := string(jsonContent)
 		message := &ms.InputMessage{
-			Type:       ms.MessageType_EMAIL,
-			Subtype:    ms.MessageSubtype_MESSAGE,
-			Message:    &jsonContentString,
-			Direction:  ms.MessageDirection_INBOUND,
-			Email:      &fromAddress,
-			SenderType: ms.SenderType_CONTACT,
+			Type:                ms.MessageType_EMAIL,
+			Subtype:             ms.MessageSubtype_MESSAGE,
+			Content:             &jsonContentString,
+			Direction:           ms.MessageDirection_INBOUND,
+			InitiatorIdentifier: &fromAddress,
+			SenderType:          ms.SenderType_CONTACT,
 		}
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
@@ -129,20 +129,20 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			})
 			return
 		}
-		log.Printf("message item created with id: %s", savedMessage.Id)
+		log.Printf("message item created with id: %s", savedMessage.GetConversationEventId())
 
 		//Set up a connection to the oasis-api server.
 		oasisConn := GetOasisClient(c, df)
 		defer closeOasisConnection(oasisConn)
 		oasisClient := o.NewOasisApiServiceClient(oasisConn)
-		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.Id})
+		_, mEventErr := oasisClient.NewMessageEvent(ctx, &o.NewMessage{ConversationId: savedMessage.ConversationId, ConversationItemId: savedMessage.GetConversationEventId()})
 		if mEventErr != nil {
 			se, _ := status.FromError(mEventErr)
 			log.Printf("failed new message event: status=%s message=%s", se.Code(), se.Message())
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"result": fmt.Sprintf("message item created with id: %s", savedMessage.Id),
+			"result": fmt.Sprintf("message item created with id: %s", savedMessage.GetConversationEventId()),
 		})
 	})
 }
