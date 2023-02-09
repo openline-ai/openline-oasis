@@ -201,7 +201,7 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.InputMessag
 	jsonMail := &routes.EmailContent{}
 	err = json.Unmarshal([]byte(*msg.Content), jsonMail)
 	if err != nil {
-		log.Printf("Unable to parse email content for %s", msg.InitiatorIdentifier)
+		log.Printf("Unable to parse email content for %s", *msg.InitiatorIdentifier)
 		return nil, err
 	}
 	fromAddress := []*mimemail.Address{{"", jsonMail.From}}
