@@ -109,7 +109,6 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			Content:             &jsonContentString,
 			Direction:           ms.MessageDirection_INBOUND,
 			InitiatorIdentifier: &fromAddress,
-			SenderType:          ms.SenderType_CONTACT,
 		}
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
