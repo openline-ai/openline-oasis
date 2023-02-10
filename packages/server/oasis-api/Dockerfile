@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM golang:1.19-alpine as builder
-RUN apk add --update make protobuf
+RUN apk add --update make protobuf protobuf-dev bash
 
 WORKDIR /app
 
