@@ -232,7 +232,6 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			Subtype:             msProto.MessageSubtype_MESSAGE,
 			Direction:           msProto.MessageDirection_OUTBOUND,
 			InitiatorIdentifier: &req.Username,
-			SenderType:          msProto.SenderType_USER,
 		}
 		if req.Channel == "EMAIL" {
 			body := buildEmailJson(feed, req, msClient, msCtx)
