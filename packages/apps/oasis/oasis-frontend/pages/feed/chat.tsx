@@ -13,7 +13,7 @@ import {Tooltip} from 'primereact/tooltip';
 import Moment from "react-moment";
 import {FeedItem} from "../../model/feed-item";
 import {toast} from "react-toastify";
-import {ConversationItem} from "../../model/conversation-item";
+import {ConversationItem, FeedPostRequest} from "../../model/conversation-item";
 import {useGraphQLClient} from "../../utils/graphQLClient";
 
 interface ChatProps {
@@ -208,12 +208,17 @@ export const Chat = (props: ChatProps) => {
 
     const handleSendMessage = () => {
         if (!currentText) return;
-        axios.post(`/oasis-api/feed/${props.feedId}/item`, {
+        let message: FeedPostRequest = {
             channel: currentChannel,
             username: props.userLoggedInEmail,
             message: currentText,
+            direction: 'OUTBOUND',
             destination: participants.map((participant: Participant) => participant.email)
-        }).then(res => {
+        }
+        if (messages.length > 0) {
+            message.replyTo = messages[messages.length - 1].messageId.conversationEventId;
+        }
+        axios.post(`/oasis-api/feed/${props.feedId}/item`, message).then(res => {
             console.log(res)
             if (res.data) {
                 setMessages((messageList: any) => [...messageList, res.data]);
@@ -231,9 +236,8 @@ export const Chat = (props: ChatProps) => {
             senderUsername: msg.SenderUserName,
             type: msg.Type,
             time: msg.time,
-            id: msg.messageId,
+            messageId: msg.messageId,
             direction: msg.direction == "OUTBOUND" ? 1 : 0,
-            conversationId: "",
             subtype: 0,
             senderType: 0,
             senderId: ""
@@ -297,7 +301,7 @@ export const Chat = (props: ChatProps) => {
                                     var t = new Date(1970, 0, 1);
                                     t.setSeconds(msg.time.seconds);
 
-                                    return <div key={msg.id} className='flex flex-column mb-3'>
+                                    return <div key={msg.messageId.conversationEventId} className='flex flex-column mb-3'>
                                         {
                                                 msg.direction == 0 &&
                                                 <>

@@ -24,6 +24,7 @@ type FeedPostRequest struct {
 	Source      string   `json:"source"`
 	Direction   string   `json:"direction"`
 	Destination []string `json:"destination"`
+	ReplyTo     *string  `json:"replyTo,omitempty"`
 }
 
 type FeedParticipant struct {
@@ -50,7 +51,7 @@ func decodeMessageType(channel string) msProto.MessageType {
 	}
 }
 
-func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
+func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest, msClient msProto.MessageStoreServiceClient, ctx context.Context) string {
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		log.Printf("Error generating UUID: %v", err)
@@ -61,6 +62,29 @@ func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest) string {
 		Subject:   "Hello from Oasis",
 		Html:      req.Message,
 		MessageId: fmt.Sprintf("<%s@openline.ai>", uuid.String()),
+	}
+
+	if req.ReplyTo != nil {
+		lastMsg, err := msClient.GetMessage(ctx, &msProto.MessageId{
+			ConversationEventId: *req.ReplyTo,
+			ConversationId:      item.Id,
+		})
+		if err != nil {
+			log.Printf("Error getting message: %v", err)
+		} else {
+			lastMsgJson := &channelRoute.EmailContent{}
+			err = json.Unmarshal([]byte(lastMsg.Content), lastMsgJson)
+			if err != nil {
+				log.Printf("Error unmarshalling last message: %v", err)
+			} else {
+				var references []string
+				copy(references, lastMsgJson.Reference)
+				references = append(references, lastMsgJson.MessageId)
+				emailContent.Reference = references
+				emailContent.InReplyTo = []string{lastMsgJson.MessageId}
+				emailContent.Subject = lastMsgJson.Subject
+			}
+		}
 	}
 	json, _ := json.Marshal(emailContent)
 	return string(json)
@@ -211,7 +235,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			SenderType:          msProto.SenderType_USER,
 		}
 		if req.Channel == "EMAIL" {
-			body := buildEmailJson(feed, req)
+			body := buildEmailJson(feed, req, msClient, msCtx)
 			message.Content = &body
 		} else {
 			message.Content = &req.Message

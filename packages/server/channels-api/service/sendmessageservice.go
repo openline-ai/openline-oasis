@@ -221,6 +221,14 @@ func (s sendMessageService) sendMail(identityId string, msg *msProto.InputMessag
 	h.SetMessageID(jsonMail.MessageId)
 	h.SetSubject(jsonMail.Subject)
 
+	if len(jsonMail.Reference) > 0 {
+		h.Set("References", strings.Join(jsonMail.Reference, " "))
+	}
+
+	if len(jsonMail.InReplyTo) > 0 {
+		h.Set("In-Reply-To", strings.Join(jsonMail.InReplyTo, " "))
+	}
+
 	// Create a new mail writer
 	mw, err := mimemail.CreateWriter(&b, h)
 	if err != nil {
