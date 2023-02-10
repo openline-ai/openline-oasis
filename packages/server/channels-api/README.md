@@ -41,6 +41,11 @@ ngrok http 8013
 * add https://(your ngrok url)/auth as authorized redirect uri
 * set GMAIL_CLIENT_ID to the client id
 * set GMAIL_CLIENT_SECRET to the client secret
-* set GMAIL_REDIRECT_URIS to the redirect url
+* set GMAIL_REDIRECT_URIS to the redirect url specified by ory
 
+Additionally, you need to set up ory
+* set up the ory tunnel as described in the oasis-frontent README
+* create an API key in the ory admin console
+* set ORY_API_KEY to the api key
+* set ORY_SERVER_URL to http:://localhost:4000
 

@@ -1,8 +1,12 @@
 import {Time} from "./time";
 
+export type MessageId = {
+    conversationEventId: string,
+    conversationId:    string,
+}
+
 export type ConversationItem = {
-    id:             string,
-    conversationId: string,
+    messageId:      MessageId,
     type:           number,
     subtype:        number,
     content:        string,
@@ -11,4 +15,13 @@ export type ConversationItem = {
     senderType:     number,
     senderId:       string,
     senderUsername: string,
+}
+
+export type FeedPostRequest = {
+    username: string,
+    message:  string,
+    channel:  string,
+    direction: string,
+    destination: string[],
+    replyTo?: string,
 }
