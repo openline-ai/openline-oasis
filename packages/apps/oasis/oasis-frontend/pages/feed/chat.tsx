@@ -2,7 +2,7 @@ import * as React from "react";
 import {useEffect, useState} from "react";
 import {Button} from "primereact/button";
 import {SplitButton} from 'primereact/splitbutton';
-import {faPaperclip, faPhone, faSmile} from "@fortawesome/free-solid-svg-icons";
+import {faPaperclip, faPhone, faSmile, faPlus, faMinus} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {InputTextarea} from "primereact/inputtextarea";
 import axios from "axios";
@@ -69,6 +69,8 @@ export const Chat = (props: ChatProps) => {
 
     const [currentChannel, setCurrentChannel] = useState('CHAT');
     const [currentText, setCurrentText] = useState('');
+    const [addParticipantText, setAddParticipantText] = useState('');
+
     const [sendButtonDisabled, setSendButtonDisabled] = useState(false);
     const [messages, setMessages] = useState([] as ConversationItem[]);
     const [participants, setParticipants] = useState([] as Participant[]);
@@ -253,13 +255,45 @@ export const Chat = (props: ChatProps) => {
                 borderRadius: '8px',
                 boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)',
                 padding: '5px',
-                background: '#E8E8E8'
+                background: '#E8E8E8',
+                verticalAlign: 'sub',
             }}>
-                {participant.email}
-            </span></>
+                <Button className='p-button-text'>
+                    <FontAwesomeIcon icon={faMinus} style={{fontSize: '20px'}}
+                    onClick={() => setParticipants(participants.filter(e => e.email !== participant.email))}/>
+                </Button>
+                <span>
+                    {participant.email}
+                </span>
+            </span>
+
+
+            </>
         })
     }
 
+    const addParticipantBox = () => {
+    return <>
+            <span style={{
+                border: 'solid 1px #E8E8E8',
+                borderRadius: '8px',
+                boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)',
+                padding: '5px',
+                background: '#E8E8E8',
+                verticalAlign: 'sub',
+            }}>
+                <Button className='p-button-text'>
+                    <FontAwesomeIcon icon={faPlus} style={{fontSize: '20px'}}
+                    onClick={() => {setParticipants([...participants, {email:addParticipantText}]);setAddParticipantText("")}}/>
+                </Button>
+                <input type="text" name="newParticipant" 
+                    value={addParticipantText}
+                    onChange={(e) => setAddParticipantText(e.target.value)}
+                />
+
+            </span>
+        </>
+    }
     const sendButtonOptions = [
         {
             label: 'Web chat',
@@ -393,7 +427,7 @@ export const Chat = (props: ChatProps) => {
                         borderRadius: '8px',
                         boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)'
                     }}>
-                        { currentChannel == "EMAIL" && <div className="py-2">To: {showParticipants()}</div> }
+                        { currentChannel == "EMAIL" && <div className="py-2">To: {showParticipants()} {addParticipantBox()}</div> }
                         <div className="flex flex-grow-1">
                             <InputTextarea className="w-full px-3 outline-none"
                                            value={currentText}
