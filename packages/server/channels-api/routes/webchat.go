@@ -74,7 +74,6 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			Content:             &req.Message,
 			Direction:           ms.MessageDirection_INBOUND,
 			InitiatorIdentifier: &req.Username,
-			SenderType:          ms.SenderType_CONTACT,
 		}
 
 		//Store the message in message store
