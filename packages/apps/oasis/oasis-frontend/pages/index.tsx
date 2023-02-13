@@ -50,7 +50,7 @@ const Home: NextPage = () => {
                     // Redirect to login page
                     console.log('NO SESSION')
                     console.log(e)
-                    return router.push(edgeConfig.basePath + "/ui/login")
+                    return router.push(edgeConfig.basePath + "/ui/login?return_to="+window.location.origin)
                 })
     }, [router])
 
