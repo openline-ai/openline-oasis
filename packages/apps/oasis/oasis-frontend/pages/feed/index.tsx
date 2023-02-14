@@ -42,7 +42,7 @@ const FeedPage: NextPage = () => {
                 })
                 .catch(() => {
                     // Redirect to login page
-                    return router.push(edgeConfig.basePath + "/ui/login?return_to="+window.location.origin)
+                    return router.push(edgeConfig.basePath + "/ui/login" + getReturnToUrl())
                 })
     }, [router])
 
@@ -60,6 +60,12 @@ const FeedPage: NextPage = () => {
                 }
             </>
     );
+}
+export const getReturnToUrl : () => string   = () => {
+    if (window.location.origin.startsWith('http://localhost')) {``
+        return '';
+    }
+    return "?return_to="+window.location.origin
 }
 
 export default FeedPage

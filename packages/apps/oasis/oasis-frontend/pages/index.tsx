@@ -7,6 +7,7 @@ import {getUserName} from "../utils/logged-in";
 import {setClient} from "../utils/graphQLClient";
 import axios from "axios";
 import {GraphQLClient} from "graphql-request";
+import {getReturnToUrl} from "./feed/index"
 
 const ory = new FrontendApi(new Configuration(edgeConfig))
 
@@ -50,7 +51,7 @@ const Home: NextPage = () => {
                     // Redirect to login page
                     console.log('NO SESSION')
                     console.log(e)
-                    return router.push(edgeConfig.basePath + "/ui/login?return_to="+window.location.origin)
+                    return router.push(edgeConfig.basePath + "/ui/login" + getReturnToUrl())
                 })
     }, [router])
 
@@ -69,5 +70,6 @@ const Home: NextPage = () => {
         </>
     )
 }
+
 
 export default Home
