@@ -58,3 +58,29 @@ Additionally, you need to set up ory
 5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
 6. Click "Save Changes" and you're done.
 
+## Setting up google email forwarding in prod environment
+1. Go to your gmail account settings. Click on the "Forwarding and POP/IMAP" tab.
+2. Click on the "Add a forwarding address" button.
+3. Enter openline@cos-mail.getopenline.com and click "Next".
+4. Login into oasis and look for an email from forwarding-noreply@google.com.
+5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
+6. Click "Save Changes" and you're done.
+
+## Setting up google email forwarding in local (ninja) environment
+Ngrok and aws lambda are needed for this to work:
+1. start ngrok to tunnel to channel-api: `ngrok http 8013`
+2. copy the ngrok url and set it to the environment variable `OL_MAIL_CB_HOST` of the lambda function "openline-local-sender" by doing the following:
+   1. go to the AWS console and go to the lambda service
+   2. select the function "openline-local-sender"
+   3. click on the "Configuration" tab
+   4. click on the "Environment variables" section
+   5. For the variable with the name "OL_MAIL_CB_HOST" and the value of your ngrok url
+
+On gmail:
+1. Go to your gmail account settings. Click on the "Forwarding and POP/IMAP" tab.
+2. Click on the "Add a forwarding address" button.
+3. Enter test@cos-mail.openline.ninja and click "Next".
+4. Login into oasis and look for an email from forwarding-noreply@google.com
+5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
+6. Click "Save Changes" and you're done.
+
