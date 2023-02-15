@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	chProto "github.com/openline-ai/openline-oasis/packages/server/channels-api/proto/generated"
@@ -52,16 +51,12 @@ func decodeMessageType(channel string) msProto.MessageType {
 }
 
 func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest, msClient msProto.MessageStoreServiceClient, ctx context.Context) string {
-	uuid, err := uuid.NewRandom()
-	if err != nil {
-		log.Printf("Error generating UUID: %v", err)
-	}
+
 	emailContent := channelRoute.EmailContent{
-		From:      req.Username,
-		To:        req.Destination,
-		Subject:   "Hello from Oasis",
-		Html:      req.Message,
-		MessageId: fmt.Sprintf("<%s@openline.ai>", uuid.String()),
+		From:    req.Username,
+		To:      req.Destination,
+		Subject: "Hello from Oasis",
+		Html:    req.Message,
 	}
 
 	if req.ReplyTo != nil {
@@ -86,8 +81,8 @@ func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest, msClient msProt
 			}
 		}
 	}
-	json, _ := json.Marshal(emailContent)
-	return string(json)
+	jsonContent, _ := json.Marshal(emailContent)
+	return string(jsonContent)
 }
 
 func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
