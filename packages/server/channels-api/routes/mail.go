@@ -41,8 +41,8 @@ type EmailContent struct {
 }
 
 func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
-	mail := rg.Group("/mail")
-	mail.POST("/fwd/", func(c *gin.Context) {
+	mailGroup := rg.Group("/mail")
+	mailGroup.POST("/fwd/", func(c *gin.Context) {
 		var req MailPostRequest
 		if err := c.BindJSON(&req); err != nil {
 			log.Printf("unable to parse json: %v", err.Error())
@@ -83,15 +83,15 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 
 		fromAddress := email.From[0].Address
 		emailContent := EmailContent{
-			MessageId: email.MessageID,
+			MessageId: ensureRfcId(email.MessageID),
 			Subject:   email.Subject,
 			Html:      email.HTMLBody,
 			From:      fromAddress,
 			To:        toStringArr(email.To),
 			Cc:        toStringArr(email.Cc),
 			Bcc:       toStringArr(email.Bcc),
-			InReplyTo: email.InReplyTo,
-			Reference: email.References,
+			InReplyTo: ensureRfcIds(email.InReplyTo),
+			Reference: ensureRfcIds(email.References),
 		}
 		jsonContent, err := json.Marshal(emailContent)
 		if err != nil {
@@ -144,6 +144,21 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			"result": fmt.Sprintf("message item created with id: %s", savedMessage.GetConversationEventId()),
 		})
 	})
+}
+
+func ensureRfcId(id string) string {
+	if !strings.HasPrefix(id, "<") {
+		id = fmt.Sprintf("<%s>", id)
+	}
+	return id
+}
+
+func ensureRfcIds(to []string) []string {
+	var result []string
+	for _, id := range to {
+		result = append(result, ensureRfcId(id))
+	}
+	return result
 }
 
 func toStringArr(from []*mail.Address) []string {
