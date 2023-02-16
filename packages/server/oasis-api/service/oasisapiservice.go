@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
+	"google.golang.org/grpc/metadata"
 	"strconv"
 
 	op "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
@@ -22,6 +24,12 @@ type OasisApiService struct {
 }
 
 func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMessage) (*op.OasisEmpty, error) {
+	md, ok := metadata.FromIncomingContext(c)
+	if !ok {
+		return nil, errors.New("unable to parse metadata from context")
+	}
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
 	conn, err := s.df.GetMessageStoreCon()
 	if err != nil {
 		log.Printf("Unable to connect to message store!")
@@ -29,8 +37,6 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	}
 	defer conn.Close()
 	client := msProto.NewMessageStoreServiceClient(conn)
-
-	ctx := context.Background()
 	conversation, err := client.GetFeed(ctx, &msProto.FeedId{Id: newMessage.GetConversationId()})
 	if err != nil {
 		log.Printf("Unable to connect to retrieve the conversation!")
