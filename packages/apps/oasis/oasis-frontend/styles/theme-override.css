@@ -72,17 +72,18 @@ body {
 .p-checkbox .p-checkbox-box.p-highlight {
     background: var(--dark-color-1);
     color: white;
-    border:none;
+    border: none;
 }
 
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-highlight:hover {
     border-color: var(--gray-color-5);
-    background:  var(--dark-color-1);
+    background: var(--dark-color-1);
     box-shadow: none;
 }
+
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:hover,
 .p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus,
-.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible{
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:focus-visible {
     border-color: var(--gray-color-5);
     outline-color: var(--dark-color-1);
     box-shadow: none;
@@ -127,19 +128,24 @@ body {
     background: transparent;
     padding: 0px;
 }
-.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav{
+
+.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav {
     background: transparent;
 }
-.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav .p-tabview-nav-link{
+
+.p-tabview-nav-container .p-tabview-nav-content .p-tabview-nav .p-tabview-nav-link {
     background: transparent;
 }
+
 .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
-    color:black;
+    color: black;
     border-color: var(--gray-color-5);
 }
+
 .p-tabview .p-tabview-nav .p-tabview-ink-bar {
     background-color: var(--dark-color-1);
 }
+
 .p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus {
     box-shadow: none;
 }
