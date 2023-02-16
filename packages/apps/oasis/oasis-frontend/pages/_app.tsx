@@ -16,11 +16,11 @@ import axios from "axios";
 axios.defaults.withCredentials = true
 
 export default function App({
-                                Component,
-                                pageProps: {session, ...pageProps},
+                              Component,
+                              pageProps: {session, ...pageProps},
                             }: AppProps) {
 
-    return (
-            <Component {...pageProps} />
-    )
+  return (
+    <Component {...pageProps} />
+  )
 }
