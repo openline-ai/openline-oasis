@@ -63,8 +63,9 @@ ij_editorconfig_space_before_colon = false
 ij_editorconfig_space_before_comma = false
 ij_editorconfig_spaces_around_assignment_operators = true
 
-[{*.ats,*.cts,*.mts,*.ts}]
-ij_continuation_indent_size = 4
+[{*.ats,*.cts,*.mts,*.ts,*.tsx}]
+indent_size = 2
+ij_continuation_indent_size = 2
 ij_typescript_align_imports = false
 ij_typescript_align_multiline_array_initializer_expression = false
 ij_typescript_align_multiline_binary_operation = false

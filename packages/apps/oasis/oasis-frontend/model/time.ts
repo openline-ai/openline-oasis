@@ -1,3 +1,3 @@
 export type Time = {
-    seconds: number,
+  seconds: number,
 }
