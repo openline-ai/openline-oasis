@@ -19,6 +19,7 @@ import CallProgress from '../../components/webrtc/CallProgress';
 import SuggestionList, {Suggestion} from "../../components/SuggestionList";
 
 import {gql, GraphQLClient} from "graphql-request";
+import {Checkbox} from "primereact/checkbox";
 
 interface FeedProps {
   feedId: string | undefined;
@@ -33,6 +34,12 @@ export const Feed = (props: FeedProps) => {
   const [feeds, setFeeds] = useState([] as FeedItem[]);
   const [selectedFeed, setSelectedFeed] = useState(props.feedId);
   const [dialedNumber, setDialedNumber] = useState('');
+  const [checked, setChecked] = useState(false);
+
+  const handleCheckboxChange = (event: { checked: boolean }) => {
+    setChecked(event.checked);
+    loadFeed(event.checked)
+  };
 
   const {lastMessage} = useWebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_PATH}`, {
     onOpen: () => console.log('Websocket opened'),
@@ -41,19 +48,19 @@ export const Feed = (props: FeedProps) => {
   });
 
   useEffect(() => {
-    loadFeed();
+    loadFeed(false);
   }, []);
 
   useEffect(() => {
     if (lastMessage && Object.keys(lastMessage).length !== 0) {
-      loadFeed();
+      loadFeed(false);
     }
 
   }, [lastMessage]);
 
-  const loadFeed = function () {
+  const loadFeed = function (onlyContacts: boolean) {
     console.log("Reloading feed!");
-    axios.get(`/oasis-api/feed`)
+    axios.get(`/oasis-api/feed?onlyContacts=${onlyContacts}`)
       .then(res => {
         setFeeds(res.data?.feedItems ?? []);
         if (!selectedFeed && res.data && res.data.feedItems && res.data.feedItems[0]) {
@@ -111,13 +118,12 @@ export const Feed = (props: FeedProps) => {
   const [callFrom, setCallFrom] = useState('');
   const [inCall, setInCall] = useState(false);
 
-
   interface FeedInitatior {
     phoneNumber?: string
     email?: string
   }
 
-  const buildFeedInitator = (dest: string): FeedInitatior => {
+  const buildFeedInitiator = (dest: string): FeedInitatior => {
     const feedInitiator: FeedInitatior = {};
     if (dest.includes("@")) {
       feedInitiator.email = dest;
@@ -125,7 +131,6 @@ export const Feed = (props: FeedProps) => {
       feedInitiator.phoneNumber = dest;
     }
     return feedInitiator;
-
   }
 
   const handleCall = (feedInitiator: FeedInitatior) => {
@@ -142,9 +147,6 @@ export const Feed = (props: FeedProps) => {
     }
     webrtc.current?.makeCall("sip:" + user);
   }
-
-
-  //endregion
 
   function setTopbarColor(newColor: any) {
     document.documentElement.style.setProperty('--topbar-background', newColor);
@@ -189,10 +191,8 @@ export const Feed = (props: FeedProps) => {
               value: contact.phoneNumbers[0].e164
             }
             suggestions.push(sugestion);
-
           }
         }
-
       }
       callback(suggestions);
 
@@ -244,9 +244,16 @@ export const Feed = (props: FeedProps) => {
                              boxShadow: "none"
                            }}
             />
+            <div className="flex p-1">
+              <Checkbox
+                inputId="checkboxId"
+                onChange={handleCheckboxChange}
+                checked={checked}
+              />
+            </div>
             {dialedNumber.length > 0 && !inCall &&
               <Button
-                onClick={() => handleCall(buildFeedInitator(dialedNumber))}
+                onClick={() => handleCall(buildFeedInitiator(dialedNumber))}
                 tooltip={
                   `Call (${dialedNumber})`
                 }
@@ -262,7 +269,8 @@ export const Feed = (props: FeedProps) => {
           </div>
 
           <div className='flex p-3'>
-            <SuggestionList currentValue={dialedNumber} getSuggestions={getContactSuggestions}
+            <SuggestionList currentValue={dialedNumber}
+                            getSuggestions={getContactSuggestions}
                             setCurrentValue={setDialedNumber}></SuggestionList>
           </div>
         </div>

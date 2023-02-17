@@ -258,43 +258,42 @@ export const Chat = (props: ChatProps) => {
         background: '#E8E8E8',
         verticalAlign: 'sub',
       }}>
-                <Button className='p-button-text'>
-                    <FontAwesomeIcon icon={faMinus} style={{fontSize: '20px'}}
-                                     onClick={() => setParticipants(participants.filter(e => e.email !== participant.email))}/>
-                </Button>
-                <span>
-                    {participant.email}
-                </span>
-            </span>
-
-
+        <Button className='p-button-text'>
+          <FontAwesomeIcon icon={faMinus} style={{fontSize: '20px'}}
+                           onClick={() => setParticipants(participants.filter(e => e.email !== participant.email))}/>
+        </Button>
+        <span>
+          {participant.email}
+        </span>
+      </span>
       </>
     })
   }
 
   const addParticipantBox = () => {
     return <>
-            <span style={{
-              border: 'solid 1px #E8E8E8',
-              borderRadius: '8px',
-              boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)',
-              padding: '5px',
-              background: '#E8E8E8',
-              verticalAlign: 'sub',
-            }}>
-                <Button className='p-button-text'>
-                    <FontAwesomeIcon icon={faPlus} style={{fontSize: '20px'}}
-                                     onClick={() => {
-                                       setParticipants([...participants, {email: addParticipantText}]);
-                                       setAddParticipantText("")
-                                     }}/>
-                </Button>
-                <input type="text" name="newParticipant"
-                       value={addParticipantText}
-                       onChange={(e) => setAddParticipantText(e.target.value)}
-                />
-
-            </span>
+      <span style={{
+        border: 'solid 1px #E8E8E8',
+        borderRadius: '8px',
+        boxShadow: '0px 0px 40px rgba(0, 0, 0, 0.05)',
+        padding: '5px',
+        background: '#E8E8E8',
+        verticalAlign: 'sub',
+      }}>
+        <Button className='p-button-text'>
+          <FontAwesomeIcon icon={faPlus}
+                           style={{fontSize: '20px'}}
+                           onClick={() => {
+                             setParticipants([...participants, {email: addParticipantText}]);
+                             setAddParticipantText("")
+                           }}/>
+        </Button>
+        <input type="text"
+               name="newParticipant"
+               value={addParticipantText}
+               onChange={(e) => setAddParticipantText(e.target.value)}
+        />
+        </span>
     </>
   }
   const sendButtonOptions = [
@@ -439,10 +438,7 @@ export const Chat = (props: ChatProps) => {
                            onChange={(e) => setCurrentText(e.target.value)}
                            autoResize
                            rows={1}
-                           placeholder={
-                             feedInitiator.firstName &&
-                             `Message ${feedInitiator.firstName}...`
-                           }
+                           placeholder={feedInitiator.firstName && `Message ${feedInitiator.firstName}...`}
                            onKeyPress={(e) => {
                              if (e.shiftKey && e.key === "Enter") {
                                return true
@@ -460,11 +456,9 @@ export const Chat = (props: ChatProps) => {
           </div>
 
           <div className="flex w-full mt-3">
-
             <div className="flex flex-grow-1">
               <div className="pl-1">
               </div>
-
               <Tooltip target=".disabled-button"/>
               <Tooltip target=".disabled-button2"/>
               <div className="disabled-button" data-pr-tooltip="Work in progress">
@@ -472,15 +466,12 @@ export const Chat = (props: ChatProps) => {
                   <FontAwesomeIcon icon={faSmile} style={{fontSize: '20px'}}/>
                 </Button>
               </div>
-
               <div className="disabled-button2" data-pr-tooltip="Work in progress">
                 <Button disabled={true} className='p-button-text'>
                   <FontAwesomeIcon icon={faPaperclip} style={{fontSize: '20px'}}/>
                 </Button>
               </div>
-
             </div>
-
             {
               callingAllowed() && !props.inCall &&
               <div>
@@ -519,14 +510,11 @@ export const Chat = (props: ChatProps) => {
                 {/* <FontAwesomeIcon icon={faPaperPlane} className="mr-3" /> */}
               </SplitButton>
             </div>
-
           </div>
-
         </div>
       </div>
     </div>
   );
-
 }
 
 export default Chat;
