@@ -88,6 +88,8 @@ func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest, msClient msProt
 func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 
 	rg.GET("/feed", func(c *gin.Context) {
+		onlyContacts := c.Query("onlyContacts")
+		println(onlyContacts)
 		msConn := util.GetMessageStoreConnection(c, df)
 		defer util.CloseMessageStoreConnection(msConn)
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
@@ -97,7 +99,7 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
-		pagedRequest := &msProto.GetFeedsPagedRequest{}
+		pagedRequest := &msProto.GetFeedsPagedRequest{OnlyContacts: onlyContacts == "true"}
 		feedList, err := msClient.GetFeeds(ctx, pagedRequest)
 		if err != nil {
 			log.Printf("did not get list of feeds: %v", err.Error())
