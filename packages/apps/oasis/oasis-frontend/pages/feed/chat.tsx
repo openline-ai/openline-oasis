@@ -15,6 +15,7 @@ import {FeedItem} from "../../model/feed-item";
 import {toast} from "react-toastify";
 import {ConversationItem, FeedPostRequest} from "../../model/conversation-item";
 import {useGraphQLClient} from "../../utils/graphQLClient";
+import sanitizeHtml from "sanitize-html";
 
 interface ChatProps {
   feedId: string;
@@ -362,7 +363,11 @@ export const Chat = (props: ChatProps) => {
                         borderRadius: '5px',
                         boxShadow: '0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0 1px 3px 0 rgb(0 0 0 / 12%)'
                       }}>
-                        <div className="flex">{msg.content}</div>
+                        {decodeChannel(msg.type) == 'Email' ?
+                          <div className={"text-overflow-ellipsis {min-height: 40px; & * {margin-bottom: 2px;}}"}
+                               dangerouslySetInnerHTML={{__html: sanitizeHtml(JSON.parse(msg.content).html)}}></div> :
+                          <div className="flex">{msg.content}</div>
+                        }
                         <div className="flex align-content-end" style={{
                           width: '100%',
                           textAlign: 'right',
@@ -397,7 +402,10 @@ export const Chat = (props: ChatProps) => {
                       <div className="flex-grow-1"></div>
                       <div className="flex-grow-0 flex-column p-3"
                            style={{background: '#C5EDCE', borderRadius: '5px'}}>
-                        <div className="flex">{msg.content}</div>
+                        <div
+                          className={"flex"}
+                          dangerouslySetInnerHTML={{__html: sanitizeHtml(decodeChannel(msg.type) === "Email" ? JSON.parse(msg.content).html : msg.content)}}
+                        ></div>
                         <div className="flex align-content-end" style={{
                           width: '100%',
                           textAlign: 'right',

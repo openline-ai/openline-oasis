@@ -66,14 +66,16 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		}
 
 		log.Printf("Got message from %s", req.Username)
-
+		threadId := ""
 		//Contact the server and print out its response.
 		message := &ms.InputMessage{
-			Type:                ms.MessageType_WEB_CHAT,
-			Subtype:             ms.MessageSubtype_MESSAGE,
-			Content:             &req.Message,
-			Direction:           ms.MessageDirection_INBOUND,
-			InitiatorIdentifier: &req.Username,
+			Type:                    ms.MessageType_WEB_CHAT,
+			Subtype:                 ms.MessageSubtype_MESSAGE,
+			Content:                 &req.Message,
+			Direction:               ms.MessageDirection_INBOUND,
+			InitiatorIdentifier:     &req.Username,
+			ThreadId:                &threadId,
+			ParticipantsIdentifiers: []string{},
 		}
 
 		//Store the message in message store

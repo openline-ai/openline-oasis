@@ -50,36 +50,20 @@ func decodeMessageType(channel string) msProto.MessageType {
 	}
 }
 
-func buildEmailJson(item *msProto.FeedItem, req FeedPostRequest, msClient msProto.MessageStoreServiceClient, ctx context.Context) string {
-
+func buildEmailJson(lastMsgJson *channelRoute.EmailContent, req FeedPostRequest) string {
 	emailContent := channelRoute.EmailContent{
 		From:    req.Username,
 		To:      req.Destination,
 		Subject: "Hello from Oasis",
 		Html:    req.Message,
 	}
-
 	if req.ReplyTo != nil {
-		lastMsg, err := msClient.GetMessage(ctx, &msProto.MessageId{
-			ConversationEventId: *req.ReplyTo,
-			ConversationId:      item.Id,
-		})
-		if err != nil {
-			log.Printf("Error getting message: %v", err)
-		} else {
-			lastMsgJson := &channelRoute.EmailContent{}
-			err = json.Unmarshal([]byte(lastMsg.Content), lastMsgJson)
-			if err != nil {
-				log.Printf("Error unmarshalling last message: %v", err)
-			} else {
-				var references []string
-				copy(references, lastMsgJson.Reference)
-				references = append(references, lastMsgJson.MessageId)
-				emailContent.Reference = references
-				emailContent.InReplyTo = []string{lastMsgJson.MessageId}
-				emailContent.Subject = lastMsgJson.Subject
-			}
-		}
+		var references []string
+		copy(references, lastMsgJson.Reference)
+		references = append(references, lastMsgJson.MessageId)
+		emailContent.Reference = references
+		emailContent.InReplyTo = []string{lastMsgJson.MessageId}
+		emailContent.Subject = lastMsgJson.Subject
 	}
 	jsonContent, _ := json.Marshal(emailContent)
 	return string(jsonContent)
@@ -222,24 +206,44 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			c.JSON(400, gin.H{"msg": err.Error()})
 			return
 		}
-
+		threadId := ""
 		message := &msProto.InputMessage{
-			ConversationId:      &feedId.ID,
-			Type:                decodeMessageType(req.Channel),
-			Subtype:             msProto.MessageSubtype_MESSAGE,
-			Direction:           msProto.MessageDirection_OUTBOUND,
-			InitiatorIdentifier: &req.Username,
+			ConversationId:          &feedId.ID,
+			Type:                    decodeMessageType(req.Channel),
+			Subtype:                 msProto.MessageSubtype_MESSAGE,
+			Direction:               msProto.MessageDirection_OUTBOUND,
+			InitiatorIdentifier:     &req.Username,
+			ParticipantsIdentifiers: append(req.Destination, req.Username),
 		}
+
 		if req.Channel == "EMAIL" {
-			body := buildEmailJson(feed, req, msClient, msCtx)
+			lastMsg, errMsg := msClient.GetMessage(msCtx,
+				&msProto.MessageId{
+					ConversationEventId: *req.ReplyTo,
+					ConversationId:      feed.Id})
+			if errMsg != nil {
+				c.JSON(400, gin.H{"msg": err.Error()})
+				return
+			}
+			lastMsgJson := &channelRoute.EmailContent{}
+			errJson := json.Unmarshal([]byte(lastMsg.Content), lastMsgJson)
+			if errJson != nil {
+				c.JSON(400, gin.H{"msg": err.Error()})
+				return
+			}
+			body := buildEmailJson(lastMsgJson, req)
+
+			if len(lastMsgJson.Reference) > 0 {
+				threadId = lastMsgJson.Reference[0]
+			} else {
+				threadId = lastMsgJson.MessageId
+			}
 			message.Content = &body
 		} else {
 			message.Content = &req.Message
 		}
-		//	message.Channel = msProto.MessageChannel_WIDGET
-		//} else {
-		//	message.Channel = msProto.MessageChannel_MAIL
-		//}
+
+		message.ThreadId = &threadId
 
 		// inform the channel api a new message
 		channelsConn := util.GetChannelsConnection(c, df)
