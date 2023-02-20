@@ -30,6 +30,7 @@ interface FeedProps {
 
 export const Feed = (props: FeedProps) => {
   const router = useRouter()
+  const client = useGraphQLClient();
 
   const [feeds, setFeeds] = useState([] as FeedItem[]);
   const [selectedFeed, setSelectedFeed] = useState(props.feedId);
@@ -180,7 +181,7 @@ export const Feed = (props: FeedProps) => {
             }
         }`
 
-    useGraphQLClient().request(query, {value: filter}).then((response: ContactResponse) => {
+    client.request(query, {value: filter}).then((response: ContactResponse) => {
       var suggestions: Suggestion[] = [];
       if (response.contacts && response.contacts.content) {
         for (const contact of response.contacts.content) {
