@@ -56,8 +56,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			c.JSON(http.StatusForbidden, gin.H{"result": "Invalid API Key"})
 			return
 		}
-		log.Printf("Mail request: %+v", req)
-		log.Printf("Mail request: %+v", req.RawMessage)
+
 		mailReader := strings.NewReader(req.RawMessage)
 		email, err := parsemail.Parse(mailReader) // returns Email struct and error
 		if err != nil {
@@ -67,12 +66,6 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			})
 			return
 		}
-		log.Printf("Got message from %s", email.From)
-		log.Printf("Got message To %s", email.To)
-		log.Printf("Text Body: %v", email.TextBody)
-		log.Printf("Text Subject: %v", email.Subject)
-		log.Printf("Text HTMLBody: %v", email.HTMLBody)
-		log.Printf("Forwared To: %v", email.Header.Get("X-Forwarded-To"))
 
 		if len(email.From) != 1 {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -103,12 +96,22 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		}
 		//Contact the server and print out its response.
 		jsonContentString := string(jsonContent)
+		refSize := len(email.References)
+		threadId := ""
+		if refSize > 0 {
+			threadId = email.References[0]
+		} else {
+			threadId = email.MessageID
+		}
+
 		message := &ms.InputMessage{
-			Type:                ms.MessageType_EMAIL,
-			Subtype:             ms.MessageSubtype_MESSAGE,
-			Content:             &jsonContentString,
-			Direction:           ms.MessageDirection_INBOUND,
-			InitiatorIdentifier: &fromAddress,
+			Type:                    ms.MessageType_EMAIL,
+			Subtype:                 ms.MessageSubtype_MESSAGE,
+			Content:                 &jsonContentString,
+			Direction:               ms.MessageDirection_INBOUND,
+			InitiatorIdentifier:     &fromAddress,
+			ThreadId:                &threadId,
+			ParticipantsIdentifiers: toStringArr(append(email.To, email.Cc...)),
 		}
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
