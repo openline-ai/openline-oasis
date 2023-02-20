@@ -18,7 +18,8 @@ import {toast, ToastContainer} from "react-toastify";
 import CallProgress from '../../components/webrtc/CallProgress';
 import SuggestionList, {Suggestion} from "../../components/SuggestionList";
 
-import {gql, GraphQLClient} from "graphql-request";
+import {gql} from "graphql-request";
+import {useGraphQLClient} from "../../utils/graphQLClient";
 import {Checkbox} from "primereact/checkbox";
 
 interface FeedProps {
@@ -30,7 +31,6 @@ interface FeedProps {
 export const Feed = (props: FeedProps) => {
   const router = useRouter()
 
-  const [graphQlClient, setGraphQlClient] = useState({} as GraphQLClient)
   const [feeds, setFeeds] = useState([] as FeedItem[]);
   const [selectedFeed, setSelectedFeed] = useState(props.feedId);
   const [dialedNumber, setDialedNumber] = useState('');
@@ -180,7 +180,7 @@ export const Feed = (props: FeedProps) => {
             }
         }`
 
-    graphQlClient.request(query, {value: filter}).then((response: ContactResponse) => {
+    useGraphQLClient().request(query, {value: filter}).then((response: ContactResponse) => {
       var suggestions: Suggestion[] = [];
       if (response.contacts && response.contacts.content) {
         for (const contact of response.contacts.content) {
