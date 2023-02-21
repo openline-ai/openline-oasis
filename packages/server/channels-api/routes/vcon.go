@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	ms "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	c "github.com/openline-ai/openline-oasis/packages/server/channels-api/config"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/model"
 	"github.com/openline-ai/openline-oasis/packages/server/channels-api/util"
@@ -21,8 +22,17 @@ func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			return
 		}
 
-		if conf.WebChat.ApiKey != c.GetHeader("WebChatApiKey") {
+		if conf.VCon.ApiKey != c.GetHeader("X-Openline-VCon-Api-Key") {
 			c.JSON(http.StatusForbidden, gin.H{"result": "Invalid API Key"})
 			return
+		}
+		message := &ms.InputMessage{
+			Type:                    ms.MessageType_VOICE,
+			Subtype:                 ms.MessageSubtype_MESSAGE,
+			Content:                 &req.Dialog[0].Body,
+			Direction:               ms.MessageDirection_INBOUND,
+			InitiatorIdentifier:     &fromAddress,
+			ThreadId:                &threadId,
+			ParticipantsIdentifiers: toStringArr(append(email.To, email.Cc...)),
 		}
 }
