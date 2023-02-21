@@ -24,4 +24,11 @@ type Config struct {
 		SlackWebhookUrl string `env:"SLACK_WEBHOOK_URL"`
 		PingInterval    int    `env:"WEBSOCKET_PING_INTERVAL"`
 	}
+	VCon struct {
+		ApiKey          string `env:"VCON_API_KEY,required"`
+		AwsAccessKey    string `env:"AWS_ACCESS_KEY"`
+		AwsAccessSecret string `env:"AWS_ACCESS_SECRET"`
+		AwsRegion       string `env:"AWS_REGION"`
+		AwsBucket       string `env:"AWS_BUCKET"`
+	}
 }
