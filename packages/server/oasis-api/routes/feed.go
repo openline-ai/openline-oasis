@@ -208,12 +208,13 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 		threadId := ""
 		message := &msProto.InputMessage{
-			ConversationId:          &feedId.ID,
-			Type:                    decodeMessageType(req.Channel),
-			Subtype:                 msProto.MessageSubtype_MESSAGE,
-			Direction:               msProto.MessageDirection_OUTBOUND,
-			InitiatorIdentifier:     &req.Username,
-			ParticipantsIdentifiers: append(req.Destination, req.Username),
+			ConversationId:      &feedId.ID,
+			Type:                decodeMessageType(req.Channel),
+			Subtype:             msProto.MessageSubtype_MESSAGE,
+			Direction:           msProto.MessageDirection_OUTBOUND,
+			InitiatorIdentifier: &msProto.ParticipantId{Identifier: req.Username, Type: msProto.ParticipantIdType_MAILTO}, // will allways be an email as it is a User
+			ParticipantsIdentifiers: append(toParticipantArr(req.Destination),
+				&msProto.ParticipantId{Identifier: req.Username, Type: msProto.ParticipantIdType_MAILTO}),
 		}
 
 		if req.Channel == "EMAIL" {
@@ -268,4 +269,14 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		}
 		c.JSON(http.StatusOK, newMsg)
 	})
+}
+func toParticipantArr(from []string) []*msProto.ParticipantId {
+	var to []*msProto.ParticipantId
+	for _, a := range from {
+		to = append(to, &msProto.ParticipantId{
+			Type:       msProto.ParticipantIdType_MAILTO,
+			Identifier: a,
+		})
+	}
+	return to
 }

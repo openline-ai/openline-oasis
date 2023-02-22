@@ -60,7 +60,7 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 
 	// Send a message to hub
 	messageItem := MessageHub.MessageItem{
-		Username:  conversationItem.SenderUsername,
+		Username:  conversationItem.SenderUsername.Identifier, // don't care about the type as it is just for display
 		Id:        conversationItem.MessageId.ConversationEventId,
 		FeedId:    conversation.Id,
 		Direction: conversationItem.Direction.String(),
