@@ -301,7 +301,7 @@ export const Feed = (props: FeedProps) => {
                       f.initiatorFirstName + ' ' + f.initiatorLastName}
                     {
                       !f.initiatorFirstName &&
-                      f.initiatorUsername
+                      f.initiatorUsername.identifier
                     }
                   </div>
                   <div className='text-500' style={{

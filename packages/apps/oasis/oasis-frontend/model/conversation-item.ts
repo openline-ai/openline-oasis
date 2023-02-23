@@ -5,7 +5,7 @@ export type MessageId = {
   conversationId: string,
 }
 export type Participant = {
-  type: string,
+  type: number,
   identifier: string,
 }
 
