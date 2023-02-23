@@ -16,7 +16,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230214195550-054499130c38
-	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230222161304-b22c0fc12270
+	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230223160350-2794ede075c8
 	github.com/openline-ai/openline-oasis/packages/server/oasis-api v0.0.0-00010101000000-000000000000
 	github.com/ory/client-go v1.1.7
 	github.com/stretchr/testify v1.8.1

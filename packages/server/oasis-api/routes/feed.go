@@ -223,13 +223,13 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 					ConversationEventId: *req.ReplyTo,
 					ConversationId:      feed.Id})
 			if errMsg != nil {
-				c.JSON(400, gin.H{"msg": err.Error()})
+				c.JSON(400, gin.H{"msg": errMsg.Error()})
 				return
 			}
 			lastMsgJson := &channelRoute.EmailContent{}
 			errJson := json.Unmarshal([]byte(lastMsg.Content), lastMsgJson)
 			if errJson != nil {
-				c.JSON(400, gin.H{"msg": err.Error()})
+				c.JSON(400, gin.H{"msg": errJson.Error()})
 				return
 			}
 			body := buildEmailJson(lastMsgJson, req)
