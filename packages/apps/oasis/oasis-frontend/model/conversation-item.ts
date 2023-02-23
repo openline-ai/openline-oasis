@@ -4,6 +4,10 @@ export type MessageId = {
   conversationEventId: string,
   conversationId: string,
 }
+export type Participant = {
+  type: string,
+  identifier: string,
+}
 
 export type ConversationItem = {
   messageId: MessageId,
@@ -14,7 +18,7 @@ export type ConversationItem = {
   time: Time,
   senderType: number,
   senderId: string,
-  senderUsername: string,
+  senderUsername: Participant,
 }
 
 export type FeedPostRequest = {

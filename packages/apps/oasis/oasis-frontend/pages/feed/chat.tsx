@@ -236,7 +236,7 @@ export const Chat = (props: ChatProps) => {
   const handleWebsocketMessage = function (msg: any) {
     let newMsg: ConversationItem = {
       content: msg.content,
-      senderUsername: msg.SenderUserName,
+      senderUsername: msg.SenderUserName.identifier,
       type: msg.Type,
       time: msg.time,
       messageId: msg.messageId,
@@ -394,7 +394,7 @@ export const Chat = (props: ChatProps) => {
                       (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                       <div className="w-full flex">
                         <div className="flex-grow-1"></div>
-                        <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername}</div>
+                        <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername.identifier}</div>
                       </div>
                     }
 
