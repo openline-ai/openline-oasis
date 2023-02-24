@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
@@ -48,9 +49,10 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Could not establish connection with neo4j at: %v, error: %v", conf.Neo4j.Target, err.Error())
 	}
-	defer neo4jDriver.Close()
+	ctx := context.Background()
+	defer (*neo4jDriver).Close(ctx)
 
-	commonRepositories := commonRepository.InitRepositories(db.GormDB, &neo4jDriver)
+	commonRepositories := commonRepository.InitRepositories(db.GormDB, neo4jDriver)
 
 	fh := FeedHub.NewFeedHub()
 	go fh.Run()
