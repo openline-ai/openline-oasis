@@ -73,9 +73,9 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 			Subtype:                 ms.MessageSubtype_MESSAGE,
 			Content:                 &req.Message,
 			Direction:               ms.MessageDirection_INBOUND,
-			InitiatorIdentifier:     &req.Username,
+			InitiatorIdentifier:     &ms.ParticipantId{Identifier: req.Username, Type: ms.ParticipantIdType_MAILTO},
 			ThreadId:                &threadId,
-			ParticipantsIdentifiers: []string{},
+			ParticipantsIdentifiers: []*ms.ParticipantId{},
 		}
 
 		//Store the message in message store
@@ -109,7 +109,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		}
 
 		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.InitiatorIdentifier, *message.Content)}
+			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", message.InitiatorIdentifier.Identifier, *message.Content)}
 			json_data, _ := json.Marshal(values)
 
 			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))

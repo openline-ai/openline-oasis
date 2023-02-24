@@ -109,9 +109,9 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			Subtype:                 ms.MessageSubtype_MESSAGE,
 			Content:                 &jsonContentString,
 			Direction:               ms.MessageDirection_INBOUND,
-			InitiatorIdentifier:     &fromAddress,
+			InitiatorIdentifier:     &ms.ParticipantId{Identifier: fromAddress, Type: ms.ParticipantIdType_MAILTO},
 			ThreadId:                &threadId,
-			ParticipantsIdentifiers: toStringArr(append(email.To, email.Cc...)),
+			ParticipantsIdentifiers: toParticipantArr(append(email.To, email.Cc...)),
 		}
 		//Store the message in message store
 		msConn := util.GetMessageStoreConnection(c, df)
@@ -168,6 +168,17 @@ func toStringArr(from []*mail.Address) []string {
 	var to []string
 	for _, a := range from {
 		to = append(to, a.Address)
+	}
+	return to
+}
+
+func toParticipantArr(from []*mail.Address) []*ms.ParticipantId {
+	var to []*ms.ParticipantId
+	for _, a := range from {
+		to = append(to, &ms.ParticipantId{
+			Type:       ms.ParticipantIdType_MAILTO,
+			Identifier: a.Address,
+		})
 	}
 	return to
 }
