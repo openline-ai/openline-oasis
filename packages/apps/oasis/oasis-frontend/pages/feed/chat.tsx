@@ -90,7 +90,7 @@ export const Chat = (props: ChatProps) => {
 
           if (feedItem.initiatorType === 'CONTACT') {
 
-            const query = gql`query GetContactDetails($email: String!) {
+            const queryMail = gql`query GetContactDetails($email: String!) {
                         contact_ByEmail(email: $email) {
                             id
                             firstName
@@ -103,44 +103,80 @@ export const Chat = (props: ChatProps) => {
                             }
                         }
                     }`
-
-            client.request(query, {email: feedItem.initiatorUsername}).then((response: any) => {
-              if (response.contact_ByEmail) {
-                setFeedInitiator({
-                  loaded: true,
-                  firstName: response.contact_ByEmail.firstName,
-                  lastName: response.contact_ByEmail.lastName,
-                  email: response.contact_ByEmail.emails[0]?.email ?? undefined,
-                  phoneNumber: response.contact_ByEmail.phoneNumbers[0]?.e164 ?? undefined
-                });
-              } else {
+            const queryPhone = gql`query GetContactDetails($phone: String!) {
+                      contact_ByPhone(e164: $phone) {
+                          id
+                          firstName
+                          lastName
+                          emails {
+                              email
+                          }
+                          phoneNumbers {
+                              e164
+                          }
+                      }
+                  }`
+            
+            
+            if (feedItem.initiatorUsername.type === 0) {     
+              client.request(queryMail, {email: feedItem.initiatorUsername.identifier}).then((response: any) => {
+                if (response.contact_ByEmail) {
+                  setFeedInitiator({
+                    loaded: true,
+                    firstName: response.contact_ByEmail.firstName,
+                    lastName: response.contact_ByEmail.lastName,
+                    email: response.contact_ByEmail.emails[0]?.email ?? undefined,
+                    phoneNumber: response.contact_ByEmail.phoneNumbers[0]?.e164 ?? undefined
+                  });
+                } else {
+                  //todo log on backend
+                  toast.error("There was a problem on our side and we are doing our best to solve it!");
+                }
+              }).catch(reason => {
                 //todo log on backend
                 toast.error("There was a problem on our side and we are doing our best to solve it!");
-              }
-            }).catch(reason => {
-              //todo log on backend
-              toast.error("There was a problem on our side and we are doing our best to solve it!");
-            });
-
+              });
+          } else if (feedItem.initiatorUsername.type === 1) {
+              client.request(queryPhone, {phone: feedItem.initiatorUsername.identifier}).then((response: any) => {
+                if (response.contact_ByPhone) {
+                  setFeedInitiator({
+                    loaded: true,
+                    firstName: response.contact_ByPhone.firstName,
+                    lastName: response.contact_ByPhone.lastName,
+                    email: response.contact_ByPhone.emails[0]?.email ?? undefined,
+                    phoneNumber: response.contact_ByPhone.phoneNumbers[0]?.e164 ?? undefined
+                  });
+                } else {
+                  //todo log on backend
+                  toast.error("There was a problem on our side and we are doing our best to solve it!");
+                }
+              }).catch(reason => {
+                //todo log on backend
+                toast.error("There was a problem on our side and we are doing our best to solve it!");
+              });
+            }
             //TODO move initiator in index
-          } else if (feedItem.initiatorUsername === 'USER') {
+          } else if (feedItem.initiatorType === 'USER') {
 
-            const query = gql`query GetUserById {
-                        user(id: "${feedItem.initiatorUsername}") {
+            const query = gql`query GetUserDetails($email: String!)  {
+              user_ByEmail(email: $email) {
                             id
                             firstName
                             lastName
+                            emails {
+                              email
+                          }
                         }
                     }`
 
-            client.request(query).then((response: any) => {
-              if (response.user) {
+            client.request(query, {email: feedItem.initiatorUsername.identifier}).then((response: any) => {
+              if (response.user_ByEmail) {
                 setFeedInitiator({
                   loaded: true,
-                  firstName: response.user.firstName,
-                  lastName: response.user.lastName,
-                  email: response.user.emails[0]?.email ?? undefined,
-                  phoneNumber: response.user.phoneNumbers[0]?.e164 ?? undefined //TODO user doesn't have phone in backend
+                  firstName: response.user_ByEmail.firstName,
+                  lastName: response.user_ByEmail.lastName,
+                  email: response.user_ByEmail.emails[0]?.email ?? "undefined",
+                  phoneNumber:  '' //TODO user doesn't have phone in backend
                 });
               } else {
                 //TODO log on backend
@@ -148,7 +184,7 @@ export const Chat = (props: ChatProps) => {
               }
             }).catch(reason => {
               //TODO log on backend
-              toast.error("There was a problem on our side and we are doing our best to solve it!");
+              toast.error("There was a problem on our side and we are doing our best to solve it! " + reason);
             });
 
           }
@@ -236,7 +272,7 @@ export const Chat = (props: ChatProps) => {
   const handleWebsocketMessage = function (msg: any) {
     let newMsg: ConversationItem = {
       content: msg.content,
-      senderUsername: msg.SenderUserName,
+      senderUsername: msg.SenderUserName.identifier,
       type: msg.Type,
       time: msg.time,
       messageId: msg.messageId,
@@ -394,7 +430,7 @@ export const Chat = (props: ChatProps) => {
                       (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                       <div className="w-full flex">
                         <div className="flex-grow-1"></div>
-                        <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername}</div>
+                        <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername.identifier}</div>
                       </div>
                     }
 
