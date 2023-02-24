@@ -109,7 +109,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		}
 
 		if conf.WebChat.SlackWebhookUrl != "" {
-			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", *message.InitiatorIdentifier, *message.Content)}
+			values := map[string]string{"text": fmt.Sprintf("Message arrived from: %s\n%s", message.InitiatorIdentifier.Identifier, *message.Content)}
 			json_data, _ := json.Marshal(values)
 
 			http.Post(conf.WebChat.SlackWebhookUrl, "application/json", bytes.NewBuffer(json_data))

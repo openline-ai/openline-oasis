@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	cr "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository"
@@ -29,7 +30,7 @@ func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *Fe
 
 	route := router.Group("/")
 	route.Use(service.ApiKeyCheckerHTTP(commonRepositories.AppKeyRepo, service.OASIS_API))
-	route.Use(service.UserToTenantEnhancer(commonRepositories.UserRepo))
+	route.Use(service.UserToTenantEnhancer(context.Background(), commonRepositories.UserRepo))
 
 	df := util.MakeDialFactory(conf)
 	addFeedRoutes(route, conf, df)
