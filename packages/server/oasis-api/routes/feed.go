@@ -12,8 +12,11 @@ import (
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type FeedPostRequest struct {
@@ -158,6 +161,32 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 			return
 		}
 
+		limit := c.Query("limit")
+		limitInt := 100
+		if limit != "" {
+			limitInt, _ = strconv.Atoi(limit)
+		}
+		beforeStr := c.Query("before")
+		var before *time.Time = nil
+		if beforeStr != "" {
+			beforeTime, err := time.Parse(time.RFC3339, beforeStr)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err.Error()})
+				return
+			}
+			before = &beforeTime
+		}
+
+		var page *msProto.PageInfo = nil
+		if before != nil || limitInt != 100 {
+			page = &msProto.PageInfo{
+				PageSize: int32(limitInt),
+			}
+			if before != nil {
+				page.Before = timestamppb.New(*before)
+			}
+		}
+
 		msConn := util.GetMessageStoreConnection(c, df)
 		defer util.CloseMessageStoreConnection(msConn)
 		msClient := msProto.NewMessageStoreServiceClient(msConn)
@@ -167,7 +196,10 @@ func addFeedRoutes(rg *gin.RouterGroup, conf *c.Config, df util.DialFactory) {
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
 		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-IDENTITY-ID", c.GetHeader("X-Openline-IDENTITY-ID"))
 
-		request := msProto.FeedId{Id: feedId.ID}
+		request := msProto.PagedMessages{
+			Feed: &msProto.FeedId{Id: feedId.ID},
+			Page: page,
+		}
 		messages, err := msClient.GetMessagesForFeed(ctx, &request)
 		log.Printf("Got the list of messages!")
 		if err != nil {
