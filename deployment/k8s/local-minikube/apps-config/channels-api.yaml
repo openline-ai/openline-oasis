@@ -66,3 +66,5 @@ spec:
               value: "nobody-will-guess-this-api-key"
             - name: WEBSOCKET_PING_INTERVAL
               value: "30"              
+            - name: VCON_API_KEY
+              value: "92c04073-17c3-4e91-8326-516bbd0750a4"   
