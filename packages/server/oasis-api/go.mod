@@ -16,7 +16,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/neo4j/neo4j-go-driver/v5 v5.6.0
 	github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module v0.0.0-20230224070623-1ee831af6e27
-	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302133502-a9436f416330
+	github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302181459-91b0c2d30954
 	github.com/openline-ai/openline-oasis/packages/server/channels-api v0.0.0-00010101000000-000000000000
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2

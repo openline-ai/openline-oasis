@@ -135,6 +135,8 @@ github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0
 github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230228145003-500e24bb4af4/go.mod h1:BRWiGS6/ialIuEWkl4tbe4E/ByCrkgXLEY/Rn5pliSQ=
 github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302133502-a9436f416330 h1:jOXeHaQ2lIW2DeURdn/jKD1xrDsqE4D2Bah8lIJHYvs=
 github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302133502-a9436f416330/go.mod h1:5gVoqpJ2mgt7rwhbvoiaOd6xfAvgNojiQNEV6HxKZeI=
+github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302181459-91b0c2d30954 h1:FPqQP08DzfeE0P8P8f54Cb6j3ovEwHvCklsZveNvTHQ=
+github.com/openline-ai/openline-customer-os/packages/server/message-store-api v0.0.0-20230302181459-91b0c2d30954/go.mod h1:xJlqBPycPE3pGDh7m6QaDmILIhRbPQSkjNzk5/Ca18w=
 github.com/ory/client-go v1.1.7 h1:4G4MxLIx6MgGxgJW7tPAnobAepEuVI4cBJy3ZiGzzpA=
 github.com/ory/client-go v1.1.7/go.mod h1:Qy3agsDTPIbhl5UYjnTF+VbTL1vQw14LQaWut43+ROM=
 github.com/pelletier/go-toml/v2 v2.0.1/go.mod h1:r9LEWfGN8R5k0VXJ+0BkIe7MYkRdwZOjgMj2KwnJFUo=
