@@ -61,14 +61,12 @@ func (h *MessageHub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Printf("Unable to marchal message for feed: %s", message.FeedId)
 			for client := range h.Clients {
-				log.Printf("Unable to marchal message for feed: %s", message.FeedId)
 				if client.feedId == message.FeedId {
 					byteMsg, err := json.Marshal(message.Message)
 					if err != nil {
-						log.Printf("Unable to marchal message for feed: %s", message.FeedId)
-						return
+						log.Printf("MessageHub: Unable to marchal message for feed: %s reason: %s", message.FeedId, err)
+						continue
 					}
 					select {
 					case client.send <- byteMsg:

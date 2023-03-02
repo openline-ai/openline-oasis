@@ -61,14 +61,12 @@ func (h *ContactHub) Run() {
 				close(client.send)
 			}
 		case message := <-h.Broadcast:
-			log.Printf("Unable to marchal message for feed: %s", message.ContactId)
 			for client := range h.Clients {
-				log.Printf("Unable to marchal message for feed: %s", message.ContactId)
 				if client.feedId == message.ContactId {
 					byteMsg, err := json.Marshal(message.Message)
 					if err != nil {
-						log.Printf("Unable to marchal message for feed: %s", message.ContactId)
-						return
+						log.Printf("Unable to marchal message for contact: %s, reason: %s", message.ContactId, err)
+						continue
 					}
 					select {
 					case client.send <- byteMsg:

@@ -62,11 +62,12 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 
 	participants, err := client.GetParticipantIds(ctx, &msProto.FeedId{Id: newMessage.GetConversationId()})
 	if err != nil {
-		log.Printf("Unable to connect to retrieve participants!")
+		log.Printf("Unable to connect to retrieve participants! feed:%s reason: %s", newMessage.GetConversationId(), err)
 		return nil, err
 	}
 
 	for _, participant := range participants.Participants {
+		log.Printf("Broadcasting to participant %s", participant.Id)
 		contactItem := ContactHub.ContactEvent{
 			ContactId: participant.Id,
 			Message:   conversationItem,
