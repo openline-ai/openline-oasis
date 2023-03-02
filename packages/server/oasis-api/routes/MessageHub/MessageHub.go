@@ -2,6 +2,7 @@ package MessageHub
 
 import (
 	"encoding/json"
+	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	"log"
 )
 
@@ -10,14 +11,9 @@ type Time struct {
 	Nanos   string `json:"nanos"`
 }
 
-type MessageItem struct {
-	Username  string `json:"username"`
-	FeedId    string `json:"feedId"`
-	Id        string `json:"id"`
-	Direction string `json:"direction"`
-	Message   string `json:"message"`
-	Time      Time   `json:"time"`
-	Channel   string `json:"channel"`
+type MessageEvent struct {
+	FeedId  string           `json:"feedId"`
+	Message *msProto.Message `json:"message"`
 }
 
 // MessageHub Hub maintains the set of active clients and broadcasts messages to the
@@ -27,7 +23,7 @@ type MessageHub struct {
 	Clients map[*MessageClient]bool
 
 	// Inbound messages from the clients.
-	Broadcast chan MessageItem
+	Broadcast chan MessageEvent
 
 	// Register requests from the clients.
 	Register chan *MessageClient
@@ -40,7 +36,7 @@ type MessageHub struct {
 
 func NewMessageHub() *MessageHub {
 	return &MessageHub{
-		Broadcast:  make(chan MessageItem),
+		Broadcast:  make(chan MessageEvent),
 		Register:   make(chan *MessageClient),
 		unregister: make(chan *MessageClient),
 		Clients:    make(map[*MessageClient]bool),
@@ -69,9 +65,9 @@ func (h *MessageHub) Run() {
 			for client := range h.Clients {
 				log.Printf("Unable to marchal message for feed: %s", message.FeedId)
 				if client.feedId == message.FeedId {
-					byteMsg, err := json.Marshal(message)
+					byteMsg, err := json.Marshal(message.Message)
 					if err != nil {
-						log.Printf("Unable to marchal message for feed: %s", message.Username)
+						log.Printf("Unable to marchal message for feed: %s", message.FeedId)
 						return
 					}
 					select {
