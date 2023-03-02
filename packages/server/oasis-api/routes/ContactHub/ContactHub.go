@@ -1,4 +1,4 @@
-package MessageHub
+package ContactHub
 
 import (
 	"encoding/json"
@@ -11,40 +11,40 @@ type Time struct {
 	Nanos   string `json:"nanos"`
 }
 
-type MessageEvent struct {
-	FeedId  string           `json:"feedId"`
-	Message *msProto.Message `json:"message"`
+type ContactEvent struct {
+	ContactId string           `json:"feedId"`
+	Message   *msProto.Message `json:"message"`
 }
 
-// MessageHub Hub maintains the set of active clients and broadcasts messages to the
+// ContactHub Hub maintains the set of active clients and broadcasts messages to the
 // clients.
-type MessageHub struct {
+type ContactHub struct {
 	// Registered clients.
-	Clients map[*MessageClient]bool
+	Clients map[*ContactClient]bool
 
 	// Inbound messages from the clients.
-	Broadcast chan MessageEvent
+	Broadcast chan ContactEvent
 
 	// Register requests from the clients.
-	Register chan *MessageClient
+	Register chan *ContactClient
 
 	// Unregister requests from clients.
-	unregister chan *MessageClient
+	unregister chan *ContactClient
 
 	Quit chan bool
 }
 
-func NewMessageHub() *MessageHub {
-	return &MessageHub{
-		Broadcast:  make(chan MessageEvent),
-		Register:   make(chan *MessageClient),
-		unregister: make(chan *MessageClient),
-		Clients:    make(map[*MessageClient]bool),
+func NewContactHub() *ContactHub {
+	return &ContactHub{
+		Broadcast:  make(chan ContactEvent),
+		Register:   make(chan *ContactClient),
+		unregister: make(chan *ContactClient),
+		Clients:    make(map[*ContactClient]bool),
 		Quit:       make(chan bool),
 	}
 }
 
-func (h *MessageHub) Run() {
+func (h *ContactHub) Run() {
 	for {
 		select {
 		case quit := <-h.Quit:
@@ -62,10 +62,10 @@ func (h *MessageHub) Run() {
 			}
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
-				if client.feedId == message.FeedId {
+				if client.feedId == message.ContactId {
 					byteMsg, err := json.Marshal(message.Message)
 					if err != nil {
-						log.Printf("MessageHub: Unable to marchal message for feed: %s reason: %s", message.FeedId, err)
+						log.Printf("Unable to marchal message for contact: %s, reason: %s", message.ContactId, err)
 						continue
 					}
 					select {

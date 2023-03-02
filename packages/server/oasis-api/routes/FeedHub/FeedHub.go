@@ -55,8 +55,8 @@ func (h *FeedHub) Run() {
 			for client := range h.Clients {
 				byteMsg, err := json.Marshal(message)
 				if err != nil {
-					log.Printf("Unable to marchal feed")
-					return
+					log.Printf("FeedHub: Unable to marchal feed %s", err)
+					continue
 				}
 				select {
 				case client.send <- byteMsg:
