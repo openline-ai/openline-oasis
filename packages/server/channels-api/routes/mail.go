@@ -26,6 +26,7 @@ type MailPostRequest struct {
 	RawMessage string `json:"rawMessage"`
 	Subject    string `json:"subject"`
 	ApiKey     string `json:"api-key"`
+	Tenant     string `json:"X-Openline-TENANT"`
 }
 
 type EmailContent struct {
@@ -120,7 +121,8 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
-		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, email.To[0].Address)
+		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, email.From[0].Address)
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-TENANT", req.Tenant)
 
 		savedMessage, err := msClient.SaveMessage(ctx, message)
 		if err != nil {
