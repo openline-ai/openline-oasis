@@ -92,19 +92,20 @@ func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		for i, p := range req.Parties {
 			participants[i] = encodePartyToParticipantId(&p)
 		}
-		initator := getInitator(&req)
-		if initator == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"result": "malformed vCon document!",
-			})
-			return
-		}
+		/*
+			initator := getUser(&req)
+			if initator == nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"result": "malformed vCon document!",
+				})
+				return
+			}*/
 		message := &ms.InputMessage{
 			Type:                    ms.MessageType_VOICE,
 			Subtype:                 ms.MessageSubtype_MESSAGE,
 			Content:                 &req.Dialog[0].Body,
 			Direction:               getDirection(&req),
-			InitiatorIdentifier:     initator,
+			InitiatorIdentifier:     encodePartyToParticipantId(&req.Parties[0]),
 			ThreadId:                &threadId,
 			ParticipantsIdentifiers: participants,
 		}
