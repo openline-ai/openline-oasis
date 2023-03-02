@@ -5,6 +5,7 @@ import (
 	"errors"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
 	op "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/ContactHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
@@ -18,6 +19,7 @@ type OasisApiService struct {
 	df util.DialFactory
 	mh *MessageHub.MessageHub
 	fh *FeedHub.FeedHub
+	ch *ContactHub.ContactHub
 }
 
 func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMessage) (*op.OasisEmpty, error) {
@@ -57,14 +59,31 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 	}
 
 	s.mh.Broadcast <- messageItem
+
+	participants, err := client.GetParticipantIds(ctx, &msProto.FeedId{Id: newMessage.GetConversationId()})
+	if err != nil {
+		log.Printf("Unable to connect to retrieve participants!")
+		return nil, err
+	}
+
+	for _, participant := range participants.Participants {
+		contactItem := ContactHub.ContactEvent{
+			ContactId: participant.Id,
+			Message:   conversationItem,
+		}
+
+		s.ch.Broadcast <- contactItem
+	}
+
 	log.Printf("successfully sent new message for %s", conversationItem.SenderUsername)
 	return &op.OasisEmpty{}, nil
 }
 
-func NewOasisApiService(df util.DialFactory, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) *OasisApiService {
+func NewOasisApiService(df util.DialFactory, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub, ch *ContactHub.ContactHub) *OasisApiService {
 	ms := new(OasisApiService)
 	ms.df = df
 	ms.fh = fh
 	ms.mh = mh
+	ms.ch = ch
 	return ms
 }

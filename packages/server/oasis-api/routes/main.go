@@ -7,6 +7,7 @@ import (
 	cr "github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/repository"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/ContactHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
@@ -15,7 +16,7 @@ import (
 )
 
 // Run will start the server
-func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub) {
+func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *FeedHub.FeedHub, mh *MessageHub.MessageHub, ch *ContactHub.ContactHub) {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
@@ -39,7 +40,7 @@ func ConfigureRoutes(conf *c.Config, commonRepositories *cr.Repositories, fh *Fe
 
 	// TODO: a different typ of auth for websockets
 	route2 := router.Group("/")
-	AddWebSocketRoutes(route2, fh, mh, conf.WebRTC.PingInterval)
+	AddWebSocketRoutes(route2, fh, mh, ch, conf.WebRTC.PingInterval)
 
 	// no api key (or cors) for health check
 	route3 := router.Group("/")

@@ -11,6 +11,7 @@ import (
 	c "github.com/openline-ai/openline-oasis/packages/server/oasis-api/config"
 	proto "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes"
+	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/ContactHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/service"
@@ -60,12 +61,15 @@ func main() {
 	mh := MessageHub.NewMessageHub()
 	go mh.Run()
 
+	ch := ContactHub.NewContactHub()
+	go ch.Run()
+
 	// Our server will live in the routes package
-	go routes.ConfigureRoutes(conf, commonRepositories, fh, mh) // run this as a background goroutine
+	go routes.ConfigureRoutes(conf, commonRepositories, fh, mh, ch) // run this as a background goroutine
 
 	// Initialize the generated User service.
 	df := util.MakeDialFactory(conf)
-	svc := service.NewOasisApiService(df, fh, mh)
+	svc := service.NewOasisApiService(df, fh, mh, ch)
 
 	log.Printf("Attempting to start GRPC server")
 	// Create a new gRPC server (you can wire multiple services to a single server).
