@@ -40,7 +40,8 @@ exports.handler = function(event, context, callback) {
                     sender: sesNotification.mail.commonHeaders['from'][0],
                     rawMessage: body,
                     subject: sesNotification.mail.commonHeaders['subject'],
-                    'api-key': process.env.OL_API_KEY
+                    'api-key': process.env.OL_API_KEY,
+                    'X-Openline-TENANT': process.env.OL_TENANT_NAME
                 });
                 console.log(mailData);
                 const options = {

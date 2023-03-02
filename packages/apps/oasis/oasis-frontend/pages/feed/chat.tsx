@@ -399,7 +399,7 @@ export const Chat = (props: ChatProps) => {
                         borderRadius: '5px',
                         boxShadow: '0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0 1px 3px 0 rgb(0 0 0 / 12%)'
                       }}>
-                        {decodeChannel(msg.type) == 'Email' ?
+                        {decodeChannel(msg.type) == 'Email' && JSON.parse(msg.content)?.html != ""?
                           <div className={"text-overflow-ellipsis {min-height: 40px; & * {margin-bottom: 2px;}}"}
                                dangerouslySetInnerHTML={{__html: sanitizeHtml(JSON.parse(msg.content).html)}}></div> :
                           <div className="flex">{msg.content}</div>
