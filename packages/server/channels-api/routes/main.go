@@ -38,6 +38,7 @@ func getRouter(conf *c.Config, fh *chatHub.Hub, oauthConfig *oauth2.Config) *gin
 	addMailRoutes(conf, df, route)
 	AddWebSocketRoutes(route, fh, conf.WebChat.PingInterval)
 	AddWebChatRoutes(conf, df, route)
+	AddVconRoutes(conf, df, route)
 	route2 := router.Group("/")
 
 	addHealthRoutes(route2)

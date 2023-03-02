@@ -196,7 +196,7 @@ export const Chat = (props: ChatProps) => {
 
       axios.get(`/oasis-api/feed/${props.feedId}/item`)
         .then(res => {
-          setMessages(res.data ?? []);
+          setMessages(res.data.reverse() ?? []);
         }).catch((reason: any) => {
         //todo log on backend
         toast.error("There was a problem on our side and we are doing our best to solve it!");
@@ -270,19 +270,7 @@ export const Chat = (props: ChatProps) => {
   };
 
   const handleWebsocketMessage = function (msg: any) {
-    let newMsg: ConversationItem = {
-      content: msg.content,
-      senderUsername: msg.SenderUserName.identifier,
-      type: msg.Type,
-      time: msg.time,
-      messageId: msg.messageId,
-      direction: msg.direction == "OUTBOUND" ? 1 : 0,
-      subtype: 0,
-      senderType: 0,
-      senderId: ""
-    };
-
-    setMessages((messageList: any) => [...messageList, newMsg]);
+    setMessages((messageList: any) => [...messageList, msg]);
   }
 
   const showParticipants = () => {
@@ -383,12 +371,7 @@ export const Chat = (props: ChatProps) => {
                       (index == 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                       <div className="mb-1 pl-3">
                         {
-                          feedInitiator.firstName && feedInitiator.lastName &&
-                          <>{feedInitiator.firstName} {feedInitiator.lastName}</>
-                        }
-                        {
-                          !feedInitiator.firstName && !feedInitiator.lastName &&
-                          <>{feedInitiator.email}</>
+                          <>{msg.senderUsername.identifier}</>
                         }
                       </div>
                     }
@@ -399,7 +382,7 @@ export const Chat = (props: ChatProps) => {
                         borderRadius: '5px',
                         boxShadow: '0 2px 1px -1px rgb(0 0 0 / 20%), 0 1px 1px 0 rgb(0 0 0 / 14%), 0 1px 3px 0 rgb(0 0 0 / 12%)'
                       }}>
-                        {decodeChannel(msg.type) == 'Email' ?
+                        {decodeChannel(msg.type) == 'Email' && JSON.parse(msg.content)?.html != ""?
                           <div className={"text-overflow-ellipsis {min-height: 40px; & * {margin-bottom: 2px;}}"}
                                dangerouslySetInnerHTML={{__html: sanitizeHtml(JSON.parse(msg.content).html)}}></div> :
                           <div className="flex">{msg.content}</div>
@@ -427,7 +410,7 @@ export const Chat = (props: ChatProps) => {
                   <>
 
                     {
-                      (index === 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
+                      (index == 0 || (index > 0 && messages[index - 1].direction !== messages[index].direction)) &&
                       <div className="w-full flex">
                         <div className="flex-grow-1"></div>
                         <div className="flex-grow-0 mb-1 pr-3">{msg.senderUsername.identifier}</div>

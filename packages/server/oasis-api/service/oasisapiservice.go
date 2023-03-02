@@ -3,15 +3,12 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	msProto "github.com/openline-ai/openline-customer-os/packages/server/message-store-api/proto/generated"
-	"google.golang.org/grpc/metadata"
-	"strconv"
-
 	op "github.com/openline-ai/openline-oasis/packages/server/oasis-api/proto/generated"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/FeedHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/routes/MessageHub"
 	"github.com/openline-ai/openline-oasis/packages/server/oasis-api/util"
+	"google.golang.org/grpc/metadata"
 	"log"
 	//"strconv"
 )
@@ -49,24 +46,14 @@ func (s OasisApiService) NewMessageEvent(c context.Context, newMessage *op.NewMe
 		return nil, err
 	}
 
-	time := MessageHub.Time{
-		Seconds: strconv.FormatInt(conversationItem.Time.Seconds, 10),
-		Nanos:   fmt.Sprint(conversationItem.Time.Nanos),
-	}
-
 	reloadFeed := FeedHub.ReloadFeed{}
 	s.fh.Broadcast <- reloadFeed
 	log.Printf("successfully sent new feed for %v", reloadFeed)
 
 	// Send a message to hub
-	messageItem := MessageHub.MessageItem{
-		Username:  conversationItem.SenderUsername.Identifier, // don't care about the type as it is just for display
-		Id:        conversationItem.MessageId.ConversationEventId,
-		FeedId:    conversation.Id,
-		Direction: conversationItem.Direction.String(),
-		Message:   conversationItem.Content,
-		Time:      time,
-		Channel:   "1", //TODO
+	messageItem := MessageHub.MessageEvent{
+		FeedId:  conversation.Id,
+		Message: conversationItem,
 	}
 
 	s.mh.Broadcast <- messageItem

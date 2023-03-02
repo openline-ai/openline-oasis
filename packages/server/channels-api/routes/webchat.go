@@ -86,6 +86,7 @@ func AddWebChatRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) 
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
 		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, c.GetHeader(service.UsernameHeader))
+		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-TENANT", "openline")
 
 		savedMessage, err := msClient.SaveMessage(ctx, message)
 		if err != nil {
