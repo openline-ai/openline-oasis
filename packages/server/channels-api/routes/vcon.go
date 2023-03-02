@@ -47,6 +47,18 @@ func getInitator(req *model.VCon) *ms.ParticipantId {
 	return encodePartyToParticipantId(&req.Parties[req.Dialog[0].Parties[0]])
 }
 
+func getDirection(req *model.VCon) ms.MessageDirection {
+	initator := getInitator(req)
+	if initator == nil {
+		return ms.MessageDirection_INBOUND
+	}
+
+	if initator.Type == ms.ParticipantIdType_MAILTO {
+		return ms.MessageDirection_OUTBOUND
+	}
+	return ms.MessageDirection_INBOUND
+}
+
 func getUser(req *model.VCon) string {
 
 	for _, p := range req.Parties {
@@ -80,12 +92,19 @@ func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		for i, p := range req.Parties {
 			participants[i] = encodePartyToParticipantId(&p)
 		}
+		initator := getInitator(&req)
+		if initator == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": "malformed vCon document!",
+			})
+			return
+		}
 		message := &ms.InputMessage{
 			Type:                    ms.MessageType_VOICE,
 			Subtype:                 ms.MessageSubtype_MESSAGE,
 			Content:                 &req.Dialog[0].Body,
-			Direction:               ms.MessageDirection_INBOUND,
-			InitiatorIdentifier:     getInitator(&req),
+			Direction:               getDirection(&req),
+			InitiatorIdentifier:     initator,
 			ThreadId:                &threadId,
 			ParticipantsIdentifiers: participants,
 		}

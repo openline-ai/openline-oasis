@@ -260,7 +260,7 @@ export const Chat = (props: ChatProps) => {
     axios.post(`/oasis-api/feed/${props.feedId}/item`, message).then(res => {
       console.log(res)
       if (res.data) {
-        setMessages((messageList: any) => [...messageList, res.data]);
+        setMessages((messageList: any) => [res.data, ...messageList]);
         setCurrentText('');
       }
     }).catch(reason => {
@@ -282,7 +282,7 @@ export const Chat = (props: ChatProps) => {
       senderId: ""
     };
 
-    setMessages((messageList: any) => [...messageList, newMsg]);
+    setMessages((messageList: any) => [newMsg, ...messageList]);
   }
 
   const showParticipants = () => {
@@ -363,7 +363,7 @@ export const Chat = (props: ChatProps) => {
         <div className="flex flex-column">
           {
             !loadingMessages &&
-            messages.map((msg: ConversationItem, index: any) => {
+            messages.reverse().map((msg: ConversationItem, index: any) => {
               let lines = msg.content.split('\n');
 
               let filtered: string[] = lines.filter(function (line: string) {
