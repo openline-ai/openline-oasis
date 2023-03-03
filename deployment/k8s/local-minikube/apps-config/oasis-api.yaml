@@ -62,7 +62,7 @@ spec:
             - name: CHANNELS_API_URL
               value: "channels-api-service.openline.svc.cluster.local:9013"
             - name: CORS_URL
-              value: "http://localhost:3006"
+              value: "http://localhost:3006 http://localhost:3001"
             - name: OASIS_GRPC_PORT
               value: "9006"
             - name: OASIS_API_SERVER_ADDRESS
