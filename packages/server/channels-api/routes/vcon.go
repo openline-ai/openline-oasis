@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
@@ -32,10 +33,15 @@ func encodePartyToParticipantId(party *model.VConParty) *ms.ParticipantId {
 }
 
 func getInitator(req *model.VCon) *ms.ParticipantId {
-	if len(req.Dialog) == 0 {
+	if len(req.Parties) == 0 {
 		return nil
 	}
-	if len(req.Parties) == 0 {
+
+	if len(req.Analysis) != 0 {
+		return encodePartyToParticipantId(&req.Parties[0])
+	}
+
+	if len(req.Dialog) == 0 {
 		return nil
 	}
 	if len(req.Dialog[0].Parties) == 0 {
@@ -69,6 +75,22 @@ func getUser(req *model.VCon) string {
 	return ""
 }
 
+type VConEvent struct {
+	Dialog   *model.VConDialog   `json:"dialog,omitempty"`
+	Analysis *model.VConAnalysis `json:"analysis,omitempty"`
+}
+
+func makeMessage(req *model.VCon) *VConEvent {
+	res := &VConEvent{}
+	if req.Dialog != nil && len(req.Dialog) > 0 {
+		res.Dialog = &req.Dialog[0]
+	}
+	if req.Analysis != nil && len(req.Analysis) > 0 {
+		res.Analysis = &req.Analysis[0]
+	}
+	return res
+}
+
 func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 	rg.POST("/vcon", func(c *gin.Context) {
 		var req model.VCon
@@ -99,10 +121,19 @@ func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			})
 			return
 		}
+		contentObject := makeMessage(&req)
+		content, err := json.Marshal(contentObject)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("unable to marshal json: %v", err.Error()),
+			})
+			return
+		}
+		contentStr := string(content)
 		message := &ms.InputMessage{
 			Type:                    ms.MessageType_VOICE,
 			Subtype:                 ms.MessageSubtype_MESSAGE,
-			Content:                 &req.Dialog[0].Body,
+			Content:                 &contentStr,
 			Direction:               getDirection(&req),
 			InitiatorIdentifier:     initator,
 			ThreadId:                &threadId,
