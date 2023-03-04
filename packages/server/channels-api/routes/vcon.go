@@ -36,7 +36,7 @@ func getInitator(req *model.VCon) *ms.ParticipantId {
 	if len(req.Parties) == 0 {
 		return nil
 	}
-	
+
 	if len(req.Analysis) != 0 {
 		return encodePartyToParticipantId(&req.Parties[0])
 	}
@@ -76,17 +76,17 @@ func getUser(req *model.VCon) string {
 }
 
 type VConEvent struct {
-	dialog   *model.VConDialog   `json:"dialog,omitempty"`
-	analysis *model.VConAnalysis `json:"analysis,omitempty"`
+	Dialog   *model.VConDialog   `json:"dialog,omitempty"`
+	Analysis *model.VConAnalysis `json:"analysis,omitempty"`
 }
 
 func makeMessage(req *model.VCon) *VConEvent {
 	res := &VConEvent{}
 	if req.Dialog != nil && len(req.Dialog) > 0 {
-		res.dialog = &req.Dialog[0]
+		res.Dialog = &req.Dialog[0]
 	}
 	if req.Analysis != nil && len(req.Analysis) > 0 {
-		res.analysis = &req.Analysis[0]
+		res.Analysis = &req.Analysis[0]
 	}
 	return res
 }
