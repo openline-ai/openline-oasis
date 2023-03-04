@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/openline-ai/openline-customer-os/packages/server/customer-os-common-module/service"
@@ -69,6 +70,22 @@ func getUser(req *model.VCon) string {
 	return ""
 }
 
+type VConEvent struct {
+	dialog   *model.VConDialog   `json:"dialog,omitempty"`
+	analysis *model.VConAnalysis `json:"analysis,omitempty"`
+}
+
+func makeMessage(req *model.VCon) *VConEvent {
+	res := &VConEvent{}
+	if req.Dialog != nil && len(req.Dialog) > 0 {
+		res.dialog = &req.Dialog[0]
+	}
+	if req.Analysis != nil && len(req.Analysis) > 0 {
+		res.analysis = &req.Analysis[0]
+	}
+	return res
+}
+
 func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 	rg.POST("/vcon", func(c *gin.Context) {
 		var req model.VCon
@@ -99,10 +116,19 @@ func AddVconRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 			})
 			return
 		}
+		contentObject := makeMessage(&req)
+		content, err := json.Marshal(contentObject)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"result": fmt.Sprintf("unable to marshal json: %v", err.Error()),
+			})
+			return
+		}
+		contentStr := string(content)
 		message := &ms.InputMessage{
 			Type:                    ms.MessageType_VOICE,
 			Subtype:                 ms.MessageSubtype_MESSAGE,
-			Content:                 &req.Dialog[0].Body,
+			Content:                 &contentStr,
 			Direction:               getDirection(&req),
 			InitiatorIdentifier:     initator,
 			ThreadId:                &threadId,
