@@ -33,10 +33,15 @@ func encodePartyToParticipantId(party *model.VConParty) *ms.ParticipantId {
 }
 
 func getInitator(req *model.VCon) *ms.ParticipantId {
-	if len(req.Dialog) == 0 {
+	if len(req.Parties) == 0 {
 		return nil
 	}
-	if len(req.Parties) == 0 {
+	
+	if len(req.Analysis) != 0 {
+		return encodePartyToParticipantId(&req.Parties[0])
+	}
+
+	if len(req.Dialog) == 0 {
 		return nil
 	}
 	if len(req.Dialog[0].Parties) == 0 {
