@@ -76,6 +76,7 @@ func getUser(req *model.VCon) string {
 }
 
 type VConEvent struct {
+	Parties  []model.VConParty   `json:"parties,omitempty"`
 	Dialog   *model.VConDialog   `json:"dialog,omitempty"`
 	Analysis *model.VConAnalysis `json:"analysis,omitempty"`
 }
@@ -88,6 +89,7 @@ func makeMessage(req *model.VCon) *VConEvent {
 	if req.Analysis != nil && len(req.Analysis) > 0 {
 		res.Analysis = &req.Analysis[0]
 	}
+	res.Parties = req.Parties
 	return res
 }
 
