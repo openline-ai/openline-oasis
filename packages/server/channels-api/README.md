@@ -50,10 +50,10 @@ Additionally, you need to set up ory
 * set ORY_SERVER_URL to http:://localhost:4000
 
 
-## Setting up google email forwarding in development (ninja) environment
+## Setting up google email forwarding in dev environment
 1. Go to your gmail account settings. Click on the "Forwarding and POP/IMAP" tab.
 2. Click on the "Add a forwarding address" button.
-3. Enter openline@cos-mail.openline.ninja and click "Next".
+3. Enter dev@getopenline.com and click "Next".
 4. Login into oasis and look for an email from forwarding-noreply@google.com
 5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
 6. Click "Save Changes" and you're done.
@@ -61,7 +61,7 @@ Additionally, you need to set up ory
 ## Setting up google email forwarding in prod environment
 1. Go to your gmail account settings. Click on the "Forwarding and POP/IMAP" tab.
 2. Click on the "Add a forwarding address" button.
-3. Enter openline@cos-mail.getopenline.com and click "Next".
+3. Enter openline@getopenline.com and click "Next".
 4. Login into oasis and look for an email from forwarding-noreply@google.com.
 5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
 6. Click "Save Changes" and you're done.
@@ -79,8 +79,23 @@ Ngrok and aws lambda are needed for this to work:
 On gmail:
 1. Go to your gmail account settings. Click on the "Forwarding and POP/IMAP" tab.
 2. Click on the "Add a forwarding address" button.
-3. Enter test@cos-mail.openline.ninja and click "Next".
+3. Enter local@getopenline.com and click "Next".
 4. Login into oasis and look for an email from forwarding-noreply@google.com
 5. Get the verification code, go back to gmail settings, input the code, click "Verify" and then "Proceed".
 6. Click "Save Changes" and you're done.
+
+## SES - LAMBDA - S3
+Naming convention:
+1. LAMBDA names: $tenant-$domain-sender: 
+   * openline-ai-sender,
+   * openline-dev-sender, 
+
+2. S3 bucket names: ses-$emailaddress: 
+   * ses-dev-getopenline-com, 
+   * ses-openline-getopenline-com
+3. SES rules: $emailaddress:
+    * dev-getopenline-com
+    * openline-getopenline-com
+
+Region: All of our forwarding infrastructure is in ireland eu-west-2
 
