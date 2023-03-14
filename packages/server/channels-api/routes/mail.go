@@ -121,7 +121,6 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 
 		ctx := context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, service.ApiKeyHeader, conf.Service.MessageStoreApiKey)
-		ctx = metadata.AppendToOutgoingContext(ctx, service.UsernameHeader, email.From[0].Address)
 		ctx = metadata.AppendToOutgoingContext(ctx, "X-Openline-TENANT", req.Tenant)
 
 		savedMessage, err := msClient.SaveMessage(ctx, message)
