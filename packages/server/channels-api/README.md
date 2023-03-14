@@ -88,8 +88,7 @@ On gmail:
 Naming convention:
 1. LAMBDA names: $tenant-$domain-sender: 
    * openline-ai-sender,
-   * openline-dev-sender,
-   * cgaspos-ai-sender, 
+   * openline-dev-sender, 
 
 2. S3 bucket names: ses-$emailaddress: 
    * ses-dev-getopenline-com, 
@@ -97,7 +96,6 @@ Naming convention:
 3. SES rules: $emailaddress:
     * dev-getopenline-com
     * openline-getopenline-com
-    * gaspos-getopenline-com
 
 Region: All of our forwarding infrastructure is in ireland eu-west-2
 
