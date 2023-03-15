@@ -79,7 +79,7 @@ func addMailRoutes(conf *c.Config, df util.DialFactory, rg *gin.RouterGroup) {
 		emailContent := EmailContent{
 			MessageId: ensureRfcId(email.MessageID),
 			Subject:   email.Subject,
-			Html:      email.HTMLBody,
+			Html:      firstNotEmpty(email.HTMLBody, email.TextBody),
 			From:      fromAddress,
 			To:        toStringArr(email.To),
 			Cc:        toStringArr(email.Cc),
@@ -182,4 +182,13 @@ func toParticipantArr(from []*mail.Address) []*ms.ParticipantId {
 		})
 	}
 	return to
+}
+
+func firstNotEmpty(input ...string) string {
+	for _, item := range input {
+		if item != "" {
+			return item
+		}
+	}
+	return ""
 }
